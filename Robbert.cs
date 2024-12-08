@@ -3,27 +3,23 @@ using Tokenizers.DotNet;
 
 namespace RobBERT_2023_BIAS;
 
-public class Prompter
+public class Robbert
 {
-    public Prompter()
+    public void Prompt(string input, int kCount)
     {
-        Run();
-    }
-
-    private void Run()
-    {
-        const int vocab_size = 50000;
+        // The size of the RobBERT-2023-large vocabulary is 50000, see tokenizer.json.  
+        const int vocabSize = 50000;
         
         var tokenizer = new Tokenizer(Path.Combine(Environment.CurrentDirectory, "Resources/RobBERT-2023-large/tokenizer.json"));
-        var tokens = tokenizer.Encode("De hoofdstad van België is <mask>.");
+        var tokens = tokenizer.Encode(input);
         
         var robbertInput = new RobbertInput()
         {
             InputIds = Array.ConvertAll(tokens, token => (long)token),
-            AttentionMask = Enumerable.Repeat((long)1, tokens.Length).ToArray(),
+            AttentionMask = Enumerable.Repeat((long)1, tokens.Length).ToArray() // All tokens given same attention for now.
         };
         
-        var model = new InferenceSession(Path.Combine(Environment.CurrentDirectory, "Resources/RobBERT-2023-large/model.onnx"));
+        var model = new InferenceSession(Path.Combine(Environment.CurrentDirectory, "Resources/RobBERT-2023-large/model.onnx")); // TODO: a new session does not need to be started every prompt obviously
         var runOptions = new RunOptions();
         
         using var inputOrt = OrtValue.CreateTensorValueFromMemory(robbertInput.InputIds, new long[] { 1, robbertInput.InputIds.Length });
@@ -39,10 +35,9 @@ public class Prompter
 
         var logits = output.First().GetTensorDataAsSpan<float>();
 
-        var maskLogits = logits.Slice(Array.IndexOf(tokens, (uint)4) * vocab_size, vocab_size).ToArray();
+        var maskLogits = logits.Slice(Array.IndexOf(tokens, (uint)4) * vocabSize, vocabSize).ToArray();
         var orderedMaskLogits = maskLogits.OrderDescending().ToArray();
 
-        const int kCount = 5;
         uint[] topK = new uint[kCount];
         for (var i = 0; i < kCount; i++)
         {
