@@ -20,7 +20,7 @@ public class Prompter
         var robbertInput = new RobbertInput()
         {
             InputIds = Array.ConvertAll(tokens, token => (long)token),
-            AttentionMask = Array.ConvertAll(tokens, token => (long)token),
+            AttentionMask = Enumerable.Repeat((long)1, tokens.Length).ToArray(),
         };
         
         var model = new InferenceSession(Path.Combine(Environment.CurrentDirectory, "Resources/RobBERT-2023-large/model.onnx"));
@@ -40,26 +40,17 @@ public class Prompter
         var logits = output.First().GetTensorDataAsSpan<float>();
 
         var maskLogits = logits.Slice(Array.IndexOf(tokens, (uint)4) * vocab_size, vocab_size).ToArray();
+        var orderedMaskLogits = maskLogits.OrderDescending().ToArray();
 
-        var predictedToken = tokenizer.Decode([(uint)Array.IndexOf(maskLogits, maskLogits.Max())]);
-        
-        Console.WriteLine(predictedToken);
-    }
-    
-    private int GetMaxValueIndex(ReadOnlySpan<float> span)
-    {
-        float maxVal = span[0];
-        int maxIndex = 0;
-        for (int i = 1; i < span.Length; i++)
+        const int kCount = 5;
+        uint[] topK = new uint[kCount];
+        for (var i = 0; i < kCount; i++)
         {
-            var v = span[i];
-            if (v > maxVal)
-            {
-                maxVal = v;
-                maxIndex = i;
-            }
+            topK[i] = (uint)Array.IndexOf(maskLogits, orderedMaskLogits[i]);
         }
 
-        return maxIndex;
+        var predictedToken = tokenizer.Decode(topK);
+        
+        Console.WriteLine(predictedToken);
     }
 }
