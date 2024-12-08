@@ -8,4 +8,19 @@
         <Nullable>enable</Nullable>
     </PropertyGroup>
 
+    <ItemGroup>
+      <PackageReference Include="Microsoft.ML.OnnxRuntime" Version="1.20.1" />
+      <PackageReference Include="Tokenizers.DotNet" Version="1.0.5" />
+      <PackageReference Include="Tokenizers.DotNet.runtime.win" Version="1.0.5" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <None Update="Resources\RobBERT-2023-large\tokenizer.json">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </None>
+      <None Update="Resources\RobBERT-2023-large\model.onnx">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </None>
+    </ItemGroup>
+
 </Project>
