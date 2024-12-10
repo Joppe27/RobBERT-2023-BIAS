@@ -2,10 +2,32 @@
 
 class Program
 {
-    static void Main(string[] args)
+    static void Main(string[] args) // TODO: replace all while loops with an actual UI that lets you switch instead of restarting the entire program
     {
-        int kCount = 0;
+        int kCount = -1;
 
+        if (args.Contains("--demojoujouw"))
+        {
+            var demoJouJouw = new DemoJouJouw();
+
+            while (true)
+            {
+                demoJouJouw.Run();
+            }
+            return;
+        }
+
+        if (args.Contains("--demobias"))
+        {
+            var demoBias = new DemoBias();
+
+            while (true)
+            {
+                demoBias.Run();
+            }
+            return;
+        }
+        
         if (args.Contains("--kcount"))
         {
             foreach (string arg in args)
@@ -13,7 +35,12 @@ class Program
                 int.TryParse(arg, out kCount);
             }
         }
-        
+
+        RunBasicMlm(kCount);
+    }
+
+    private static void RunBasicMlm(int kCount)
+    {
         var prompter = new Robbert();
 
         while (true)
@@ -35,7 +62,7 @@ class Program
                 }
             } while (invalidPrompt);
         
-            prompter.Prompt(prompt!, kCount == 0 ? 3 : kCount);
+            prompter.Prompt(prompt!, kCount == -1 ? 3 : kCount);
         }
     }
 }
