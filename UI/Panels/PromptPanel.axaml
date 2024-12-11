@@ -1,0 +1,18 @@
+﻿<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d" d:DesignWidth="400" d:DesignHeight="700"
+             x:Class="RobBERT_2023_BIAS.UI.Panels.PromptPanel">
+    <DockPanel LastChildFill="True" Margin="16">
+        <TextBox x:Name="PromptTextBox" DockPanel.Dock="Bottom" Text="Test"/>
+        <Grid ColumnDefinitions="Auto, Auto, *" DockPanel.Dock="Bottom" Background="White" Height="36" VerticalAlignment="Bottom" Margin="0, 16, 0, 8">
+            <Button Grid.Column="0" Classes="PurpleTheme" Click="MaskButton_OnClick">Insert mask</Button>
+            <Button Grid.Column="1" Classes="PurpleTheme" Click="PasteButton_OnClick" Margin="8, 0, 0, 0">Paste text</Button>
+            <Button Grid.Column="2" Classes="PurpleTheme" Foreground="White" Background="BlueViolet" FontWeight="Bold" HorizontalAlignment="Right" Click="SendButton_OnClick">Send</Button>
+        </Grid>
+        <ScrollViewer x:Name="ScrollViewer">
+            <StackPanel x:Name="ConversationPanel" VerticalAlignment="Bottom" Spacing="32"/>
+        </ScrollViewer>
+    </DockPanel>
+</UserControl>

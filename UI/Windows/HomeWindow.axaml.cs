@@ -1,5 +1,6 @@
 using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Interactivity;
 using Avalonia.Layout;
 using Avalonia.Markup.Xaml;
 using Avalonia.Media;
@@ -17,9 +18,16 @@ public partial class HomeWindow : Window
         
         FlexiblePanel.Children.Add(new HomePanel() { VerticalAlignment = VerticalAlignment.Stretch, HorizontalAlignment = HorizontalAlignment.Stretch });
 
+        FlexiblePanel.Children.CollectionChanged += (sender, args) =>
+        {
+            if (FlexiblePanel.Children.FirstOrDefault() is UserControl child)
+                MainMenuButton.IsVisible = child.GetType() != typeof(HomePanel);
+        };
+        
         LoadingIcon.Source = new Bitmap(AssetLoader.Open(new Uri("avares://RobBERT-2023-BIAS/Resources/UI/Icons/circle-notch-solid.png")));
         Animate();
         
+        // TODO: this is dumb
         async Task Animate()
         {
             int angle = 0;
@@ -43,5 +51,11 @@ public partial class HomeWindow : Window
 
         // LoadingIcon.Source = new Bitmap(AssetLoader.Open(new Uri("avares://RobBERT-2023-BIAS/Resources/UI/Icons/circle-check-regular.png")));
         // LoadingText.Text = "Ready";
+    }
+
+    private void MainMenuButton_OnClick(object? sender, RoutedEventArgs e)
+    {
+        FlexiblePanel.Children.Clear();
+        FlexiblePanel.Children.Add(new HomePanel());
     }
 }

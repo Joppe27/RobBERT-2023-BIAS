@@ -1,7 +1,7 @@
 ﻿using Microsoft.ML.OnnxRuntime;
 using Tokenizers.DotNet;
 
-namespace RobBERT_2023_BIAS;
+namespace RobBERT_2023_BIAS.Inference;
 
 public class Robbert
 {
