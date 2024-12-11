@@ -1,0 +1,16 @@
+<Application xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Class="RobBERT_2023_BIAS.App"
+             RequestedThemeVariant="Default">
+             <!-- "Default" ThemeVariant follows system theme variant. "Dark" or "Light" are other available options. -->
+
+    <Application.Styles>
+        <FluentTheme />
+        <Style Selector="Button.PurpleTheme">
+            <Setter Property="BorderBrush" Value="MediumPurple"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Background" Value="#fbf5ff"/>
+            <Setter Property="HorizontalContentAlignment" Value="Center"/>
+        </Style>
+    </Application.Styles>
+</Application>
