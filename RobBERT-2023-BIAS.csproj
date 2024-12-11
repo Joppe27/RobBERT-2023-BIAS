@@ -46,5 +46,8 @@
       <AvaloniaResource Include="Resources\UI\Icons\circle-check-regular.png" />
       <None Remove="Resources\UI\Icons\circle-notch-solid.png" />
       <AvaloniaResource Include="Resources\UI\Icons\circle-notch-solid.png" />
+      <None Remove="Resources\robbert_2023_logo.png" />
+      <None Remove="Resources\Icons\circle-notch-solid.png" />
+      <None Remove="Resources\Icons\circle-check-regular.png" />
     </ItemGroup>
 </Project>
