@@ -3,7 +3,7 @@ using Tokenizers.DotNet;
 
 namespace RobBERT_2023_BIAS.Inference;
 
-public class Robbert
+public class Robbert : IDisposable
 {
     private readonly InferenceSession _model = new(Path.Combine(Environment.CurrentDirectory, "Resources/RobBERT-2023-large/model.onnx"));
     private readonly RunOptions _runOptions = new();
@@ -46,5 +46,11 @@ public class Robbert
             answer.TryAdd(tokenizer.Decode([(uint)Array.IndexOf(maskLogits, orderedMaskLogits[i])]).Trim(), orderedMaskLogits[i]);
 
         return answer;
+    }
+
+    public void Dispose()
+    {
+        GC.SuppressFinalize(this);
+        _model.Dispose();
     }
 }

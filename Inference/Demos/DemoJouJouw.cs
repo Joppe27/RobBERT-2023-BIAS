@@ -2,12 +2,8 @@
 
 public class DemoJouJouw
 {
-    private readonly Robbert _robbert = new Robbert();
-    
-    public void Run()
+    public string Process(Robbert robbert, string userInput)
     {
-        string? userInput;
-        bool invalidInput;
         string modelPrompt = null!;
 
         string userPronoun = null!;
@@ -18,20 +14,6 @@ public class DemoJouJouw
         
         string modelPronoun = null!;
         float modelConfidence = -1;
-        
-        do
-        {
-            invalidInput = false;
-            
-            Console.WriteLine("Voer een zin in die één keer jou/jouw/u/uw bevat om het correct gebruik van het voornaamwoord te controleren:");
-            userInput = Console.ReadLine();
-
-            if (userInput == null || !possiblePronouns.Any(p => userInput.Contains(p, StringComparison.CurrentCultureIgnoreCase)))
-            {
-                invalidInput = true;
-                Console.WriteLine("Invoer ongeldig!");
-            }
-        } while (invalidInput);
 
         foreach (var pronoun in possiblePronouns)
         {
@@ -45,7 +27,7 @@ public class DemoJouJouw
         }
 
         // kCount hardcoded to 50 in order to make sure any of the pronouns is included in the model's output.
-        Dictionary<string, float> modelOutput = _robbert.Prompt(modelPrompt, 50);
+        Dictionary<string, float> modelOutput = robbert.Prompt(modelPrompt, 50);
 
         foreach (KeyValuePair<string, float> kvp in modelOutput)
         {
@@ -66,6 +48,6 @@ public class DemoJouJouw
         if (modelPronoun == null || modelConfidence < 0)
             throw new NullReferenceException();
         
-        Console.WriteLine($"Die zin is {(userPronoun.Equals(modelPronoun, StringComparison.CurrentCultureIgnoreCase) ? "juist" : "fout")}. Het correcte voornaamwoord hier is \"{modelPronoun}\" (met {Math.Round(modelConfidence, 2)}% zekerheid).");
+        return $"Die zin is {(userPronoun.Equals(modelPronoun, StringComparison.CurrentCultureIgnoreCase) ? "juist" : "fout")}. Het correcte voornaamwoord hier is \"{modelPronoun}\" (met {Math.Round(modelConfidence, 2)}% zekerheid).";
     }
 }

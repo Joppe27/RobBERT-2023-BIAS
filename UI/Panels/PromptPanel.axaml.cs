@@ -1,5 +1,6 @@
 ﻿using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Controls.Primitives;
 using Avalonia.Input.Platform;
 using Avalonia.Interactivity;
 using Avalonia.Layout;
@@ -7,16 +8,34 @@ using Avalonia.Markup.Xaml;
 using Avalonia.Media;
 using Avalonia.Threading;
 using RobBERT_2023_BIAS.Inference;
+using RobBERT_2023_BIAS.Inference.Demos;
 
 namespace RobBERT_2023_BIAS.UI.Panels;
 
 public partial class PromptPanel : UserControl
 {
     private readonly Robbert _robbert = new();
+    private readonly PromptMode _promptMode;
+    private readonly DemoJouJouw _demoProcessor = null!;
     
     public PromptPanel(PromptMode mode)
     {
         InitializeComponent();
+
+        _promptMode = mode;
+
+        if (_promptMode == PromptMode.DefaultMode)
+        {
+            PromptTextBox.Watermark = "Voer een prompt in (vergeet geen <mask>)";
+        }
+        else
+        {
+            _demoProcessor = new DemoJouJouw();
+            PromptTextBox.Watermark = "Voer een zin in die één voornaamwoord bevat";
+            InsertMaskButton.IsEnabled = false;
+        }
+
+        this.DetachedFromVisualTree += (sender, args) => _robbert.Dispose();
     }
     
     public enum PromptMode
@@ -27,7 +46,9 @@ public partial class PromptPanel : UserControl
 
     private void SendButton_OnClick(object? sender, RoutedEventArgs e)
     {
-        string prompt = PromptTextBox.Text ?? throw new NullReferenceException("Empty prompt!");
+        string? prompt = PromptTextBox.Text;
+        if (!ValidateInput(prompt))
+            return;
         
         ConversationPanel.Children.Add(MakeTextBlock(prompt, true));
         ScrollViewer.ScrollToEnd();
@@ -35,10 +56,27 @@ public partial class PromptPanel : UserControl
         // TODO: make Robbert.Prompt async so this stupidity isn't necessary anymore
         Dispatcher.UIThread.RunJobs(DispatcherPriority.Render);
 
-        string answer = _robbert.Prompt(prompt, 1).Keys.First();
+        string answer = _promptMode == PromptMode.DefaultMode ? _robbert.Prompt(prompt, 1).Keys.First() : _demoProcessor.Process(_robbert, prompt);
         
         ConversationPanel.Children.Add(MakeTextBlock(answer, false));
         ScrollViewer.ScrollToEnd();
+    }
+
+    private bool ValidateInput(string? prompt)
+    {
+        if (_promptMode == PromptMode.DefaultMode && (prompt == null || !prompt.Contains("<mask>")))
+        {
+            FlyoutBase.ShowAttachedFlyout(PromptTextBox);
+            return false;
+        }
+        
+        if (_promptMode == PromptMode.JouJouwMode && (prompt == null || !new[] { "u", "uw", "jou", "jouw" }.Any(p => prompt.Contains(p, StringComparison.CurrentCultureIgnoreCase))))
+        {
+            FlyoutBase.ShowAttachedFlyout(PromptTextBox);
+            return false;
+        }
+        
+        return true;
     }
 
     private Border MakeTextBlock(string text, bool user)
