@@ -1,17 +1,37 @@
-﻿using Microsoft.ML.OnnxRuntime;
+﻿using ExCSS;
+using Microsoft.ML.OnnxRuntime;
 using Tokenizers.DotNet;
 
 namespace RobBERT_2023_BIAS.Inference;
 
 public class Robbert : IDisposable
 {
-    private readonly InferenceSession _model = new(Path.Combine(Environment.CurrentDirectory, "Resources/RobBERT-2023-large/model.onnx"));
+    private InferenceSession _model = null!;
     private readonly RunOptions _runOptions = new();
+
+    private Robbert() {}
+    
+    public static async Task<Robbert> CreateAsync()
+    {
+        Robbert robbert = new();
+
+        await robbert.InitializeAsync();
+
+        return robbert;
+    }
+
+    private async Task InitializeAsync()
+    {
+        await Task.Run(() =>
+        {
+            _model = new(Path.Combine(Environment.CurrentDirectory, "Resources/RobBERT-2023-large/model.onnx"));
+        });
+    }
     
     /// <param name="userInput">The sentence to be completed by the model. Must include a mask!</param>
     /// <param name="kCount">The amount of replacements for the mask the model should output.</param>
     /// <returns>A list of replacements for the mask, sorted by confidence.</returns>
-    public Dictionary<string, float> Prompt(string userInput, int kCount)
+    public async Task<Dictionary<string, float>> Prompt(string userInput, int kCount)
     {
         // The size of the RobBERT-2023-large vocabulary is 50000, see tokenizer.json.  
         const int vocabSize = 50000;
@@ -35,10 +55,11 @@ public class Robbert : IDisposable
             { "attention_mask", attOrt },
         };
 
-        using var output = _model.Run(_runOptions, inputs, _model.OutputNames);
-
-        var logits = output.First().GetTensorDataAsSpan<float>();
-
+        using var output = await Task.Run(() => _model.Run(_runOptions, inputs, _model.OutputNames));
+        
+        // Memory instead of span due to C# 12 limitation, see https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/proposals/csharp-13.0/ref-unsafe-in-iterators-async
+        ReadOnlyMemory<float> logits = new Memory<float>(output[0].GetTensorDataAsSpan<float>().ToArray());
+        
         var maskLogits = logits.Slice(Array.IndexOf(tokens, (uint)4) * vocabSize, vocabSize).ToArray();
         var orderedMaskLogits = maskLogits.OrderDescending().ToArray();
 

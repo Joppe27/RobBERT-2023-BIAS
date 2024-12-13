@@ -7,21 +7,23 @@ using Avalonia.Layout;
 using Avalonia.Markup.Xaml;
 using Avalonia.Media;
 using Avalonia.Threading;
+using Avalonia.VisualTree;
 using RobBERT_2023_BIAS.Inference;
 using RobBERT_2023_BIAS.Inference.Demos;
+using RobBERT_2023_BIAS.UI.Windows;
 
 namespace RobBERT_2023_BIAS.UI.Panels;
 
 public partial class PromptPanel : UserControl
 {
-    private readonly Robbert _robbert = new();
+    private Robbert _robbert = null!;
     private readonly PromptMode _promptMode;
     private readonly DemoJouJouw _demoProcessor = null!;
     
-    public PromptPanel(PromptMode mode)
+    private PromptPanel(PromptMode mode)
     {
         InitializeComponent();
-
+        
         _promptMode = mode;
 
         if (_promptMode == PromptMode.DefaultMode)
@@ -37,6 +39,17 @@ public partial class PromptPanel : UserControl
 
         this.DetachedFromVisualTree += (sender, args) => _robbert.Dispose();
     }
+
+    public static async Task<PromptPanel> CreateAsync(PromptMode mode)
+    {
+        PromptPanel panel = new(mode);
+
+        await panel.InitializeAsync();
+
+        return panel;
+    }
+
+    private async Task InitializeAsync() => _robbert = await Robbert.CreateAsync();
     
     public enum PromptMode
     {
@@ -44,19 +57,16 @@ public partial class PromptPanel : UserControl
         JouJouwMode,
     }
 
-    private void SendButton_OnClick(object? sender, RoutedEventArgs e)
+    private async void SendButton_OnClick(object? sender, RoutedEventArgs e)
     {
         string? prompt = PromptTextBox.Text;
         if (!ValidateInput(prompt))
             return;
         
-        ConversationPanel.Children.Add(MakeTextBlock(prompt, true));
+        ConversationPanel.Children.Add(MakeTextBlock(prompt!, true));
         ScrollViewer.ScrollToEnd();
-        
-        // TODO: make Robbert.Prompt async so this stupidity isn't necessary anymore
-        Dispatcher.UIThread.RunJobs(DispatcherPriority.Render);
 
-        string answer = _promptMode == PromptMode.DefaultMode ? _robbert.Prompt(prompt, 1).Keys.First() : _demoProcessor.Process(_robbert, prompt);
+        string answer = _promptMode == PromptMode.DefaultMode ? (await AwaitableTask.AwaitNotifyUI(_robbert.Prompt(prompt!, 1), this)).Keys.First() : await AwaitableTask.AwaitNotifyUI(_demoProcessor.Process(_robbert, prompt!), this) ;
         
         ConversationPanel.Children.Add(MakeTextBlock(answer, false));
         ScrollViewer.ScrollToEnd();

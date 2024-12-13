@@ -2,7 +2,7 @@
 
 public class DemoJouJouw
 {
-    public string Process(Robbert robbert, string userInput)
+    public async Task<string> Process(Robbert robbert, string userInput)
     {
         string modelPrompt = null!;
 
@@ -27,7 +27,7 @@ public class DemoJouJouw
         }
 
         // kCount hardcoded to 50 in order to make sure any of the pronouns is included in the model's output.
-        Dictionary<string, float> modelOutput = robbert.Prompt(modelPrompt, 50);
+        Dictionary<string, float> modelOutput = await robbert.Prompt(modelPrompt, 50);
 
         foreach (KeyValuePair<string, float> kvp in modelOutput)
         {

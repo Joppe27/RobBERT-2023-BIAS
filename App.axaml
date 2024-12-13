@@ -12,5 +12,17 @@
             <Setter Property="Background" Value="#fbf5ff"/>
             <Setter Property="HorizontalContentAlignment" Value="Center"/>
         </Style>
+        <Style Selector="Svg.LoadingRotation">
+            <Style.Animations>
+                <Animation Duration="0:0:1.3" IterationCount="INFINITE">
+                    <KeyFrame Cue="0%">
+                        <Setter Property="RotateTransform.Angle" Value="0"/>
+                    </KeyFrame>
+                    <KeyFrame Cue="100%">
+                        <Setter Property="RotateTransform.Angle" Value="360"/>
+                    </KeyFrame>
+                </Animation>
+            </Style.Animations>
+        </Style>
     </Application.Styles>
 </Application>
