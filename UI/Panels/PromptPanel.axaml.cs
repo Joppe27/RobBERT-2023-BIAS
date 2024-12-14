@@ -35,6 +35,9 @@ public partial class PromptPanel : UserControl
             _demoProcessor = new DemoJouJouw();
             PromptTextBox.Watermark = "Voer een zin in die één voornaamwoord bevat";
             InsertMaskButton.IsEnabled = false;
+            KCountBox.IsEnabled = false;
+            // Avalonia limitation causes difference border between disabled styled and non-styled elements
+            KCountBox.BorderBrush = Brushes.LightGray;
         }
 
         this.DetachedFromVisualTree += (sender, args) => _robbert.Dispose();
@@ -66,10 +69,13 @@ public partial class PromptPanel : UserControl
         ConversationPanel.Children.Add(MakeTextBlock(prompt!, true));
         ScrollViewer.ScrollToEnd();
 
-        string answer = _promptMode == PromptMode.DefaultMode ? (await AwaitableTask.AwaitNotifyUI(_robbert.Prompt(prompt!, 1), this)).Keys.First() : await AwaitableTask.AwaitNotifyUI(_demoProcessor.Process(_robbert, prompt!), this) ;
-        
-        ConversationPanel.Children.Add(MakeTextBlock(answer, false));
-        ScrollViewer.ScrollToEnd();
+        string[] answers = _promptMode == PromptMode.DefaultMode ? ProcessMultiWordOutput(await AwaitableTask.AwaitNotifyUI(_robbert.Prompt(prompt!, (int)(KCountBox.Value ?? 1)), this)) : [await AwaitableTask.AwaitNotifyUI(_demoProcessor.Process(_robbert, prompt!), this)] ;
+
+        foreach (string answer in answers)
+        {
+            ConversationPanel.Children.Add(MakeTextBlock(answer, false));
+            ScrollViewer.ScrollToEnd();
+        }
     }
 
     private bool ValidateInput(string? prompt)
@@ -116,15 +122,19 @@ public partial class PromptPanel : UserControl
         };
     }
 
+    private string[] ProcessMultiWordOutput(Dictionary<string, float> robbertOutput)
+    {
+        string[] conversationOutputs = new string[robbertOutput.Count];
+        
+        for (int i = 0; i < robbertOutput.Count; i++)
+            conversationOutputs[i] = $"{robbertOutput.Keys.ElementAt(i)} (zekerheid: {Math.Round(robbertOutput.Values.ElementAt(i), 2)})";
+
+        return conversationOutputs;
+    }
+
     private void MaskButton_OnClick(object? sender, RoutedEventArgs e)
     {
         PromptTextBox.Text += "<mask>";
-    }
-
-    private void PasteButton_OnClick(object? sender, RoutedEventArgs e)
-    {
-        if (TopLevel.GetTopLevel(this) is TopLevel topLevel && topLevel.Clipboard is IClipboard clipboard)
-            PromptTextBox.Text += clipboard.GetTextAsync().Result;
     }
 }
 

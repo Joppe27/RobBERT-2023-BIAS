@@ -12,13 +12,13 @@
                 </Flyout>
             </FlyoutBase.AttachedFlyout>
         </TextBox>
-        <Grid ColumnDefinitions="Auto, Auto, *" DockPanel.Dock="Bottom" Background="White" Height="36" VerticalAlignment="Bottom" Margin="0, 16, 0, 8">
-            <Button Grid.Column="0" x:Name="InsertMaskButton" Classes="PurpleTheme" Click="MaskButton_OnClick">Insert mask</Button>
-            <Button Grid.Column="1" Classes="PurpleTheme" Click="PasteButton_OnClick" Margin="8, 0, 0, 0">Paste text</Button>
-            <Button Grid.Column="2" Classes="PurpleTheme" Foreground="White" Background="BlueViolet" FontWeight="Bold" HorizontalAlignment="Right" Click="SendButton_OnClick">Send</Button>
+        <Grid ColumnDefinitions="Auto, *, Auto" DockPanel.Dock="Bottom" Background="White" Height="32" VerticalAlignment="Bottom" Margin="0, 16, 0, 8">
+            <Button Grid.Column="0" x:Name="InsertMaskButton" Classes="PurpleTheme" VerticalAlignment="Stretch" VerticalContentAlignment="Center" Click="MaskButton_OnClick">Insert mask</Button>
+            <NumericUpDown Grid.Column="1" x:Name="KCountBox" BorderBrush="MediumPurple" BorderThickness="1" Background="#fbf5ff" Watermark="# of answers" Margin="8, 0, 8, 0" HorizontalAlignment="Stretch" Minimum="1" Maximum="200" VerticalAlignment="Stretch" FormatString="0"/>
+            <Button Grid.Column="2" Classes="PurpleTheme" Foreground="White" VerticalAlignment="Stretch" VerticalContentAlignment="Center" Background="BlueViolet" FontWeight="Bold" HorizontalAlignment="Right" Click="SendButton_OnClick">Send</Button>
         </Grid>
         <ScrollViewer x:Name="ScrollViewer">
-            <StackPanel x:Name="ConversationPanel" VerticalAlignment="Bottom" Spacing="28"/>
+            <StackPanel x:Name="ConversationPanel" VerticalAlignment="Bottom" Spacing="24"/>
         </ScrollViewer>
     </DockPanel>
 </UserControl>
