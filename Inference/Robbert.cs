@@ -62,9 +62,22 @@ public class Robbert : IDisposable
         
         var maskLogits = logits.Slice(Array.IndexOf(tokens, (uint)4) * vocabSize, vocabSize).ToArray();
         var orderedMaskLogits = maskLogits.OrderDescending().ToArray();
-
-        for (var i = 0; i < kCount; i++)
-            answer.TryAdd(tokenizer.Decode([(uint)Array.IndexOf(maskLogits, orderedMaskLogits[i])]).Trim(), orderedMaskLogits[i]);
+        
+        // When kCount is low, thread blocks for such a short time that running async isn't necessary because of overhead creating/switching thread
+        if (kCount > 50)
+        {
+            await Task.Run(() =>
+            {
+                for (var i = 0; i < kCount; i++)
+                    answer.TryAdd(tokenizer.Decode([(uint)Array.IndexOf(maskLogits, orderedMaskLogits[i])]).Trim(), orderedMaskLogits[i]);
+            });
+        }
+        else
+        {
+            for (var i = 0; i < kCount; i++)
+                answer.TryAdd(tokenizer.Decode([(uint)Array.IndexOf(maskLogits, orderedMaskLogits[i])]).Trim(), orderedMaskLogits[i]);
+        }
+        
 
         return answer;
     }
