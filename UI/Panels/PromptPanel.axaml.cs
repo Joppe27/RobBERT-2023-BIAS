@@ -1,4 +1,5 @@
-﻿using Avalonia;
+﻿using System.Globalization;
+using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
 using Avalonia.Input.Platform;
@@ -127,9 +128,33 @@ public partial class PromptPanel : UserControl
         string[] conversationOutputs = new string[robbertOutput.Count];
         
         for (int i = 0; i < robbertOutput.Count; i++)
-            conversationOutputs[i] = $"{robbertOutput.Keys.ElementAt(i)} (zekerheid: {Math.Round(robbertOutput.Values.ElementAt(i), 2)})";
+            conversationOutputs[i] = $"{robbertOutput.Keys.ElementAt(i)} (zekerheid: {RoundSignificant(robbertOutput.Values.ElementAt(i), 2)}%)";
 
         return conversationOutputs;
+    }
+
+    private string RoundSignificant(float number, int significantDigits = 0)
+    {
+        // Turn probability (total = 1) into percentage (total = 100).
+        number *= 100;
+        
+        // Make sure to always round to a significant figure, i.e. never round to 0.
+        float tempNumber = number;
+        int actualDigits = 0;
+        
+        while (tempNumber <= Math.Pow(10, significantDigits - 1) && actualDigits < 6) // actualDigits < 6 because of float precision limit.
+        {
+            if (number > 1 || number <= 0)
+            {
+                actualDigits = significantDigits;
+                break;
+            }
+            
+            tempNumber *= 10;
+            actualDigits++;
+        }
+
+        return float.Round(number, actualDigits).ToString($"F{actualDigits}");
     }
 
     private void MaskButton_OnClick(object? sender, RoutedEventArgs e)

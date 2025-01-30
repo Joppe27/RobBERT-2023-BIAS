@@ -26,8 +26,8 @@ public class DemoJouJouw
             break;
         }
 
-        // kCount hardcoded to 50 in order to make sure any of the pronouns is included in the model's output.
-        Dictionary<string, float> modelOutput = await robbert.Prompt(modelPrompt, 50);
+        // kCount hardcoded in order to make sure any of the pronouns is included in the model's output.
+        Dictionary<string, float> modelOutput = await robbert.Prompt(modelPrompt, 100);
 
         foreach (KeyValuePair<string, float> kvp in modelOutput)
         {
