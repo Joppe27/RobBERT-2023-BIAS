@@ -3,6 +3,7 @@ using Microsoft.ML.OnnxRuntime;
 using Microsoft.ML.OnnxRuntime.Tensors;
 using Tokenizers.DotNet;
 using System.Numerics.Tensors;
+using Avalonia.Controls.Documents;
 
 namespace RobBERT_2023_BIAS.Inference;
 
@@ -10,7 +11,8 @@ public class Robbert : IDisposable
 {
     private InferenceSession _model = null!;
     private readonly RunOptions _runOptions = new();
-
+    private Tokenizer _tokenizer = null!;
+    
     private Robbert() {}
     
     public static async Task<Robbert> CreateAsync()
@@ -33,14 +35,14 @@ public class Robbert : IDisposable
     /// <param name="userInput">The sentence to be completed by the model. Must include a mask!</param>
     /// <param name="kCount">The amount of replacements for the mask the model should output.</param>
     /// <returns>A list of replacements for the mask, sorted by confidence.</returns>
-    public async Task<Dictionary<string, float>> Prompt(string userInput, int kCount)
+    public async Task<List<Dictionary<string, float>>> Prompt(string userInput, int kCount)
     {
-        // The size of the RobBERT-2023-large vocabulary is 50000, see tokenizer.json.  
+        // See tokenizer.json.  
         const int vocabSize = 50000;
-        Dictionary<string, float> answer = new();
+        const int maskToken = 4;
         
-        var tokenizer = new Tokenizer(Path.Combine(Environment.CurrentDirectory, "Resources/RobBERT-2023-large/tokenizer.json"));
-        var tokens = tokenizer.Encode(userInput);
+        _tokenizer = new Tokenizer(Path.Combine(Environment.CurrentDirectory, "Resources/RobBERT-2023-large/tokenizer.json"));
+        var tokens = _tokenizer.Encode(userInput);
         
         var robbertInput = new RobbertInput()
         {
@@ -60,29 +62,45 @@ public class Robbert : IDisposable
         using var output = await Task.Run(() => _model.Run(_runOptions, inputs, _model.OutputNames));
         
         ReadOnlySpan<float> logits = output[0].GetTensorDataAsSpan<float>();
-        Span<float> tokenProbabilities = new float[logits.Length];
-        TensorPrimitives.SoftMax(logits, tokenProbabilities);
-        
-        // We only care about the model's prediction for the <mask> token. For the other tokens, the model *should* always return the input token anyway.
-        var maskProbabilities = tokenProbabilities.Slice(Array.IndexOf(tokens, (uint)4) * vocabSize, vocabSize).ToArray();
-        var orderedMaskProbabilities = maskProbabilities.OrderDescending().ToArray();
-        
-        // When kCount is low, thread blocks for such a short time that running async isn't necessary because of overhead creating/switching thread
-        if (kCount > 50)
-        {
-            await Task.Run(() =>
-            {
-                for (var i = 0; i < kCount; i++)
-                    answer.TryAdd(tokenizer.Decode([(uint)Array.IndexOf(maskProbabilities, orderedMaskProbabilities[i])]).Trim(), orderedMaskProbabilities[i]);
-            });
-        }
-        else
-        {
-            for (var i = 0; i < kCount; i++)
-                answer.TryAdd(tokenizer.Decode([(uint)Array.IndexOf(maskProbabilities, orderedMaskProbabilities[i])]).Trim(),  orderedMaskProbabilities[i]);
-        }
+        Span<float> encodedProbabilities = new float[logits.Length];
+        TensorPrimitives.SoftMax(logits, encodedProbabilities);
 
-        return answer;
+        List<float[]> encodedMaskProbabilities = new();
+        // We only care about the model's prediction for the <mask> token. For the other tokens, the model *should* always return the input token anyway.
+        foreach (int mask in tokens.Where(t => t == maskToken).Index().Select(i => i.Index * vocabSize))
+            encodedMaskProbabilities.Add(encodedProbabilities.Slice(mask, vocabSize).ToArray());
+
+        foreach (float[] encodedCandidateTokens in encodedMaskProbabilities)
+        {
+            Array.Sort(encodedCandidateTokens);
+            Array.Reverse(encodedCandidateTokens);
+        }
+        
+        if (kCount >= 50)
+            return await DecodeTokens(encodedMaskProbabilities, kCount);
+        
+        // When kCount is low, thread blocks for such a short time that running async is not worth the overhead.
+        return DecodeTokens(encodedMaskProbabilities, kCount).Result;
+    }
+
+    private async Task<List<Dictionary<string, float>>> DecodeTokens(List<float[]> encodedMaskProbabilities, int kCount)
+    {
+        List<Dictionary<string, float>> decodedMaskProbabilities = new();
+
+        await Task.Run(() =>
+        {
+            foreach (float[] encodedCandidateTokens in encodedMaskProbabilities)
+            {
+                Dictionary<string, float> decodedCandidateTokens = new();
+
+                for (var i = 0; i < kCount; i++)
+                    decodedCandidateTokens.Add(_tokenizer.Decode([(uint)i]), encodedCandidateTokens[i]);
+
+                decodedMaskProbabilities.Add(decodedCandidateTokens);
+            }
+        });
+
+        return decodedMaskProbabilities;
     }
 
     public void Dispose()
