@@ -4,50 +4,67 @@ public class DemoJouJouw
 {
     public async Task<string> Process(Robbert robbert, string userInput)
     {
-        string modelPrompt = null!;
-
-        string userPronoun = null!;
-        bool? politeForm = null;
         string[] possiblePronouns = ["jou", "jouw", "u", "uw"];
         string[] politePronouns = ["u", "uw"];
         string[] familiarPronouns = ["jou", "jouw"];
         
-        string modelPronoun = null!;
-        float modelConfidence = -1;
+        List<(string Pronoun, bool PoliteForm)> userPronoun = null!;
+        List<(string Pronoun, float Confidence)> modelPronoun = new();
 
-        foreach (var pronoun in possiblePronouns)
+        string[] split = userInput.Split(' ', StringSplitOptions.TrimEntries);
+        for (var i = 0; i < split.Length; i++)
         {
-            if (!userInput!.Contains(pronoun + " ", StringComparison.CurrentCultureIgnoreCase)) 
-                continue;
-            
-            userPronoun = pronoun;
-            modelPrompt = userInput.Replace(pronoun, "<mask>", StringComparison.CurrentCultureIgnoreCase);
-            politeForm = politePronouns.Contains(pronoun, StringComparer.CurrentCultureIgnoreCase);
-            break;
+            if (possiblePronouns.Contains(split[i], StringComparer.CurrentCultureIgnoreCase))
+            {
+                userPronoun.Add((split[i], politePronouns.Contains(split[i])));
+                split[i] = "<mask>";
+            }
         }
+
+        string modelPrompt = String.Join(' ', split);
 
         // kCount hardcoded in order to make sure any of the pronouns is included in the model's output.
-        Dictionary<string, float> modelOutput = await robbert.Prompt(modelPrompt, 100);
+        List<Dictionary<string, float>> modelOutput = await robbert.Prompt(modelPrompt, 100);
 
-        foreach (KeyValuePair<string, float> kvp in modelOutput)
+        for (var mask = 0; mask < modelOutput.Count; mask++)
         {
-            if (politeForm is true && politePronouns.Contains(kvp.Key, StringComparer.CurrentCultureIgnoreCase))
-                modelPronoun = kvp.Key;
-            else if (politeForm is false && familiarPronouns.Contains(kvp.Key, StringComparer.CurrentCultureIgnoreCase))
-                modelPronoun = kvp.Key;
+            foreach (KeyValuePair<string, float> kvp in modelOutput[mask])
+            {
+                string pronoun = "";
 
-            if (modelPronoun == null) 
-                continue;
-            
-            float incorrectModelConfidence = modelOutput.GetValueOrDefault(politeForm is true ? politePronouns.First(p => p != kvp.Key) : familiarPronouns.First(p => p != kvp.Key), 0);
-            float total = kvp.Value + incorrectModelConfidence;
-            modelConfidence = kvp.Value / total * 100;
-            break;
+                if (userPronoun[mask].PoliteForm && politePronouns.Contains(kvp.Key, StringComparer.CurrentCultureIgnoreCase))
+                    pronoun = kvp.Key;
+                else if (!userPronoun[mask].PoliteForm && familiarPronouns.Contains(kvp.Key, StringComparer.CurrentCultureIgnoreCase))
+                    pronoun = kvp.Key;
+
+                if (pronoun == "")
+                    continue;
+
+                float incorrectModelConfidence = modelOutput[mask].GetValueOrDefault(userPronoun[mask].PoliteForm ? politePronouns.First(p => p != kvp.Key) : familiarPronouns.First(p => p != kvp.Key), 0);
+                float total = kvp.Value + incorrectModelConfidence;
+                float confidence = kvp.Value / total * 100;
+
+                modelPronoun.Add((pronoun, confidence));
+                break;
+            }
         }
 
-        if (modelPronoun == null || modelConfidence < 0)
-            throw new NullReferenceException();
+        if (modelPronoun.Count == 0 || modelPronoun.Exists(p => p.Confidence < 0))
+            throw new Exception();
+
+        string answer = "";
         
-        return $"Die zin is {(userPronoun.Equals(modelPronoun, StringComparison.CurrentCultureIgnoreCase) ? "juist" : "fout")}. Het correcte voornaamwoord hier is \"{modelPronoun}\" (met {Math.Round(modelConfidence, 2)}% zekerheid).";
+        for (var i = 0; i < modelPronoun.Count; i++)
+        {
+            answer += String.Format("{0}Het {1}{2} voornaamwoord is {3}. Het correcte voornaamwoord is {4} (met {5}% zekerheid).",
+                i != 0 ? "\n" : "",
+                i + 1,
+                i == 0 ? "ste" : "de",
+                userPronoun[i].Pronoun.Equals(modelPronoun[i].Pronoun, StringComparison.CurrentCultureIgnoreCase) ? "juist" : "fout",
+                modelPronoun[i].Pronoun,
+                Math.Round(modelPronoun[i].Confidence, 2));
+        }
+
+        return answer;
     }
 }
