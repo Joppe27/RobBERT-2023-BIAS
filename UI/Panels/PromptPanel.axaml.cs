@@ -70,7 +70,7 @@ public partial class PromptPanel : UserControl
         ConversationPanel.Children.Add(MakeTextBlock(prompt!, true));
         ScrollViewer.ScrollToEnd();
 
-        string[] answers = _promptMode == PromptMode.DefaultMode ? ProcessMultiWordOutput(await AwaitableTask.AwaitNotifyUI(_robbert.Prompt(prompt!, (int)(KCountBox.Value ?? 1)), this)) : [await AwaitableTask.AwaitNotifyUI(_demoProcessor.Process(_robbert, prompt!), this)] ;
+        string[] answers = _promptMode == PromptMode.DefaultMode ? ProcessProbabilityAnnotatedOutput(await AwaitableTask.AwaitNotifyUI(_robbert.Prompt(prompt!, (int)(KCountBox.Value ?? 1)), this)) : await AwaitableTask.AwaitNotifyUI(_demoProcessor.Process(_robbert, prompt!), this) ;
 
         foreach (string answer in answers)
         {
@@ -123,12 +123,19 @@ public partial class PromptPanel : UserControl
         };
     }
 
-    private string[] ProcessMultiWordOutput(Dictionary<string, float> robbertOutput)
+    private string[] ProcessProbabilityAnnotatedOutput(List<Dictionary<string, float>> robbertOutput)
     {
         string[] conversationOutputs = new string[robbertOutput.Count];
         
-        for (int i = 0; i < robbertOutput.Count; i++)
-            conversationOutputs[i] = $"{robbertOutput.Keys.ElementAt(i)} (zekerheid: {RoundSignificant(robbertOutput.Values.ElementAt(i), 2)}%)";
+        for (int mask = 0; mask < robbertOutput.Count; mask++)
+        {
+            string maskOutput = "";
+
+            for (int i = 0; i < robbertOutput[mask].Keys.Count; i++)
+                maskOutput += $"{(i == 0 ? "" : "\n")}{robbertOutput[mask].Keys.ElementAt(i)} (zekerheid: {RoundSignificant(robbertOutput[mask].Values.ElementAt(i), 2)}%)";
+
+            conversationOutputs[mask] = maskOutput;
+        }
 
         return conversationOutputs;
     }
