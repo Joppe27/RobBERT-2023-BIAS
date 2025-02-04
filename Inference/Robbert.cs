@@ -67,38 +67,37 @@ public class Robbert : IDisposable
 
         List<float[]> encodedMaskProbabilities = new();
         // We only care about the model's prediction for the <mask> token. For the other tokens, the model *should* always return the input token anyway.
-        foreach (int mask in tokens.Where(t => t == maskToken).Index().Select(i => i.Index * vocabSize))
+        foreach (int mask in tokens.Index().Where(t => t.Item == maskToken).Select(i => i.Index * vocabSize))
             encodedMaskProbabilities.Add(encodedProbabilities.Slice(mask, vocabSize).ToArray());
+        
+        if (kCount >= 50)
+            return await Task.Run(() => DecodeTokens(encodedMaskProbabilities, kCount));
+        
+        // When kCount is low, thread blocks for such a short time that running async is not worth the overhead.
+        return DecodeTokens(encodedMaskProbabilities, kCount);
+    }
 
-        foreach (float[] encodedCandidateTokens in encodedMaskProbabilities)
+    private List<Dictionary<string, float>> DecodeTokens(List<float[]> encodedMaskProbabilities, int kCount)
+    {
+        List<Dictionary<string, float>> decodedMaskProbabilities = new();
+        List<float[]> sortedEncodedMaskProbabilities = encodedMaskProbabilities.Select(m => (float[])m.Clone()).ToList();
+        
+        foreach (float[] encodedCandidateTokens in sortedEncodedMaskProbabilities)
         {
             Array.Sort(encodedCandidateTokens);
             Array.Reverse(encodedCandidateTokens);
         }
         
-        if (kCount >= 50)
-            return await DecodeTokens(encodedMaskProbabilities, kCount);
-        
-        // When kCount is low, thread blocks for such a short time that running async is not worth the overhead.
-        return DecodeTokens(encodedMaskProbabilities, kCount).Result;
-    }
-
-    private async Task<List<Dictionary<string, float>>> DecodeTokens(List<float[]> encodedMaskProbabilities, int kCount)
-    {
-        List<Dictionary<string, float>> decodedMaskProbabilities = new();
-
-        await Task.Run(() =>
+        for (int mask = 0; mask < encodedMaskProbabilities.Count; mask++)
         {
-            foreach (float[] encodedCandidateTokens in encodedMaskProbabilities)
-            {
-                Dictionary<string, float> decodedCandidateTokens = new();
+            Dictionary<string, float> decodedCandidateTokens = new();
+            
+            for (var i = 0; i < kCount; i++)
+                if (decodedCandidateTokens.TryAdd(_tokenizer.Decode([(uint)Array.IndexOf(encodedMaskProbabilities[mask], sortedEncodedMaskProbabilities[mask][i])]).Trim(), sortedEncodedMaskProbabilities[mask][i]) == false)
+                    Console.WriteLine("IGNORED TOKEN!");
 
-                for (var i = 0; i < kCount; i++)
-                    decodedCandidateTokens.Add(_tokenizer.Decode([(uint)i]), encodedCandidateTokens[i]);
-
-                decodedMaskProbabilities.Add(decodedCandidateTokens);
-            }
-        });
+            decodedMaskProbabilities.Add(decodedCandidateTokens);
+        }
 
         return decodedMaskProbabilities;
     }

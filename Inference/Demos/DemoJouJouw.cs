@@ -2,13 +2,13 @@
 
 public class DemoJouJouw
 {
-    public async Task<string> Process(Robbert robbert, string userInput)
+    public async Task<string[]> Process(Robbert robbert, string userInput)
     {
         string[] possiblePronouns = ["jou", "jouw", "u", "uw"];
         string[] politePronouns = ["u", "uw"];
         string[] familiarPronouns = ["jou", "jouw"];
         
-        List<(string Pronoun, bool PoliteForm)> userPronoun = null!;
+        List<(string Pronoun, bool PoliteForm)> userPronoun = new();
         List<(string Pronoun, float Confidence)> modelPronoun = new();
 
         string[] split = userInput.Split(' ', StringSplitOptions.TrimEntries);
@@ -16,17 +16,16 @@ public class DemoJouJouw
         {
             if (possiblePronouns.Contains(split[i], StringComparer.CurrentCultureIgnoreCase))
             {
-                userPronoun.Add((split[i], politePronouns.Contains(split[i])));
+                userPronoun.Add((split[i], politePronouns.Contains(split[i], StringComparer.CurrentCultureIgnoreCase)));
                 split[i] = "<mask>";
             }
         }
 
         string modelPrompt = String.Join(' ', split);
 
-        // kCount hardcoded in order to make sure any of the pronouns is included in the model's output.
-        List<Dictionary<string, float>> modelOutput = await robbert.Prompt(modelPrompt, 100);
+        List<Dictionary<string, float>> modelOutput = await robbert.Prompt(modelPrompt, 300);
 
-        for (var mask = 0; mask < modelOutput.Count; mask++)
+        for (int mask = 0; mask < modelOutput.Count; mask++)
         {
             foreach (KeyValuePair<string, float> kvp in modelOutput[mask])
             {
@@ -49,15 +48,14 @@ public class DemoJouJouw
             }
         }
 
-        if (modelPronoun.Count == 0 || modelPronoun.Exists(p => p.Confidence < 0))
-            throw new Exception();
+        if (modelPronoun.Count < modelOutput.Count || modelPronoun.Exists(p => p.Confidence < 0))
+            throw new Exception("TODO: if model doesn't predict any of the pronouns, display error message in UI");
 
-        string answer = "";
+        string[] answer = new string[modelPronoun.Count];
         
         for (var i = 0; i < modelPronoun.Count; i++)
         {
-            answer += String.Format("{0}Het {1}{2} voornaamwoord is {3}. Het correcte voornaamwoord is {4} (met {5}% zekerheid).",
-                i != 0 ? "\n" : "",
+            answer[i] = String.Format("Het {0}{1} voornaamwoord is {2}. Het correcte voornaamwoord is {3} (met {4}% zekerheid).",
                 i + 1,
                 i == 0 ? "ste" : "de",
                 userPronoun[i].Pronoun.Equals(modelPronoun[i].Pronoun, StringComparison.CurrentCultureIgnoreCase) ? "juist" : "fout",
