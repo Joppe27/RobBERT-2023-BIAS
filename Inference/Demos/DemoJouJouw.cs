@@ -23,38 +23,52 @@ public class DemoJouJouw
 
         string modelPrompt = String.Join(' ', split);
 
-        List<Dictionary<string, float>> modelOutput = await robbert.Prompt(modelPrompt, 300);
+        // kCount = 200 as this is sufficient to calculate an answer in most cases and keeps loading times short for this demo.
+        List<Dictionary<string, float>> modelOutput = await robbert.Prompt(modelPrompt, 200);
 
         for (int mask = 0; mask < modelOutput.Count; mask++)
         {
-            foreach (KeyValuePair<string, float> kvp in modelOutput[mask])
+            for (int i = 0; mask < modelOutput[mask].Count; i++)
             {
                 string pronoun = "";
+                string currentCandidateToken = modelOutput[mask].Keys.ElementAt(i);
+                float currentCandidateProbability = modelOutput[mask].Values.ElementAt(i);
 
-                if (userPronoun[mask].PoliteForm && politePronouns.Contains(kvp.Key, StringComparer.CurrentCultureIgnoreCase))
-                    pronoun = kvp.Key;
-                else if (!userPronoun[mask].PoliteForm && familiarPronouns.Contains(kvp.Key, StringComparer.CurrentCultureIgnoreCase))
-                    pronoun = kvp.Key;
+                if (userPronoun[mask].PoliteForm && politePronouns.Contains(currentCandidateToken, StringComparer.CurrentCultureIgnoreCase))
+                    pronoun = currentCandidateToken;
+                else if (!userPronoun[mask].PoliteForm && familiarPronouns.Contains(currentCandidateToken, StringComparer.CurrentCultureIgnoreCase))
+                    pronoun = currentCandidateToken;
 
-                if (pronoun == "")
+                if (pronoun == "" && i < modelOutput[mask].Count - 1)
                     continue;
+                
+                // If none of the pronouns are found in the dictionary (i.e. when kCount isn't large enough), create empty tuple.
+                if (pronoun == "" && i == modelOutput[mask].Count - 1)
+                {
+                    modelPronoun.Add((String.Empty, -1));
+                    break;
+                }
 
-                float incorrectModelConfidence = modelOutput[mask].GetValueOrDefault(userPronoun[mask].PoliteForm ? politePronouns.First(p => p != kvp.Key) : familiarPronouns.First(p => p != kvp.Key), 0);
-                float total = kvp.Value + incorrectModelConfidence;
-                float confidence = kvp.Value / total * 100;
+                float incorrectModelConfidence = modelOutput[mask].GetValueOrDefault(userPronoun[mask].PoliteForm ? politePronouns.First(p => p != currentCandidateToken) : familiarPronouns.First(p => p != currentCandidateToken), 0);
+                float total = currentCandidateProbability + incorrectModelConfidence;
+                float confidence = currentCandidateProbability / total * 100;
 
                 modelPronoun.Add((pronoun, confidence));
                 break;
             }
         }
 
-        if (modelPronoun.Count < modelOutput.Count || modelPronoun.Exists(p => p.Confidence < 0))
-            throw new Exception("TODO: if model doesn't predict any of the pronouns, display error message in UI");
-
         string[] answer = new string[modelPronoun.Count];
         
         for (var i = 0; i < modelPronoun.Count; i++)
         {
+            // Warn user that kCount wasn't large enough to calculate an answer.
+            if (modelPronoun[i].Confidence < 0)
+            {
+                answer[i] = $"Het {i + 1}{(i == 0 ? "ste" : "de")} voornaamwoord werd niet berekend om de laadtijd te beperken.";
+                break;
+            }
+            
             answer[i] = String.Format("Het {0}{1} voornaamwoord is {2}. Het correcte voornaamwoord is {3} (met {4}% zekerheid).",
                 i + 1,
                 i == 0 ? "ste" : "de",

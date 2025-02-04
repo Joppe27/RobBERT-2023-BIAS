@@ -94,7 +94,7 @@ public class Robbert : IDisposable
             
             for (var i = 0; i < kCount; i++)
                 if (decodedCandidateTokens.TryAdd(_tokenizer.Decode([(uint)Array.IndexOf(encodedMaskProbabilities[mask], sortedEncodedMaskProbabilities[mask][i])]).Trim(), sortedEncodedMaskProbabilities[mask][i]) == false)
-                    Console.WriteLine("IGNORED TOKEN!");
+                    Console.WriteLine("IGNORED TOKEN!"); // Ignored duplicates probably happen because of leading/trailing spaces which get trimmed during decode (see line above).
 
             decodedMaskProbabilities.Add(decodedCandidateTokens);
         }
