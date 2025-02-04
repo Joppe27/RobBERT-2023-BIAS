@@ -34,7 +34,7 @@ public class Robbert : IDisposable
     
     /// <param name="userInput">The sentence to be completed by the model. Must include a mask!</param>
     /// <param name="kCount">The amount of replacements for the mask the model should output.</param>
-    /// <returns>A list of replacements for the mask, sorted by confidence.</returns>
+    /// <returns>A list containing a single dictionary for each mask with its possible replacements and probabilities, sorted by confidence.</returns>
     public async Task<List<Dictionary<string, float>>> Prompt(string userInput, int kCount)
     {
         // See tokenizer.json.  
