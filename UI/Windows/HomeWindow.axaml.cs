@@ -3,6 +3,7 @@ using Avalonia.Animation;
 using Avalonia.Animation.Easings;
 using Avalonia.Skia;
 using Avalonia.Controls;
+using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Interactivity;
 using Avalonia.Layout;
 using Avalonia.Markup.Xaml;
@@ -17,8 +18,8 @@ namespace RobBERT_2023_BIAS.UI.Windows;
 
 public partial class HomeWindow : Window
 {
-    public readonly EventHandler LoadingStarted;
-    public readonly EventHandler LoadingFinished;
+    public readonly Action LoadingStarted;
+    public readonly Action LoadingFinished;
     
     public HomeWindow()
     {
@@ -32,13 +33,13 @@ public partial class HomeWindow : Window
                 MainMenuButton.IsVisible = child.GetType() != typeof(HomePanel);
         };
 
-        LoadingStarted += (sender, args) =>
+        LoadingStarted += () =>
         {
             ReadyIndicator.IsVisible = false;
             LoadingIndicator.IsVisible = true;
         };
 
-        LoadingFinished += (sender, args) =>
+        LoadingFinished += () =>
         {
             ReadyIndicator.IsVisible = true;
             LoadingIndicator.IsVisible = false;
@@ -49,5 +50,8 @@ public partial class HomeWindow : Window
     {
         FlexiblePanel.Children.Clear();
         FlexiblePanel.Children.Add(new HomePanel());
+
+        this.WindowState = WindowState.Normal;
+        this.SystemDecorations = SystemDecorations.Full;
     }
 }

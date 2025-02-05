@@ -3,7 +3,8 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              mc:Ignorable="d" d:DesignWidth="400" d:DesignHeight="700"
-             x:Class="RobBERT_2023_BIAS.UI.Panels.PromptPanel">
+             x:Class="RobBERT_2023_BIAS.UI.Panels.PromptPanel"
+             Width="400">
     <DockPanel LastChildFill="True" Margin="16">
         <TextBox x:Name="PromptTextBox" DockPanel.Dock="Bottom">
             <FlyoutBase.AttachedFlyout>

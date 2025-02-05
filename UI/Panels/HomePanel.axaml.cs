@@ -1,6 +1,8 @@
 ﻿using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Interactivity;
+using Avalonia.Layout;
 using Avalonia.Markup.Xaml;
 using Avalonia.Media.Imaging;
 using Avalonia.VisualTree;
@@ -22,10 +24,10 @@ public partial class HomePanel : UserControl
         
         if (this.Parent is Panel flexPanel)
         {
-            PromptPanel newPanel = await AwaitableTask.AwaitNotifyUI(PromptPanel.CreateAsync(PromptPanel.PromptMode.DefaultMode), this);
+            PromptPanel promptPanel = await AwaitableTask.AwaitNotifyUI(PromptPanel.CreateAsync(PromptPanel.PromptMode.DefaultMode));
             
             flexPanel.Children.Clear(); 
-            flexPanel.Children.Add(newPanel);
+            flexPanel.Children.Add(promptPanel);
         }
     }
 
@@ -36,10 +38,34 @@ public partial class HomePanel : UserControl
             
         if (this.Parent is Panel flexPanel)
         {
-            PromptPanel newPanel = await AwaitableTask.AwaitNotifyUI(PromptPanel.CreateAsync(PromptPanel.PromptMode.JouJouwMode), this);
+            PromptPanel jouJouwPanel = await AwaitableTask.AwaitNotifyUI(PromptPanel.CreateAsync(PromptPanel.PromptMode.JouJouwMode));
             
             flexPanel.Children.Clear(); 
-            flexPanel.Children.Add(newPanel);
+            flexPanel.Children.Add(jouJouwPanel);
+        }
+    }
+
+    private async void BiasButton_OnClick(object? sender, RoutedEventArgs e)
+    {
+        if (!(this.GetVisualRoot() is HomeWindow window))
+            throw new NullReferenceException("Panel not in a HomeWindow hierarchy");
+            
+        if (this.Parent is Panel flexPanel)
+        {
+            BiasPanel biasPanel = await AwaitableTask.AwaitNotifyUI(BiasPanel.CreateAsync());
+            
+            flexPanel.Children.Clear(); 
+            flexPanel.Children.Add(biasPanel);
+            
+            if ((Application.Current!.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime)!.MainWindow is HomeWindow homeWindow)
+            {
+                homeWindow.WindowState = WindowState.Maximized;
+                homeWindow.SystemDecorations = SystemDecorations.BorderOnly;
+            }
+            else
+            {
+                throw new NullReferenceException();
+            }
         }
     }
 }

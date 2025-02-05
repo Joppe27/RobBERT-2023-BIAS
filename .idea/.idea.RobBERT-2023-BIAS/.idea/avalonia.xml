@@ -4,6 +4,7 @@
     <option name="projectPerEditor">
       <map>
         <entry key="App.axaml" value="RobBERT-2023-BIAS.csproj" />
+        <entry key="UI/Panels/BiasPanel.axaml" value="RobBERT-2023-BIAS.csproj" />
         <entry key="UI/Panels/HomePanel.axaml" value="RobBERT-2023-BIAS.csproj" />
         <entry key="UI/Panels/PromptPanel.axaml" value="RobBERT-2023-BIAS.csproj" />
         <entry key="UI/Windows/Home.axaml" value="RobBERT-2023-BIAS.csproj" />

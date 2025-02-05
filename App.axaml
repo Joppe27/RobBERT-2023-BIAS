@@ -6,6 +6,7 @@
 
     <Application.Styles>
         <FluentTheme />
+        <StyleInclude Source="avares://OxyPlot.Avalonia/Themes/Default.axaml"/>
         <Style Selector="Button.PurpleTheme">
             <Setter Property="BorderBrush" Value="MediumPurple"/>
             <Setter Property="BorderThickness" Value="1"/>

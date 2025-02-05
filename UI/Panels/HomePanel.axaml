@@ -12,6 +12,6 @@
         <TextBlock Grid.Row="3" Grid.Column="0" TextWrapping="WrapWithOverflow" Padding="0, 12, 0, 12" Text="Try out a real-world use-case of RobBERT-2023-large — an automated way to correct the frequent jou/jouw grammar error:"/>
         <Button Grid.Row="3" Grid.Column="2" Click="JouJouwButton_OnClick" HorizontalAlignment="Stretch" Classes="PurpleTheme">Start demo</Button>
         <TextBlock Grid.Row="4" Grid.Column="0" TextWrapping="WrapWithOverflow" Padding="0, 12, 0, 12" Text="Run a limited example of bias detection for RobBERT-2023-large:"/>
-        <Button Grid.Row="4" Grid.Column="2" HorizontalAlignment="Stretch" Classes="PurpleTheme" IsEnabled="False">Start demo</Button>
+        <Button Grid.Row="4" Grid.Column="2" Click="BiasButton_OnClick" HorizontalAlignment="Stretch" Classes="PurpleTheme" IsEnabled="True">Start demo</Button>
     </Grid>
 </UserControl>

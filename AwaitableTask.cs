@@ -1,6 +1,8 @@
 ﻿using Avalonia.Controls;
 using System.Runtime.CompilerServices;
 using System.Collections.Generic;
+using Avalonia;
+using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.VisualTree;
 using RobBERT_2023_BIAS.UI.Windows;
 
@@ -13,14 +15,14 @@ public class AwaitableTask
     /// <summary>
     /// Performs an asynchronous task while notifying the UI (to show loading indicator)
     /// </summary>
-    public static async Task<TResult> AwaitNotifyUI<TResult>(Task<TResult> awaitableTask, Control sender)
+    public static async Task<TResult> AwaitNotifyUI<TResult>(Task<TResult> awaitableTask)
     {
-        if (!(sender.GetVisualRoot() is HomeWindow window))
-            throw new Exception("Control not in a HomeWindow hierarchy");
+        if (!((Application.Current!.ApplicationLifetime as ClassicDesktopStyleApplicationLifetime)!.MainWindow is HomeWindow homeWindow))
+            throw new Exception("Main window was not HomeWindow");
         
-        window.LoadingStarted.Invoke(sender, EventArgs.Empty);
+        homeWindow.LoadingStarted.Invoke();
         var result = await awaitableTask;
-        window.LoadingFinished.Invoke(sender, EventArgs.Empty);
+        homeWindow.LoadingFinished.Invoke();
         
         return result;
     }

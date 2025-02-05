@@ -70,7 +70,7 @@ public partial class PromptPanel : UserControl
         ConversationPanel.Children.Add(MakeTextBlock(prompt!, true));
         ScrollViewer.ScrollToEnd();
 
-        string[] answers = _promptMode == PromptMode.DefaultMode ? ProcessProbabilityAnnotatedOutput(await AwaitableTask.AwaitNotifyUI(_robbert.Prompt(prompt!, (int)(KCountBox.Value ?? 1)), this)) : await AwaitableTask.AwaitNotifyUI(_demoProcessor.Process(_robbert, prompt!), this) ;
+        string[] answers = _promptMode == PromptMode.DefaultMode ? ProcessProbabilityAnnotatedOutput(await AwaitableTask.AwaitNotifyUI(_robbert.Prompt(prompt!, (int)(KCountBox.Value ?? 1)))) : await AwaitableTask.AwaitNotifyUI(_demoProcessor.Process(_robbert, prompt!)) ;
 
         foreach (string answer in answers)
         {

@@ -24,6 +24,7 @@
         <PackageReference Include="Avalonia.Themes.Fluent" Version="11.2.2"/>
         <PackageReference Include="MathNet.Numerics" Version="5.0.0" />
         <PackageReference Include="Microsoft.ML.OnnxRuntime" Version="1.20.1"/>
+        <PackageReference Include="OxyPlot.Avalonia" Version="2.1.0-Avalonia11" />
         <PackageReference Include="System.Numerics.Tensors" Version="9.0.1" />
         <PackageReference Include="Tokenizers.DotNet" Version="1.0.5"/>
         <PackageReference Include="Tokenizers.DotNet.runtime.win" Version="1.0.5"/>
