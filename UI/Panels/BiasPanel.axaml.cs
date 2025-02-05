@@ -29,7 +29,7 @@ public partial class BiasPanel : UserControl
     {
         BiasPanel panel = new();
 
-        PromptPanel promptPanel = await AwaitableTask.AwaitNotifyUi(PromptPanel.CreateAsync());
+        PromptPanel promptPanel = await AwaitableTask.AwaitNotifyUi(BiasPromptPanel.CreateAsync());
         panel.DockPanel.Children.Add(promptPanel);
         DockPanel.SetDock(promptPanel, Dock.Left);
 

@@ -5,7 +5,7 @@
              mc:Ignorable="d" d:DesignWidth="400" d:DesignHeight="700"
              x:Class="RobBERT_2023_BIAS.UI.Panels.PromptPanel"
              Width="400">
-    <DockPanel LastChildFill="True" Margin="16">
+    <DockPanel Name="PromptDockPanel" LastChildFill="True" Margin="16">
         <TextBox x:Name="PromptTextBox" DockPanel.Dock="Bottom">
             <FlyoutBase.AttachedFlyout>
                 <Flyout Placement="Top" ShowMode="Transient" VerticalOffset="-80">

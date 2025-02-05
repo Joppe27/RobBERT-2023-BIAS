@@ -14,7 +14,7 @@ namespace RobBERT_2023_BIAS.UI.Panels;
 
 public partial class PromptPanel : UserControl
 {
-    private Robbert _robbert = null!;
+    protected Robbert Robbert = null!;
     protected string ValidatedPrompt = null!;
 
     protected PromptPanel()
@@ -33,11 +33,11 @@ public partial class PromptPanel : UserControl
 
     protected virtual async Task InitializeAsync()
     {
-        _robbert = await Robbert.CreateAsync();
+        Robbert = await Robbert.CreateAsync();
 
         PromptTextBox.Watermark = "Voer een prompt in (vergeet geen <mask>)";
 
-        this.DetachedFromVisualTree += (_, _) => _robbert.Dispose();
+        this.DetachedFromVisualTree += (_, _) => Robbert.Dispose();
     }
 
     private async void SendButton_OnClick(object? sender, RoutedEventArgs e)
@@ -71,7 +71,7 @@ public partial class PromptPanel : UserControl
     }
 
     protected virtual async Task<List<Dictionary<string, float>>> ProcessUserInput() =>
-        await AwaitableTask.AwaitNotifyUi(_robbert.Process(ValidatedPrompt, KCountBox.Value != null ? (int)KCountBox.Value : 1));
+        await AwaitableTask.AwaitNotifyUi(Robbert.Process(ValidatedPrompt, KCountBox.Value != null ? (int)KCountBox.Value : 1));
 
     protected virtual string[] ProcessModelOutput(List<Dictionary<string, float>> robbertOutput)
     {
