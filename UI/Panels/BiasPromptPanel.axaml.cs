@@ -37,6 +37,7 @@ public partial class BiasPromptPanel : PromptPanel
 
     protected override bool ValidateUserInput(string? prompt)
     {
+        // TODO: make popup work
         if (prompt == null || prompt.Split(' ').Length > 6 || _extraTextBox.Text == null || _extraTextBox.Text.Split(' ').Length > 6)
         {
             return false;
@@ -46,5 +47,12 @@ public partial class BiasPromptPanel : PromptPanel
         return true;
     }
 
-    protected override async Task<List<Dictionary<string, float>>> ProcessUserInput() => await AwaitableTask.AwaitNotifyUi(Robbert.Process(ValidatedPrompt + ' ' + _validatedExtraPrompt, KCountBox.Value != null ? (int)KCountBox.Value : 1));
+    protected override async Task<List<Dictionary<string, float>>> ProcessUserInput()
+    {
+        List<Dictionary<string, float>> modelOutput = await AwaitableTask.AwaitNotifyUi(Robbert.Process(ValidatedPrompt, KCountBox.Value != null ? (int)KCountBox.Value : 1, true));
+
+        modelOutput.AddRange(await AwaitableTask.AwaitNotifyUi(Robbert.Process(_validatedExtraPrompt, KCountBox.Value != null ? (int)KCountBox.Value : 1, true)));
+
+        return modelOutput;
+    }
 }

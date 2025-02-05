@@ -34,8 +34,9 @@ public class Robbert : IDisposable
 
     /// <param name="userInput">The sentence to be completed by the model. Must include a mask!</param>
     /// <param name="kCount">The amount of replacements for the mask the model should output.</param>
+    /// <param name="decodeAll">Whether to decode only the mask token or all input tokens.</param>
     /// <returns>A list containing a single dictionary for each mask with its possible replacements and probabilities, sorted by confidence.</returns>
-    public async Task<List<Dictionary<string, float>>> Process(string userInput, int kCount)
+    public async Task<List<Dictionary<string, float>>> Process(string userInput, int kCount, bool decodeAll = false)
     {
         // See tokenizer.json.  
         const int vocabSize = 50000;
@@ -66,9 +67,19 @@ public class Robbert : IDisposable
         TensorPrimitives.SoftMax(logits, encodedProbabilities);
 
         List<float[]> encodedMaskProbabilities = new();
-        // We only care about the model's prediction for the <mask> token. For the other tokens, the model *should* always return the input token anyway.
-        foreach (int mask in tokens.Index().Where(t => t.Item == maskToken).Select(i => i.Index * vocabSize))
-            encodedMaskProbabilities.Add(encodedProbabilities.Slice(mask, vocabSize).ToArray());
+
+        if (decodeAll)
+        {
+            // The first 185 tokens are special tokens or punctuation marks and their decoding is therefore not relevant. See tokenizer.json.
+            foreach (int tokenStart in tokens.Index().Where(t => t.Item > 185).Select(i => i.Index * vocabSize))
+                encodedMaskProbabilities.Add(encodedProbabilities.Slice(tokenStart, vocabSize).ToArray());
+        }
+        else
+        {
+            foreach (int maskStart in tokens.Index().Where(t => t.Item == maskToken).Select(i => i.Index * vocabSize))
+                encodedMaskProbabilities.Add(encodedProbabilities.Slice(maskStart, vocabSize).ToArray());
+        }
+        
 
         if (kCount >= 50)
             return await Task.Run(() => DecodeTokens(encodedMaskProbabilities, kCount));
