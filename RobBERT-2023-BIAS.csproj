@@ -20,12 +20,12 @@
             <PrivateAssets Condition="'$(Configuration)' != 'Debug'">All</PrivateAssets>
         </PackageReference>
         <PackageReference Include="Avalonia.Fonts.Inter" Version="11.2.2"/>
-        <PackageReference Include="Avalonia.Svg.Skia" Version="11.2.0.2" />
+        <PackageReference Include="Avalonia.Svg.Skia" Version="11.2.0.2"/>
         <PackageReference Include="Avalonia.Themes.Fluent" Version="11.2.2"/>
-        <PackageReference Include="MathNet.Numerics" Version="5.0.0" />
+        <PackageReference Include="MathNet.Numerics" Version="5.0.0"/>
         <PackageReference Include="Microsoft.ML.OnnxRuntime" Version="1.20.1"/>
-        <PackageReference Include="OxyPlot.Avalonia" Version="2.1.0-Avalonia11" />
-        <PackageReference Include="System.Numerics.Tensors" Version="9.0.1" />
+        <PackageReference Include="OxyPlot.Avalonia" Version="2.1.0-Avalonia11"/>
+        <PackageReference Include="System.Numerics.Tensors" Version="9.0.1"/>
         <PackageReference Include="Tokenizers.DotNet" Version="1.0.5"/>
         <PackageReference Include="Tokenizers.DotNet.runtime.win" Version="1.0.5"/>
     </ItemGroup>
@@ -40,30 +40,30 @@
     </ItemGroup>
 
     <ItemGroup>
-      <None Remove="Resources\UI\robbert_2023_logo.png" />
-      <AvaloniaResource Include="Resources\UI\robbert_2023_logo.png">
-          <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-      </AvaloniaResource>
-      <None Remove="Resources\UI\Icons\circle-check-regular.svg" />
-      <None Remove="Resources\UI\Icons\circle-notch-solid.svg" />
-      <None Remove="Resources\UI\Icons\circle-check-regular.png" />
-      <None Remove="Resources\UI\Icons\circle-notch-solid.png" />
-      <None Remove="Resources\robbert_2023_logo.png" />
-      <None Remove="Resources\Icons\circle-notch-solid.png" />
-      <None Remove="Resources\Icons\circle-check-regular.png" />
-      <None Remove="Resources\UI\Icons\robot-solid.png" />
-      <None Remove="Resources\UI\Icons\user-solid.png" />
-      <None Remove="Resources\UI\Icons\robot-solid.svg" />
-      <AvaloniaResource Include="Resources\UI\Icons\robot-solid.svg" />
-      <None Remove="Resources\UI\Icons\user-solid.svg" />
-      <AvaloniaResource Include="Resources\UI\Icons\user-solid.svg" />
+        <None Remove="Resources\UI\robbert_2023_logo.png"/>
+        <AvaloniaResource Include="Resources\UI\robbert_2023_logo.png">
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </AvaloniaResource>
+        <None Remove="Resources\UI\Icons\circle-check-regular.svg"/>
+        <None Remove="Resources\UI\Icons\circle-notch-solid.svg"/>
+        <None Remove="Resources\UI\Icons\circle-check-regular.png"/>
+        <None Remove="Resources\UI\Icons\circle-notch-solid.png"/>
+        <None Remove="Resources\robbert_2023_logo.png"/>
+        <None Remove="Resources\Icons\circle-notch-solid.png"/>
+        <None Remove="Resources\Icons\circle-check-regular.png"/>
+        <None Remove="Resources\UI\Icons\robot-solid.png"/>
+        <None Remove="Resources\UI\Icons\user-solid.png"/>
+        <None Remove="Resources\UI\Icons\robot-solid.svg"/>
+        <AvaloniaResource Include="Resources\UI\Icons\robot-solid.svg"/>
+        <None Remove="Resources\UI\Icons\user-solid.svg"/>
+        <AvaloniaResource Include="Resources\UI\Icons\user-solid.svg"/>
     </ItemGroup>
 
     <ItemGroup>
-      <AvaloniaResource Include="Resources\UI\Icons\circle-notch-solid.svg" />
+        <AvaloniaResource Include="Resources\UI\Icons\circle-notch-solid.svg"/>
     </ItemGroup>
 
     <ItemGroup>
-      <AvaloniaResource Include="Resources\UI\Icons\circle-check-regular.svg" />
+        <AvaloniaResource Include="Resources\UI\Icons\circle-check-regular.svg"/>
     </ItemGroup>
 </Project>

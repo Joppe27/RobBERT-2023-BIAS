@@ -1,5 +1,8 @@
-﻿using Avalonia;
-using System;
+﻿#region
+
+using Avalonia;
+
+#endregion
 
 namespace RobBERT_2023_BIAS;
 

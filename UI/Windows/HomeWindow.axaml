@@ -9,22 +9,36 @@
         Height="700"
         CanResize="False">
     <DockPanel LastChildFill="True">
-        <Border DockPanel.Dock="Top" Background="BlueViolet" CornerRadius="6" BoxShadow="inset 0 -2 2 0 purple" Height="48">
-            <TextBlock Foreground="White" Text="RobBERT-2023-BIAS" FontWeight="Bold" FontSize="20" VerticalAlignment="Center" Margin="16"/>
+        <Border DockPanel.Dock="Top" Background="BlueViolet" CornerRadius="6" BoxShadow="inset 0 -2 2 0 purple"
+                Height="48">
+            <TextBlock Foreground="White" Text="RobBERT-2023-BIAS" FontWeight="Bold" FontSize="20"
+                       VerticalAlignment="Center" Margin="16" />
         </Border>
-        <Border DockPanel.Dock="Bottom" Background="BlueViolet" CornerRadius="6" BoxShadow="inset 0 -2 2 0 purple" Height="24">
+        <Border DockPanel.Dock="Bottom" Background="BlueViolet" CornerRadius="6" BoxShadow="inset 0 -2 2 0 purple"
+                Height="24">
             <Grid ColumnDefinitions="*, Auto">
-                <Button Grid.Column="0" x:Name="MainMenuButton" Foreground="White" FontSize="12" FontWeight="Bold" VerticalAlignment="Center" IsVisible="False" Background="Transparent" BorderThickness="0" Click="MainMenuButton_OnClick">← Return to main menu</Button>
-                <StackPanel Grid.Column="1" x:Name="ReadyIndicator" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,0,8,0" Orientation="Horizontal">
-                    <Svg Path="avares://RobBERT-2023-BIAS/Resources/UI/Icons/circle-check-regular.svg" VerticalAlignment="Center" Stretch="Uniform" Height="13" Margin="0, 0, 5, 0"/>
-                    <TextBlock Text="Ready" Foreground="White" MinWidth="40" FontWeight="SemiBold" FontSize="12" VerticalAlignment="Center"/>
+                <Button Grid.Column="0" x:Name="MainMenuButton" Foreground="White" FontSize="12" FontWeight="Bold"
+                        VerticalAlignment="Center" IsVisible="False" Background="Transparent" BorderThickness="0"
+                        Click="MainMenuButton_OnClick">
+                    ← Return to main menu
+                </Button>
+                <StackPanel Grid.Column="1" x:Name="ReadyIndicator" HorizontalAlignment="Right"
+                            VerticalAlignment="Center" Margin="0,0,8,0" Orientation="Horizontal">
+                    <Svg Path="avares://RobBERT-2023-BIAS/Resources/UI/Icons/circle-check-regular.svg"
+                         VerticalAlignment="Center" Stretch="Uniform" Height="13" Margin="0, 0, 5, 0" />
+                    <TextBlock Text="Ready" Foreground="White" MinWidth="40" FontWeight="SemiBold" FontSize="12"
+                               VerticalAlignment="Center" />
                 </StackPanel>
-                <StackPanel Grid.Column="1" x:Name="LoadingIndicator" IsVisible="False" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,0,8,0" Orientation="Horizontal">
-                    <Svg Path="avares://RobBERT-2023-BIAS/Resources/UI/Icons/circle-notch-solid.svg" Classes="LoadingRotation" VerticalAlignment="Center" Stretch="Uniform" Height="13" Margin="0, 0, 5, 0"/>
-                    <TextBlock Text="Busy..." Foreground="White" MinWidth="40" FontWeight="SemiBold" FontSize="12" VerticalAlignment="Center"/>
+                <StackPanel Grid.Column="1" x:Name="LoadingIndicator" IsVisible="False" HorizontalAlignment="Right"
+                            VerticalAlignment="Center" Margin="0,0,8,0" Orientation="Horizontal">
+                    <Svg Path="avares://RobBERT-2023-BIAS/Resources/UI/Icons/circle-notch-solid.svg"
+                         Classes="LoadingRotation" VerticalAlignment="Center" Stretch="Uniform" Height="13"
+                         Margin="0, 0, 5, 0" />
+                    <TextBlock Text="Busy..." Foreground="White" MinWidth="40" FontWeight="SemiBold" FontSize="12"
+                               VerticalAlignment="Center" />
                 </StackPanel>
             </Grid>
         </Border>
-        <Panel x:Name="FlexiblePanel"/>
+        <Panel x:Name="FlexiblePanel" />
     </DockPanel>
 </Window>

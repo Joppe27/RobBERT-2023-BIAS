@@ -1,11 +1,15 @@
+#region
+
 using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
 using RobBERT_2023_BIAS.UI.Windows;
 
+#endregion
+
 namespace RobBERT_2023_BIAS;
 
-public partial class App : Application
+public class App : Application
 {
     public override void Initialize()
     {

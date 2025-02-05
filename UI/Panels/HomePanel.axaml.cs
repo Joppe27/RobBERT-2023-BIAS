@@ -1,12 +1,13 @@
-﻿using Avalonia;
+﻿#region
+
+using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Interactivity;
-using Avalonia.Layout;
-using Avalonia.Markup.Xaml;
-using Avalonia.Media.Imaging;
 using Avalonia.VisualTree;
 using RobBERT_2023_BIAS.UI.Windows;
+
+#endregion
 
 namespace RobBERT_2023_BIAS.UI.Panels;
 
@@ -19,44 +20,44 @@ public partial class HomePanel : UserControl
 
     private async void ModelButton_OnClick(object? sender, RoutedEventArgs e)
     {
-        if (!(this.GetVisualRoot() is HomeWindow window))
+        if (this.GetVisualRoot()!.GetType() != typeof(HomeWindow))
             throw new NullReferenceException("Panel not in a HomeWindow hierarchy");
-        
+
         if (this.Parent is Panel flexPanel)
         {
-            PromptPanel promptPanel = await AwaitableTask.AwaitNotifyUI(PromptPanel.CreateAsync(PromptPanel.PromptMode.DefaultMode));
-            
-            flexPanel.Children.Clear(); 
+            PromptPanel promptPanel = await AwaitableTask.AwaitNotifyUi(PromptPanel.CreateAsync());
+
+            flexPanel.Children.Clear();
             flexPanel.Children.Add(promptPanel);
         }
     }
 
     private async void JouJouwButton_OnClick(object? sender, RoutedEventArgs e)
     {
-        if (!(this.GetVisualRoot() is HomeWindow window))
+        if (this.GetVisualRoot()!.GetType() != typeof(HomeWindow))
             throw new NullReferenceException("Panel not in a HomeWindow hierarchy");
-            
+
         if (this.Parent is Panel flexPanel)
         {
-            PromptPanel jouJouwPanel = await AwaitableTask.AwaitNotifyUI(PromptPanel.CreateAsync(PromptPanel.PromptMode.JouJouwMode));
-            
-            flexPanel.Children.Clear(); 
+            PronounPromptPanel jouJouwPanel = await AwaitableTask.AwaitNotifyUi(PronounPromptPanel.CreateAsync());
+
+            flexPanel.Children.Clear();
             flexPanel.Children.Add(jouJouwPanel);
         }
     }
 
     private async void BiasButton_OnClick(object? sender, RoutedEventArgs e)
     {
-        if (!(this.GetVisualRoot() is HomeWindow window))
+        if (this.GetVisualRoot()!.GetType() != typeof(HomeWindow))
             throw new NullReferenceException("Panel not in a HomeWindow hierarchy");
-            
+
         if (this.Parent is Panel flexPanel)
         {
-            BiasPanel biasPanel = await AwaitableTask.AwaitNotifyUI(BiasPanel.CreateAsync());
-            
-            flexPanel.Children.Clear(); 
+            BiasPanel biasPanel = await AwaitableTask.AwaitNotifyUi(BiasPanel.CreateAsync());
+
+            flexPanel.Children.Clear();
             flexPanel.Children.Add(biasPanel);
-            
+
             if ((Application.Current!.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime)!.MainWindow is HomeWindow homeWindow)
             {
                 homeWindow.WindowState = WindowState.Maximized;

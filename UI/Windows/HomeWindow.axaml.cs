@@ -1,18 +1,11 @@
-using Avalonia;
-using Avalonia.Animation;
-using Avalonia.Animation.Easings;
-using Avalonia.Skia;
+#region
+
 using Avalonia.Controls;
-using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Interactivity;
 using Avalonia.Layout;
-using Avalonia.Markup.Xaml;
-using Avalonia.Media;
-using Avalonia.Media.Imaging;
-using Avalonia.Platform;
-using Avalonia.Styling;
 using RobBERT_2023_BIAS.UI.Panels;
-using Svg.Skia;
+
+#endregion
 
 namespace RobBERT_2023_BIAS.UI.Windows;
 
@@ -20,14 +13,14 @@ public partial class HomeWindow : Window
 {
     public readonly Action LoadingStarted;
     public readonly Action LoadingFinished;
-    
+
     public HomeWindow()
     {
         InitializeComponent();
-        
+
         FlexiblePanel.Children.Add(new HomePanel() { VerticalAlignment = VerticalAlignment.Stretch, HorizontalAlignment = HorizontalAlignment.Stretch });
 
-        FlexiblePanel.Children.CollectionChanged += (sender, args) =>
+        FlexiblePanel.Children.CollectionChanged += (_, _) =>
         {
             if (FlexiblePanel.Children.FirstOrDefault() is UserControl child)
                 MainMenuButton.IsVisible = child.GetType() != typeof(HomePanel);
