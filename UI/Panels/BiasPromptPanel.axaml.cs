@@ -12,6 +12,8 @@ public partial class BiasPromptPanel : PromptPanel
     private TextBox _extraTextBox;
     private string _validatedExtraPrompt;
 
+    public event EventHandler<BiasOutputEventArgs> OnModelOutput; 
+
     private BiasPromptPanel()
     {
         InitializeComponent();
@@ -29,7 +31,7 @@ public partial class BiasPromptPanel : PromptPanel
     private new async Task InitializeAsync()
     {
         await base.InitializeAsync();
-
+        // TODO: after pressing send both prompts should show instead of only first one
         _extraTextBox = new TextBox() { Name = "ExtraTextBox", Margin = new Thickness(0, 8, 0, 0) };
         PromptDockPanel.Children.Insert(0, _extraTextBox);
         DockPanel.SetDock(_extraTextBox, Dock.Bottom);
@@ -49,10 +51,18 @@ public partial class BiasPromptPanel : PromptPanel
 
     protected override async Task<List<Dictionary<string, float>>> ProcessUserInput()
     {
-        List<Dictionary<string, float>> modelOutput = await AwaitableTask.AwaitNotifyUi(Robbert.Process(ValidatedPrompt, KCountBox.Value != null ? (int)KCountBox.Value : 1, true));
+        List<Dictionary<string, float>> firstOutput = await AwaitableTask.AwaitNotifyUi(Robbert.Process(ValidatedPrompt, KCountBox.Value != null ? (int)KCountBox.Value : 1, true));
+        List<Dictionary<string, float>> secondOutput = await AwaitableTask.AwaitNotifyUi(Robbert.Process(_validatedExtraPrompt, KCountBox.Value != null ? (int)KCountBox.Value : 1, true));
 
-        modelOutput.AddRange(await AwaitableTask.AwaitNotifyUi(Robbert.Process(_validatedExtraPrompt, KCountBox.Value != null ? (int)KCountBox.Value : 1, true)));
+        OnModelOutput.Invoke(this, new BiasOutputEventArgs(firstOutput, secondOutput));
 
-        return modelOutput;
+        firstOutput.AddRange(secondOutput);
+        return firstOutput;
     }
+}
+
+public class BiasOutputEventArgs(List<Dictionary<string, float>> firstPrompt, List<Dictionary<string, float>> secondPrompt) : EventArgs
+{
+    public List<Dictionary<string, float>> FirstPrompt { get; } = firstPrompt;
+    public List<Dictionary<string, float>> SecondPrompt { get; } = secondPrompt;
 }

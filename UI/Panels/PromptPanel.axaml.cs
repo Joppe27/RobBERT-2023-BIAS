@@ -82,36 +82,12 @@ public partial class PromptPanel : UserControl
             string maskOutput = "";
 
             for (int i = 0; i < robbertOutput[mask].Keys.Count; i++)
-                maskOutput += $"{(i == 0 ? "" : "\n")}{robbertOutput[mask].Keys.ElementAt(i)} (zekerheid: {RoundSignificant(robbertOutput[mask].Values.ElementAt(i), 2)}%)";
+                maskOutput += $"{(i == 0 ? "" : "\n")}{robbertOutput[mask].Keys.ElementAt(i)} (zekerheid: {MathUtilities.RoundSignificant(robbertOutput[mask].Values.ElementAt(i), 2)}%)";
 
             conversationOutputs[mask] = maskOutput;
         }
 
         return conversationOutputs;
-    }
-
-    private string RoundSignificant(float number, int significantDigits = 0)
-    {
-        // Turn probability (total = 1) into percentage (total = 100).
-        number *= 100;
-
-        // Make sure to always round to a significant figure, i.e. never round to 0.
-        float tempNumber = number;
-        int actualDigits = 0;
-
-        while (tempNumber <= Math.Pow(10, significantDigits - 1) && actualDigits < 6) // actualDigits < 6 because of float precision limit.
-        {
-            if (number > 1 || number <= 0)
-            {
-                actualDigits = significantDigits;
-                break;
-            }
-
-            tempNumber *= 10;
-            actualDigits++;
-        }
-
-        return float.Round(number, actualDigits).ToString($"F{actualDigits}");
     }
 
     private Border MakeTextBlock(string text, bool user)
