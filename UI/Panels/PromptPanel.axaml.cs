@@ -17,7 +17,7 @@ namespace RobBERT_2023_BIAS.UI.Panels;
 public partial class PromptPanel : UserControl
 {
     protected Robbert Robbert = null!;
-    protected string ValidatedPrompt = null!;
+    protected readonly List<string> ValidatedPrompts = new();
 
     protected PromptPanel()
     {
@@ -42,13 +42,24 @@ public partial class PromptPanel : UserControl
 
     private async void SendButton_OnClick(object? sender, RoutedEventArgs e)
     {
-        if (ValidateUserInput(PromptTextBox.Text) && PromptTextBox.Text != null)
-            ValidatedPrompt = PromptTextBox.Text;
-        else
-            return;
+        foreach (TextBox textBox in PromptDockPanel.Children.OfType<TextBox>().OrderBy(c => c.Bounds.Top))
+        {
+            if (ValidateUserInput(textBox.Text) && textBox.Text != null)
+            {
+                ValidatedPrompts.Add(textBox.Text);
+            }
+            else
+            {
+                FlyoutBase.ShowAttachedFlyout(textBox);
+                return;
+            }
+        }
 
-        ConversationPanel.Children.Add(MakeTextBlock(ValidatedPrompt, true));
-        ScrollViewer.ScrollToEnd();
+        foreach (string prompt in ValidatedPrompts)
+        {
+            ConversationPanel.Children.Add(MakeTextBlock(prompt, true));
+            ScrollViewer.ScrollToEnd();
+        }
 
         string[] answers = ProcessModelOutput(await ProcessUserInput());
 
@@ -59,19 +70,10 @@ public partial class PromptPanel : UserControl
         }
     }
 
-    protected virtual bool ValidateUserInput(string? prompt)
-    {
-        if (prompt == null || !prompt.Contains("<mask>"))
-        {
-            FlyoutBase.ShowAttachedFlyout(PromptTextBox);
-            return false;
-        }
-
-        return true;
-    }
+    protected virtual bool ValidateUserInput(string? prompt) => prompt != null && prompt.Contains("mask");
 
     protected virtual async Task<List<Dictionary<string, float>>> ProcessUserInput() =>
-        await TaskUtilities.AwaitNotifyUi(Robbert.Process(ValidatedPrompt, KCountBox.Value != null ? (int)KCountBox.Value : 1));
+        await TaskUtilities.AwaitNotifyUi(Robbert.Process(ValidatedPrompts.Count == 1 ? ValidatedPrompts[0] : throw new Exception(), KCountBox.Value != null ? (int)KCountBox.Value : 1));
 
     protected virtual string[] ProcessModelOutput(List<Dictionary<string, float>> robbertOutput)
     {

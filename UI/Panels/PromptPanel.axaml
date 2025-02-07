@@ -8,8 +8,8 @@
     <DockPanel Name="PromptDockPanel" LastChildFill="True" Margin="16">
         <TextBox x:Name="PromptTextBox" DockPanel.Dock="Bottom">
             <FlyoutBase.AttachedFlyout>
-                <Flyout Placement="Top" ShowMode="Transient" VerticalOffset="-80">
-                    <TextBlock Text="Ongeldig prompt ingevoerd!" />
+                <Flyout Placement="Top" ShowMode="Transient" VerticalOffset="-120">
+                    <TextBlock Text="Invalid prompt entered!" />
                 </Flyout>
             </FlyoutBase.AttachedFlyout>
         </TextBox>

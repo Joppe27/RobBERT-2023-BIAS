@@ -68,7 +68,7 @@ public partial class PronounPromptPanel : PromptPanel
     }
 
     protected override async Task<List<Dictionary<string, float>>> ProcessUserInput() =>
-        await TaskUtilities.AwaitNotifyUi(_pronounDemo.Process(PrepareUserInput(ValidatedPrompt)));
+        await TaskUtilities.AwaitNotifyUi(_pronounDemo.Process(PrepareUserInput(ValidatedPrompts.Count == 1 ? ValidatedPrompts[0] : throw new Exception())));
 
     protected override string[] ProcessModelOutput(List<Dictionary<string, float>> robbertOutput)
     {
