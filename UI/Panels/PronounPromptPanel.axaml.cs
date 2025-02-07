@@ -35,8 +35,6 @@ public partial class PronounPromptPanel : PromptPanel
         PromptTextBox.Watermark = "Voer een zin in die één voornaamwoord bevat";
         InsertMaskButton.IsEnabled = false;
         KCountBox.IsEnabled = false;
-        // Avalonia limitation causes difference border between disabled styled and non-styled elements
-        KCountBox.BorderBrush = Brushes.LightGray;
     }
 
     protected override bool ValidateUserInput(string? prompt)

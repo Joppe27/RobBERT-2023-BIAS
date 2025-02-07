@@ -31,6 +31,9 @@ public partial class BiasPromptPanel : PromptPanel
     {
         await base.InitializeAsync();
 
+        InsertMaskButton.IsEnabled = false;
+        KCountBox.IsEnabled = false;
+        
         PromptTextBox.Watermark = "Enter a prompt with a length of max. 6 words";
 
         TextBox extraTextBox = new TextBox()
@@ -56,8 +59,8 @@ public partial class BiasPromptPanel : PromptPanel
         if (ValidatedPrompts.Count != 2)
             throw new Exception();
 
-        List<Dictionary<string, float>> firstOutput = await TaskUtilities.AwaitNotifyUi(Robbert.Process(ValidatedPrompts[0], KCountBox.Value != null ? (int)KCountBox.Value : 1, true));
-        List<Dictionary<string, float>> secondOutput = await TaskUtilities.AwaitNotifyUi(Robbert.Process(ValidatedPrompts[1], KCountBox.Value != null ? (int)KCountBox.Value : 1, true));
+        List<Dictionary<string, float>> firstOutput = await TaskUtilities.AwaitNotifyUi(Robbert.Process(ValidatedPrompts[0], 10, true));
+        List<Dictionary<string, float>> secondOutput = await TaskUtilities.AwaitNotifyUi(Robbert.Process(ValidatedPrompts[1], 10, true));
 
         OnModelOutput.Invoke(this, new BiasOutputEventArgs(firstOutput, secondOutput));
 
