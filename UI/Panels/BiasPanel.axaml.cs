@@ -3,6 +3,7 @@
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Shapes;
+using Avalonia.LogicalTree;
 using Avalonia.Media;
 using OxyPlot;
 using OxyPlot.Avalonia;
@@ -27,9 +28,6 @@ public partial class BiasPanel : UserControl
     private BiasPanel()
     {
         InitializeComponent();
-
-        // Wait until this BiasPanel is attached to the visual tree so Grid layout can be based on it.
-        this.Loaded += (_, _) => SetupGraphGrid();
     }
 
     public static async Task<BiasPanel> CreateAsync()
@@ -47,9 +45,9 @@ public partial class BiasPanel : UserControl
 
         DockPanel.Children.Add(_biasPromptPanel);
         DockPanel.SetDock(_biasPromptPanel, Dock.Left);
+        SetupGraphGrid();
 
-        // TODO: unsubscribe on disposal from all events everwhere
-        _biasPromptPanel.OnModelOutput += (_, args) => CreateGraphs(args);
+        _biasPromptPanel.OnModelOutput += CreateGraphs;
     }
 
     private void SetupGraphGrid()
@@ -65,14 +63,14 @@ public partial class BiasPanel : UserControl
             _graphGrid.ColumnDefinitions.Add(new ColumnDefinition());
         }
 
-        var separator = new Rectangle() { Width = 2, Height = this.Bounds.Height - 75, Margin = new Thickness(48, 0), VerticalAlignment = VerticalAlignment.Center, Fill = Brushes.BlueViolet };
+        var separator = new Rectangle() { Width = 2, Margin = new Thickness(48, 36), VerticalAlignment = VerticalAlignment.Stretch, Fill = Brushes.BlueViolet };
         _graphGrid.Children.Add(separator);
         Grid.SetRowSpan(separator, 2);
 
         this.DockPanel.Children.Add(_graphGrid);
     }
 
-    private void CreateGraphs(BiasOutputEventArgs modelOutputs)
+    private void CreateGraphs(object? obj, BiasOutputEventArgs modelOutputs)
     {
         for (int token = 0; token < modelOutputs.FirstPrompt.Count + modelOutputs.SecondPrompt.Count; token++)
         {
@@ -137,5 +135,13 @@ public partial class BiasPanel : UserControl
             Grid.SetColumn(plotView, token < modelOutputs.FirstPrompt.Count ? token + 1 : token + 1 - modelOutputs.FirstPrompt.Count); // token + 1 because the first column is reserved for the separator.
             Grid.SetRow(plotView, token < modelOutputs.FirstPrompt.Count ? 0 : 1);
         }
+    }
+
+    protected override void OnDetachedFromLogicalTree(LogicalTreeAttachmentEventArgs e)
+    {
+        if (_biasPromptPanel != null)
+            _biasPromptPanel.OnModelOutput -= CreateGraphs;
+
+        base.OnDetachedFromLogicalTree(e);
     }
 }

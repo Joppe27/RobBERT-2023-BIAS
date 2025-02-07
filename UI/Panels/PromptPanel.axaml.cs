@@ -5,6 +5,7 @@ using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
 using Avalonia.Interactivity;
 using Avalonia.Layout;
+using Avalonia.LogicalTree;
 using Avalonia.Media;
 using RobBERT_2023_BIAS.Inference;
 using RobBERT_2023_BIAS.Utilities;
@@ -37,8 +38,6 @@ public partial class PromptPanel : UserControl
         Robbert = await Robbert.CreateAsync();
 
         PromptTextBox.Watermark = "Voer een prompt in (vergeet geen <mask>)";
-
-        this.DetachedFromVisualTree += (_, _) => Robbert.Dispose();
     }
 
     private async void SendButton_OnClick(object? sender, RoutedEventArgs e)
@@ -121,5 +120,13 @@ public partial class PromptPanel : UserControl
     private void MaskButton_OnClick(object? sender, RoutedEventArgs e)
     {
         PromptTextBox.Text += "<mask>";
+    }
+
+    protected override void OnDetachedFromLogicalTree(LogicalTreeAttachmentEventArgs e)
+    {
+        if (Robbert != null)
+            Robbert.Dispose();
+
+        base.OnDetachedFromLogicalTree(e);
     }
 }

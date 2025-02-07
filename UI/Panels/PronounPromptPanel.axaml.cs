@@ -1,6 +1,7 @@
 ﻿#region
 
 using Avalonia.Controls.Primitives;
+using Avalonia.LogicalTree;
 using Avalonia.Media;
 using RobBERT_2023_BIAS.Inference.Demos;
 using RobBERT_2023_BIAS.Utilities;
@@ -36,8 +37,6 @@ public partial class PronounPromptPanel : PromptPanel
         KCountBox.IsEnabled = false;
         // Avalonia limitation causes difference border between disabled styled and non-styled elements
         KCountBox.BorderBrush = Brushes.LightGray;
-
-        this.DetachedFromVisualTree += (_, _) => _pronounDemo.Dispose();
     }
 
     protected override bool ValidateUserInput(string? prompt)
@@ -93,5 +92,13 @@ public partial class PronounPromptPanel : PromptPanel
         }
 
         return processedModelOutput;
+    }
+
+    protected override void OnDetachedFromLogicalTree(LogicalTreeAttachmentEventArgs e)
+    {
+        if (_pronounDemo != null)
+            _pronounDemo.Dispose();
+
+        base.OnDetachedFromLogicalTree(e);
     }
 }
