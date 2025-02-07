@@ -7,6 +7,7 @@ using Avalonia.Interactivity;
 using Avalonia.Layout;
 using Avalonia.Media;
 using RobBERT_2023_BIAS.Inference;
+using RobBERT_2023_BIAS.Utilities;
 
 #endregion
 
@@ -71,7 +72,7 @@ public partial class PromptPanel : UserControl
     }
 
     protected virtual async Task<List<Dictionary<string, float>>> ProcessUserInput() =>
-        await AwaitableTask.AwaitNotifyUi(Robbert.Process(ValidatedPrompt, KCountBox.Value != null ? (int)KCountBox.Value : 1));
+        await TaskUtilities.AwaitNotifyUi(Robbert.Process(ValidatedPrompt, KCountBox.Value != null ? (int)KCountBox.Value : 1));
 
     protected virtual string[] ProcessModelOutput(List<Dictionary<string, float>> robbertOutput)
     {

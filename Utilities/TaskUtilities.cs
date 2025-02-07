@@ -6,14 +6,10 @@ using RobBERT_2023_BIAS.UI.Windows;
 
 #endregion
 
-namespace RobBERT_2023_BIAS;
+namespace RobBERT_2023_BIAS.Utilities;
 
-public class AwaitableTask
+public static class TaskUtilities
 {
-    private AwaitableTask()
-    {
-    }
-
     /// <summary>
     /// Performs an asynchronous task while notifying the UI (to show loading indicator)
     /// </summary>

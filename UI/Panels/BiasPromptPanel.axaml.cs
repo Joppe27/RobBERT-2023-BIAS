@@ -2,6 +2,7 @@
 
 using Avalonia;
 using Avalonia.Controls;
+using RobBERT_2023_BIAS.Utilities;
 
 #endregion
 
@@ -51,8 +52,8 @@ public partial class BiasPromptPanel : PromptPanel
 
     protected override async Task<List<Dictionary<string, float>>> ProcessUserInput()
     {
-        List<Dictionary<string, float>> firstOutput = await AwaitableTask.AwaitNotifyUi(Robbert.Process(ValidatedPrompt, KCountBox.Value != null ? (int)KCountBox.Value : 1, true));
-        List<Dictionary<string, float>> secondOutput = await AwaitableTask.AwaitNotifyUi(Robbert.Process(_validatedExtraPrompt, KCountBox.Value != null ? (int)KCountBox.Value : 1, true));
+        List<Dictionary<string, float>> firstOutput = await TaskUtilities.AwaitNotifyUi(Robbert.Process(ValidatedPrompt, KCountBox.Value != null ? (int)KCountBox.Value : 1, true));
+        List<Dictionary<string, float>> secondOutput = await TaskUtilities.AwaitNotifyUi(Robbert.Process(_validatedExtraPrompt, KCountBox.Value != null ? (int)KCountBox.Value : 1, true));
 
         OnModelOutput.Invoke(this, new BiasOutputEventArgs(firstOutput, secondOutput));
 

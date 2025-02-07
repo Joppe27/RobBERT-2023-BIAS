@@ -3,6 +3,7 @@
 using Avalonia.Controls.Primitives;
 using Avalonia.Media;
 using RobBERT_2023_BIAS.Inference.Demos;
+using RobBERT_2023_BIAS.Utilities;
 
 #endregion
 
@@ -28,7 +29,7 @@ public partial class PronounPromptPanel : PromptPanel
 
     protected override async Task InitializeAsync()
     {
-        _pronounDemo = await AwaitableTask.AwaitNotifyUi(PronounDemo.CreateAsync());
+        _pronounDemo = await TaskUtilities.AwaitNotifyUi(PronounDemo.CreateAsync());
 
         PromptTextBox.Watermark = "Voer een zin in die één voornaamwoord bevat";
         InsertMaskButton.IsEnabled = false;
@@ -68,7 +69,7 @@ public partial class PronounPromptPanel : PromptPanel
     }
 
     protected override async Task<List<Dictionary<string, float>>> ProcessUserInput() =>
-        await AwaitableTask.AwaitNotifyUi(_pronounDemo.Process(PrepareUserInput(ValidatedPrompt)));
+        await TaskUtilities.AwaitNotifyUi(_pronounDemo.Process(PrepareUserInput(ValidatedPrompt)));
 
     protected override string[] ProcessModelOutput(List<Dictionary<string, float>> robbertOutput)
     {

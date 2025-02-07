@@ -1,4 +1,4 @@
-﻿namespace RobBERT_2023_BIAS;
+﻿namespace RobBERT_2023_BIAS.Utilities;
 
 public static class MathUtilities
 {

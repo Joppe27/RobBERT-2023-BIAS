@@ -6,6 +6,7 @@ using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Interactivity;
 using Avalonia.VisualTree;
 using RobBERT_2023_BIAS.UI.Windows;
+using RobBERT_2023_BIAS.Utilities;
 
 #endregion
 
@@ -25,7 +26,7 @@ public partial class HomePanel : UserControl
 
         if (this.Parent is Panel flexPanel)
         {
-            PromptPanel promptPanel = await AwaitableTask.AwaitNotifyUi(PromptPanel.CreateAsync());
+            PromptPanel promptPanel = await TaskUtilities.AwaitNotifyUi(PromptPanel.CreateAsync());
 
             flexPanel.Children.Clear();
             flexPanel.Children.Add(promptPanel);
@@ -39,7 +40,7 @@ public partial class HomePanel : UserControl
 
         if (this.Parent is Panel flexPanel)
         {
-            PronounPromptPanel jouJouwPanel = await AwaitableTask.AwaitNotifyUi(PronounPromptPanel.CreateAsync());
+            PronounPromptPanel jouJouwPanel = await TaskUtilities.AwaitNotifyUi(PronounPromptPanel.CreateAsync());
 
             flexPanel.Children.Clear();
             flexPanel.Children.Add(jouJouwPanel);
@@ -53,7 +54,7 @@ public partial class HomePanel : UserControl
 
         if (this.Parent is Panel flexPanel)
         {
-            BiasPanel biasPanel = await AwaitableTask.AwaitNotifyUi(BiasPanel.CreateAsync());
+            BiasPanel biasPanel = await TaskUtilities.AwaitNotifyUi(BiasPanel.CreateAsync());
 
             flexPanel.Children.Clear();
             flexPanel.Children.Add(biasPanel);

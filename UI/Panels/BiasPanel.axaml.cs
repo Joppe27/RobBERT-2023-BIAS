@@ -8,6 +8,7 @@ using OxyPlot;
 using OxyPlot.Avalonia;
 using OxyPlot.Axes;
 using OxyPlot.Series;
+using RobBERT_2023_BIAS.Utilities;
 using BarSeries = OxyPlot.Series.BarSeries;
 using CategoryAxis = OxyPlot.Axes.CategoryAxis;
 using HorizontalAlignment = Avalonia.Layout.HorizontalAlignment;
@@ -42,7 +43,7 @@ public partial class BiasPanel : UserControl
 
     private async Task InitializeAsync()
     {
-        _biasPromptPanel = await AwaitableTask.AwaitNotifyUi(BiasPromptPanel.CreateAsync());
+        _biasPromptPanel = await TaskUtilities.AwaitNotifyUi(BiasPromptPanel.CreateAsync());
 
         DockPanel.Children.Add(_biasPromptPanel);
         DockPanel.SetDock(_biasPromptPanel, Dock.Left);
