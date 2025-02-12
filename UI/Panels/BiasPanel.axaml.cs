@@ -9,6 +9,7 @@ using OxyPlot;
 using OxyPlot.Avalonia;
 using OxyPlot.Axes;
 using OxyPlot.Series;
+using RobBERT_2023_BIAS.Inference;
 using RobBERT_2023_BIAS.Utilities;
 using BarSeries = OxyPlot.Series.BarSeries;
 using CategoryAxis = OxyPlot.Axes.CategoryAxis;
@@ -30,18 +31,18 @@ public partial class BiasPanel : UserControl
         InitializeComponent();
     }
 
-    public static async Task<BiasPanel> CreateAsync()
+    public static async Task<BiasPanel> CreateAsync(Robbert.RobbertVersion version)
     {
         BiasPanel panel = new();
 
-        await panel.InitializeAsync();
+        await panel.InitializeAsync(version);
 
         return panel;
     }
 
-    private async Task InitializeAsync()
+    private async Task InitializeAsync(Robbert.RobbertVersion version)
     {
-        _biasPromptPanel = await TaskUtilities.AwaitNotifyUi(BiasPromptPanel.CreateAsync());
+        _biasPromptPanel = await BiasPromptPanel.CreateAsync(version);
 
         DockPanel.Children.Add(_biasPromptPanel);
         DockPanel.SetDock(_biasPromptPanel, Dock.Left);

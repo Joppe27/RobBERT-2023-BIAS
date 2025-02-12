@@ -5,6 +5,7 @@ using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Interactivity;
 using Avalonia.VisualTree;
+using RobBERT_2023_BIAS.Inference;
 using RobBERT_2023_BIAS.UI.Windows;
 using RobBERT_2023_BIAS.Utilities;
 
@@ -17,6 +18,10 @@ public partial class HomePanel : UserControl
     public HomePanel()
     {
         InitializeComponent();
+        // TODO: add input validation
+        ModelComboBox.Items.Insert((int)Robbert.RobbertVersion.Base2022, "RobBERT-2022-base");
+        ModelComboBox.Items.Insert((int)Robbert.RobbertVersion.Base2023, "RobBERT-2023-base");
+        ModelComboBox.Items.Insert((int)Robbert.RobbertVersion.Large2023, "RobBERT-2023-large");
     }
 
     private async void ModelButton_OnClick(object? sender, RoutedEventArgs e)
@@ -26,7 +31,7 @@ public partial class HomePanel : UserControl
 
         if (this.Parent is Panel flexPanel)
         {
-            PromptPanel promptPanel = await TaskUtilities.AwaitNotifyUi(PromptPanel.CreateAsync());
+            PromptPanel promptPanel = await TaskUtilities.AwaitNotifyUi(PromptPanel.CreateAsync((Robbert.RobbertVersion)ModelComboBox.SelectedIndex));
 
             flexPanel.Children.Clear();
             flexPanel.Children.Add(promptPanel);
@@ -40,7 +45,7 @@ public partial class HomePanel : UserControl
 
         if (this.Parent is Panel flexPanel)
         {
-            PronounPromptPanel jouJouwPanel = await TaskUtilities.AwaitNotifyUi(PronounPromptPanel.CreateAsync());
+            PronounPromptPanel jouJouwPanel = await TaskUtilities.AwaitNotifyUi(PronounPromptPanel.CreateAsync((Robbert.RobbertVersion)ModelComboBox.SelectedIndex));
 
             flexPanel.Children.Clear();
             flexPanel.Children.Add(jouJouwPanel);
@@ -54,7 +59,7 @@ public partial class HomePanel : UserControl
 
         if (this.Parent is Panel flexPanel)
         {
-            BiasPanel biasPanel = await TaskUtilities.AwaitNotifyUi(BiasPanel.CreateAsync());
+            BiasPanel biasPanel = await TaskUtilities.AwaitNotifyUi(BiasPanel.CreateAsync((Robbert.RobbertVersion)ModelComboBox.SelectedIndex));
 
             flexPanel.Children.Clear();
             flexPanel.Children.Add(biasPanel);

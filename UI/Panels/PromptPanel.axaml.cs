@@ -24,24 +24,26 @@ public partial class PromptPanel : UserControl
         InitializeComponent();
     }
 
-    public static async Task<PromptPanel> CreateAsync()
+    public static async Task<PromptPanel> CreateAsync(Robbert.RobbertVersion version)
     {
         PromptPanel panel = new();
 
-        await panel.InitializeAsync();
+        await panel.InitializeAsync(version);
 
         return panel;
     }
 
-    protected virtual async Task InitializeAsync()
+    protected virtual async Task InitializeAsync(Robbert.RobbertVersion version)
     {
-        Robbert = await Robbert.CreateAsync();
+        Robbert = await Robbert.CreateAsync(version);
 
         PromptTextBox.Watermark = "Voer een prompt in (vergeet geen <mask>)";
     }
 
     private async void SendButton_OnClick(object? sender, RoutedEventArgs e)
     {
+        ValidatedPrompts.Clear();
+        
         foreach (TextBox textBox in PromptDockPanel.Children.OfType<TextBox>().OrderBy(c => c.Bounds.Top))
         {
             if (ValidateUserInput(textBox.Text) && textBox.Text != null)
@@ -61,7 +63,7 @@ public partial class PromptPanel : UserControl
             ScrollViewer.ScrollToEnd();
         }
 
-        string[] answers = ProcessModelOutput(await ProcessUserInput());
+        string[] answers = ProcessModelOutput(await TaskUtilities.AwaitNotifyUi(ProcessUserInput()));
 
         foreach (string answer in answers)
         {
@@ -73,7 +75,7 @@ public partial class PromptPanel : UserControl
     protected virtual bool ValidateUserInput(string? prompt) => prompt != null && prompt.Contains("mask");
 
     protected virtual async Task<List<Dictionary<string, float>>> ProcessUserInput() =>
-        await TaskUtilities.AwaitNotifyUi(Robbert.Process(ValidatedPrompts.Count == 1 ? ValidatedPrompts[0] : throw new Exception(), KCountBox.Value != null ? (int)KCountBox.Value : 1));
+        await Robbert.Process(ValidatedPrompts.Count == 1 ? ValidatedPrompts[0] : throw new Exception(), KCountBox.Value != null ? (int)KCountBox.Value : 1);
 
     protected virtual string[] ProcessModelOutput(List<Dictionary<string, float>> robbertOutput)
     {

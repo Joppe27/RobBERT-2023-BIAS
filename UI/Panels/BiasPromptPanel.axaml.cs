@@ -3,7 +3,7 @@
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
-using RobBERT_2023_BIAS.Utilities;
+using RobBERT_2023_BIAS.Inference;
 
 #endregion
 
@@ -11,6 +11,8 @@ namespace RobBERT_2023_BIAS.UI.Panels;
 
 public partial class BiasPromptPanel : PromptPanel
 {
+    private Robbert _robbert = null!;
+    
     public event EventHandler<BiasOutputEventArgs> OnModelOutput = null!; 
 
     private BiasPromptPanel()
@@ -18,18 +20,20 @@ public partial class BiasPromptPanel : PromptPanel
         InitializeComponent();
     }
 
-    public new static async Task<BiasPromptPanel> CreateAsync()
+    public new static async Task<BiasPromptPanel> CreateAsync(Robbert.RobbertVersion version)
     {
         BiasPromptPanel biasPromptPanel = new();
 
-        await biasPromptPanel.InitializeAsync();
+        await biasPromptPanel.InitializeAsync(version);
 
         return biasPromptPanel;
     }
 
-    private new async Task InitializeAsync()
+    private new async Task InitializeAsync(Robbert.RobbertVersion version)
     {
-        await base.InitializeAsync();
+        await base.InitializeAsync(version);
+
+        _robbert = Robbert;
 
         InsertMaskButton.IsEnabled = false;
         KCountBox.IsEnabled = false;
@@ -59,8 +63,8 @@ public partial class BiasPromptPanel : PromptPanel
         if (ValidatedPrompts.Count != 2)
             throw new Exception();
 
-        List<Dictionary<string, float>> firstOutput = await TaskUtilities.AwaitNotifyUi(Robbert.Process(ValidatedPrompts[0], 10, true));
-        List<Dictionary<string, float>> secondOutput = await TaskUtilities.AwaitNotifyUi(Robbert.Process(ValidatedPrompts[1], 10, true));
+        List<Dictionary<string, float>> firstOutput = await _robbert.Process(ValidatedPrompts[0], 10, true);
+        List<Dictionary<string, float>> secondOutput = await _robbert.Process(ValidatedPrompts[1], 10, true);
 
         OnModelOutput.Invoke(this, new BiasOutputEventArgs(firstOutput, secondOutput));
 

@@ -4,7 +4,7 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              mc:Ignorable="d" d:DesignWidth="400" d:DesignHeight="700"
              x:Class="RobBERT_2023_BIAS.UI.Panels.HomePanel">
-    <Grid ColumnDefinitions="7*, *, 3*" RowDefinitions="Auto, Auto, Auto, Auto, Auto, Auto, *" Margin="16">
+    <Grid ColumnDefinitions="7*, *, 3*" RowDefinitions="Auto, Auto, Auto, Auto, Auto, Auto, *, Auto" Margin="16">
         <TextBlock Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="3" Text="This project is powered by:" />
         <Image Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="3"
                Source="avares://RobBERT-2023-BIAS/Resources/UI/robbert_2023_logo.png" Margin="0, 8, 0, 48">
@@ -27,5 +27,7 @@
                 Classes="PurpleTheme" IsEnabled="True">
             Start demo
         </Button>
+        <ComboBox Grid.Row="7" Grid.Column="0" Grid.ColumnSpan="3" Name="ModelComboBox" HorizontalAlignment="Stretch"
+                  PlaceholderText="Select a model..." />
     </Grid>
 </UserControl>
