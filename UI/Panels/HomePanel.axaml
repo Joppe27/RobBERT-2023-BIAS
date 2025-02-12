@@ -28,6 +28,12 @@
             Start demo
         </Button>
         <ComboBox Grid.Row="7" Grid.Column="0" Grid.ColumnSpan="3" Name="ModelComboBox" HorizontalAlignment="Stretch"
-                  PlaceholderText="Select a model..." />
+                  PlaceholderText="Select a model...">
+            <FlyoutBase.AttachedFlyout>
+                <Flyout Placement="Top" ShowMode="Transient" VerticalOffset="-30">
+                    <TextBlock Text="No model selected!" />
+                </Flyout>
+            </FlyoutBase.AttachedFlyout>
+        </ComboBox>
     </Grid>
 </UserControl>

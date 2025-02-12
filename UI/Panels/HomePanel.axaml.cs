@@ -3,6 +3,7 @@
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
+using Avalonia.Controls.Primitives;
 using Avalonia.Interactivity;
 using Avalonia.VisualTree;
 using RobBERT_2023_BIAS.Inference;
@@ -18,7 +19,7 @@ public partial class HomePanel : UserControl
     public HomePanel()
     {
         InitializeComponent();
-        // TODO: add input validation
+        
         ModelComboBox.Items.Insert((int)Robbert.RobbertVersion.Base2022, "RobBERT-2022-base");
         ModelComboBox.Items.Insert((int)Robbert.RobbertVersion.Base2023, "RobBERT-2023-base");
         ModelComboBox.Items.Insert((int)Robbert.RobbertVersion.Large2023, "RobBERT-2023-large");
@@ -26,6 +27,9 @@ public partial class HomePanel : UserControl
 
     private async void ModelButton_OnClick(object? sender, RoutedEventArgs e)
     {
+        if (!ValidateModelSelection())
+            return;
+        
         if (this.GetVisualRoot()!.GetType() != typeof(HomeWindow))
             throw new NullReferenceException("Panel not in a HomeWindow hierarchy");
 
@@ -40,6 +44,9 @@ public partial class HomePanel : UserControl
 
     private async void JouJouwButton_OnClick(object? sender, RoutedEventArgs e)
     {
+        if (!ValidateModelSelection())
+            return;
+        
         if (this.GetVisualRoot()!.GetType() != typeof(HomeWindow))
             throw new NullReferenceException("Panel not in a HomeWindow hierarchy");
 
@@ -54,6 +61,9 @@ public partial class HomePanel : UserControl
 
     private async void BiasButton_OnClick(object? sender, RoutedEventArgs e)
     {
+        if (!ValidateModelSelection())
+            return;
+        
         if (this.GetVisualRoot()!.GetType() != typeof(HomeWindow))
             throw new NullReferenceException("Panel not in a HomeWindow hierarchy");
 
@@ -74,5 +84,16 @@ public partial class HomePanel : UserControl
                 throw new NullReferenceException();
             }
         }
+    }
+
+    private bool ValidateModelSelection()
+    {
+        if (ModelComboBox.SelectedIndex < 0)
+        {
+            FlyoutBase.ShowAttachedFlyout(ModelComboBox);
+            return false;
+        }
+
+        return true;
     }
 }
