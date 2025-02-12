@@ -56,7 +56,7 @@ public partial class BiasPromptPanel : PromptPanel
         DockPanel.SetDock(extraTextBox, Dock.Bottom);
     }
 
-    protected override bool ValidateUserInput(string? prompt) => prompt != null && prompt.Split(' ').Length < 6;
+    protected override bool ValidateUserInput(string? prompt) => prompt != null && prompt.Split(' ').Length < 6; // Graphs only have room for 5 tokens in this demo.
 
     protected override async Task<List<Dictionary<string, float>>> ProcessUserInput()
     {

@@ -104,8 +104,6 @@ public class Robbert : IDisposable
 
         if (decodeAll)
         {
-            // The first 185 tokens are special tokens or punctuation marks and their decoding is therefore not relevant. See tokenizer.json.
-            // This does not impact probability as it is calculated before these tokens are dropped. TODO: REINVESTIGATE
             foreach (int tokenStart in tokens.Index().Select(i => i.Index * _vocabSize))
                 encodedMaskProbabilities.Add(encodedProbabilities.Slice(tokenStart, _vocabSize).ToArray());
         }

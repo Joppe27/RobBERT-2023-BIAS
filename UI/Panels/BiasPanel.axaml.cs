@@ -73,12 +73,20 @@ public partial class BiasPanel : UserControl
 
     private void CreateGraphs(object? obj, BiasOutputEventArgs modelOutputs)
     {
-        for (int token = 0; token < modelOutputs.FirstPrompt.Count + modelOutputs.SecondPrompt.Count; token++)
+        // Note: only tokens where 3/5 or more candidates are longer than 1 character are displayed as a graph because if not, 
+        // the input token was probably a punctuation mark, space or special character. The model still processes these 
+        // tokens so they are visible in its response in the prompt panel if necessary. For demonstration purposes only.
+        var firstPromptTokens = modelOutputs.FirstPrompt.Where(d => d.Keys.Take(5).Count(k => k.Trim().Length > 1) > 2).ToList();
+        var secondPromptTokens = modelOutputs.SecondPrompt.Where(d => d.Keys.Take(5).Count(k => k.Trim().Length > 1) > 2).ToList();
+
+        for (int token = 0; token < firstPromptTokens.Count + secondPromptTokens.Count; token++)
         {
             var barSource = new List<BarItem>();
             var axesSource = new List<string>();
 
-            foreach (var tokenCandidate in token < modelOutputs.FirstPrompt.Count ? modelOutputs.FirstPrompt[token].Take(5).Reverse() : modelOutputs.SecondPrompt[token - modelOutputs.FirstPrompt.Count].Take(5).Reverse())
+            foreach (var tokenCandidate in token < firstPromptTokens.Count
+                         ? firstPromptTokens[token].Take(5).Reverse()
+                         : secondPromptTokens[token - firstPromptTokens.Count].Take(5).Reverse())
             {
                 if (double.TryParse(MathUtilities.RoundSignificant(tokenCandidate.Value, 4), out double result))
                     barSource.Add(new BarItem() { Value = result != 0 ? result : double.Epsilon });
@@ -98,7 +106,7 @@ public partial class BiasPanel : UserControl
                 LabelFormatString = "{0:g}%",
             };
 
-            var maximum = new List<Dictionary<string, float>>(modelOutputs.FirstPrompt).Concat(modelOutputs.SecondPrompt).SelectMany(d => d.Values).Max() * 100;
+            var maximum = new List<Dictionary<string, float>>(firstPromptTokens).Concat(secondPromptTokens).SelectMany(d => d.Values).Max() * 100;
 
             var linearAxis = new LogarithmicAxis()
             {
@@ -120,7 +128,7 @@ public partial class BiasPanel : UserControl
 
             var plotModel = new PlotModel()
             {
-                Title = $"Prompt {(token < modelOutputs.FirstPrompt.Count ? "1" : "2")} - Token {(token < modelOutputs.FirstPrompt.Count ? token + 1 : token + 1 - modelOutputs.FirstPrompt.Count)}",
+                Title = $"Prompt {(token < firstPromptTokens.Count ? "1" : "2")} - Token {(token < firstPromptTokens.Count ? modelOutputs.FirstPrompt.IndexOf(firstPromptTokens[token]) + 1 : modelOutputs.SecondPrompt.IndexOf(secondPromptTokens[token - firstPromptTokens.Count]) + 1)}",
                 TitleFontSize = 16,
                 TitlePadding = 0,
                 PlotAreaBorderColor = OxyColors.Black,
@@ -133,8 +141,8 @@ public partial class BiasPanel : UserControl
             var plotView = new PlotView() { Model = plotModel };
 
             _graphGrid.Children.Add(plotView);
-            Grid.SetColumn(plotView, token < modelOutputs.FirstPrompt.Count ? token + 1 : token + 1 - modelOutputs.FirstPrompt.Count); // token + 1 because the first column is reserved for the separator.
-            Grid.SetRow(plotView, token < modelOutputs.FirstPrompt.Count ? 0 : 1);
+            Grid.SetColumn(plotView, token < firstPromptTokens.Count ? token + 1 : token + 1 - firstPromptTokens.Count); // token + 1 because the first column is reserved for the separator.
+            Grid.SetRow(plotView, token < firstPromptTokens.Count ? 0 : 1);
         }
     }
 
