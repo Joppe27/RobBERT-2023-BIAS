@@ -11,14 +11,18 @@ namespace RobBERT_2023_BIAS.UI.Windows;
 
 public partial class HomeWindow : Window
 {
-    public readonly Action LoadingStarted;
     public readonly Action LoadingFinished;
+    public readonly Action LoadingStarted;
 
     public HomeWindow()
     {
         InitializeComponent();
 
-        FlexiblePanel.Children.Add(new HomePanel() { VerticalAlignment = VerticalAlignment.Stretch, HorizontalAlignment = HorizontalAlignment.Stretch });
+        FlexiblePanel.Children.Add(new HomePanel()
+        {
+            VerticalAlignment = VerticalAlignment.Stretch,
+            HorizontalAlignment = HorizontalAlignment.Stretch,
+        });
 
         FlexiblePanel.Children.CollectionChanged += (_, _) =>
         {

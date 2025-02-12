@@ -10,16 +10,28 @@ namespace RobBERT_2023_BIAS.Inference;
 
 public class Robbert : IDisposable
 {
-    private RobbertVersion _robbertVersion; 
-    
-    private InferenceSession _model = null!;
+    public enum RobbertVersion
+    {
+        Base2022,
+        Base2023,
+        Large2023,
+    }
+
     private readonly RunOptions _runOptions = new();
+    private int _maskToken; // See tokenizer_config.json.
+    private InferenceSession _model = null!;
+    private RobbertVersion _robbertVersion;
     private Tokenizer _tokenizer = null!;
     private int _vocabSize; // See tokenizer.json.
-    private int _maskToken; // See tokenizer_config.json.
 
     private Robbert()
     {
+    }
+
+    public void Dispose()
+    {
+        GC.SuppressFinalize(this);
+        _model.Dispose();
     }
 
     public static async Task<Robbert> CreateAsync(RobbertVersion version)
@@ -61,7 +73,7 @@ public class Robbert : IDisposable
                 break;
 
             default:
-                throw new Exception(); // TODO: add more info about all exceptions everywhere
+                throw new InvalidOperationException("Unsupported RobBERT version requested");
         }
 
         await Task.Run(() =>
@@ -136,25 +148,20 @@ public class Robbert : IDisposable
             Dictionary<string, float> decodedCandidateTokens = new();
 
             for (var i = 0; i < kCount; i++)
-                if (decodedCandidateTokens.TryAdd(_tokenizer.Decode([(uint)Array.IndexOf(encodedMaskProbabilities[mask], sortedEncodedMaskProbabilities[mask][i])]).Trim(), sortedEncodedMaskProbabilities[mask][i]) == false)
-                    Console.WriteLine("IGNORED TOKEN!"); // Ignored duplicates probably happen because of leading/trailing spaces which get trimmed during decode (see line above).
+            {
+                if (decodedCandidateTokens.TryAdd(_tokenizer.Decode([
+                        (uint)Array.IndexOf(encodedMaskProbabilities[mask],
+                            sortedEncodedMaskProbabilities[mask][i])
+                    ]).Trim(), sortedEncodedMaskProbabilities[mask][i]) == false)
+                {
+                    // Ignored duplicates probably happen because of leading/trailing spaces which get trimmed during decode (see line above).
+                    Console.WriteLine("IGNORED TOKEN!");
+                }
+            }
 
             decodedMaskProbabilities.Add(decodedCandidateTokens);
         }
 
         return decodedMaskProbabilities;
-    }
-
-    public enum RobbertVersion
-    {
-        Base2022,
-        Base2023,
-        Large2023,
-    }
-
-    public void Dispose()
-    {
-        GC.SuppressFinalize(this);
-        _model.Dispose();
     }
 }

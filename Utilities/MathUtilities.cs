@@ -13,7 +13,8 @@ public static class MathUtilities
         double tempNumber = number;
         int actualDigits = 0;
 
-        while (tempNumber <= Math.Pow(10, significantDigits - 1) && actualDigits < 15) // actualDigits < 15 because of double precision limit.
+        // ActualDigits < 15 because of double precision limit.
+        while (tempNumber <= Math.Pow(10, significantDigits - 1) && actualDigits < 15)
         {
             if (number > 1 || number <= 0)
             {

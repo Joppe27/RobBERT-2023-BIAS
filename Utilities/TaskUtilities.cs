@@ -16,7 +16,7 @@ public static class TaskUtilities
     public static async Task<TResult> AwaitNotifyUi<TResult>(Task<TResult> awaitableTask)
     {
         if (!((Application.Current!.ApplicationLifetime as ClassicDesktopStyleApplicationLifetime)!.MainWindow is HomeWindow homeWindow))
-            throw new Exception("Main window was not HomeWindow");
+            throw new InvalidOperationException("Main window is not a HomeWindow");
 
         homeWindow.LoadingStarted.Invoke();
         var result = await awaitableTask;

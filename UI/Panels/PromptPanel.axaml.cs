@@ -16,8 +16,8 @@ namespace RobBERT_2023_BIAS.UI.Panels;
 
 public partial class PromptPanel : UserControl
 {
-    protected Robbert Robbert = null!;
     protected readonly List<string> ValidatedPrompts = new();
+    protected Robbert Robbert = null!;
 
     protected PromptPanel()
     {
@@ -43,7 +43,7 @@ public partial class PromptPanel : UserControl
     private async void SendButton_OnClick(object? sender, RoutedEventArgs e)
     {
         ValidatedPrompts.Clear();
-        
+
         foreach (TextBox textBox in PromptDockPanel.Children.OfType<TextBox>().OrderBy(c => c.Bounds.Top))
         {
             if (ValidateUserInput(textBox.Text) && textBox.Text != null)
@@ -75,7 +75,10 @@ public partial class PromptPanel : UserControl
     protected virtual bool ValidateUserInput(string? prompt) => prompt != null && prompt.Contains("mask");
 
     protected virtual async Task<List<Dictionary<string, float>>> ProcessUserInput() =>
-        await Robbert.Process(ValidatedPrompts.Count == 1 ? ValidatedPrompts[0] : throw new Exception(), KCountBox.Value != null ? (int)KCountBox.Value : 1);
+        await Robbert.Process(ValidatedPrompts.Count == 1
+                ? ValidatedPrompts[0]
+                : throw new InvalidOperationException($"Input {ValidatedPrompts.Count} prompts while only 1 is supported"),
+            KCountBox.Value != null ? (int)KCountBox.Value : 1);
 
     protected virtual string[] ProcessModelOutput(List<Dictionary<string, float>> robbertOutput)
     {
@@ -86,7 +89,12 @@ public partial class PromptPanel : UserControl
             string maskOutput = "";
 
             for (int i = 0; i < robbertOutput[mask].Keys.Count; i++)
-                maskOutput += $"{(i == 0 ? "" : "\n")}{robbertOutput[mask].Keys.ElementAt(i)} (zekerheid: {MathUtilities.RoundSignificant(robbertOutput[mask].Values.ElementAt(i), 2)}%)";
+            {
+                maskOutput += String.Format("{0}{1} (zekerheid: {2}%)",
+                    i == 0 ? "" : "\n",
+                    robbertOutput[mask].Keys.ElementAt(i),
+                    MathUtilities.RoundSignificant(robbertOutput[mask].Values.ElementAt(i), 2));
+            }
 
             conversationOutputs[mask] = maskOutput;
         }

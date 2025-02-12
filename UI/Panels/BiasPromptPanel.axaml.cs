@@ -12,13 +12,13 @@ namespace RobBERT_2023_BIAS.UI.Panels;
 public partial class BiasPromptPanel : PromptPanel
 {
     private Robbert _robbert = null!;
-    
-    public event EventHandler<BiasOutputEventArgs> OnModelOutput = null!; 
 
     private BiasPromptPanel()
     {
         InitializeComponent();
     }
+
+    public event EventHandler<BiasOutputEventArgs> OnModelOutput = null!;
 
     public new static async Task<BiasPromptPanel> CreateAsync(Robbert.RobbertVersion version)
     {
@@ -37,7 +37,7 @@ public partial class BiasPromptPanel : PromptPanel
 
         InsertMaskButton.IsEnabled = false;
         KCountBox.IsEnabled = false;
-        
+
         PromptTextBox.Watermark = "Enter a prompt with a length of max. 6 words";
 
         TextBox extraTextBox = new TextBox()
@@ -56,12 +56,13 @@ public partial class BiasPromptPanel : PromptPanel
         DockPanel.SetDock(extraTextBox, Dock.Bottom);
     }
 
-    protected override bool ValidateUserInput(string? prompt) => prompt != null && prompt.Split(' ').Length < 6; // Graphs only have room for 5 tokens in this demo.
+    // Graphs only have room for 5 tokens in this demo.
+    protected override bool ValidateUserInput(string? prompt) => prompt != null && prompt.Split(' ').Length < 6;
 
     protected override async Task<List<Dictionary<string, float>>> ProcessUserInput()
     {
         if (ValidatedPrompts.Count != 2)
-            throw new Exception();
+            throw new InvalidOperationException($"Input {ValidatedPrompts.Count} prompts while only 2 is supported");
 
         List<Dictionary<string, float>> firstOutput = await _robbert.Process(ValidatedPrompts[0], 10, true);
         List<Dictionary<string, float>> secondOutput = await _robbert.Process(ValidatedPrompts[1], 10, true);

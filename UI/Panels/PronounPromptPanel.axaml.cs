@@ -10,13 +10,12 @@ namespace RobBERT_2023_BIAS.UI.Panels;
 
 public partial class PronounPromptPanel : PromptPanel
 {
+    private readonly string[] _familiarPronouns = ["jou", "jouw"];
+    private readonly string[] _politePronouns = ["u", "uw"];
+    private readonly string[] _possiblePronouns = ["jou", "jouw", "u", "uw"];
+    private readonly List<(string Pronoun, bool PoliteForm)> _userPronouns = new();
     private Robbert _robbert = null!;
 
-    private readonly string[] _possiblePronouns = ["jou", "jouw", "u", "uw"];
-    private readonly string[] _politePronouns = ["u", "uw"];
-    private readonly string[] _familiarPronouns = ["jou", "jouw"];
-    private readonly List<(string Pronoun, bool PoliteForm)> _userPronouns = new();
-    
     private PronounPromptPanel()
     {
         InitializeComponent();
@@ -72,7 +71,10 @@ public partial class PronounPromptPanel : PromptPanel
 
     protected override async Task<List<Dictionary<string, float>>> ProcessUserInput()
     {
-        List<Dictionary<string, float>> modelOutput = await _robbert.Process(PrepareUserInput(ValidatedPrompts.Count == 1 ? ValidatedPrompts[0] : throw new Exception()), 200);
+        List<Dictionary<string, float>> modelOutput =
+            await _robbert.Process(PrepareUserInput(ValidatedPrompts.Count == 1
+                ? ValidatedPrompts[0]
+                : throw new InvalidOperationException($"Input {ValidatedPrompts.Count} prompts while only 1 is supported")), 200);
         List<Dictionary<string, float>> modelPronouns = new();
 
         for (int mask = 0; mask < modelOutput.Count; mask++)
@@ -98,7 +100,11 @@ public partial class PronounPromptPanel : PromptPanel
                     break;
                 }
 
-                float incorrectModelConfidence = modelOutput[mask].GetValueOrDefault(_userPronouns[mask].PoliteForm ? _politePronouns.First(p => p != currentCandidateToken) : _familiarPronouns.First(p => p != currentCandidateToken), 0);
+                float incorrectModelConfidence = modelOutput[mask]
+                    .GetValueOrDefault(
+                        _userPronouns[mask].PoliteForm
+                            ? _politePronouns.First(p => p != currentCandidateToken)
+                            : _familiarPronouns.First(p => p != currentCandidateToken), 0);
                 float total = currentCandidateProbability + incorrectModelConfidence;
                 float confidence = currentCandidateProbability / total * 100;
 
@@ -119,7 +125,8 @@ public partial class PronounPromptPanel : PromptPanel
             // Warn user that kCount wasn't large enough to calculate an answer.
             if (robbertOutput[pronoun].Values.ElementAt(0) < 0)
             {
-                processedModelOutput[pronoun] = $"Het {pronoun + 1}{(pronoun == 0 ? "ste" : "de")} voornaamwoord werd niet berekend om de laadtijd te beperken.";
+                processedModelOutput[pronoun] =
+                    $"Het {pronoun + 1}{(pronoun == 0 ? "ste" : "de")} voornaamwoord werd niet berekend om de laadtijd te beperken.";
                 break;
             }
 

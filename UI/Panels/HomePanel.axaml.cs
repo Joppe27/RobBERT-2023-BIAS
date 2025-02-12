@@ -19,7 +19,7 @@ public partial class HomePanel : UserControl
     public HomePanel()
     {
         InitializeComponent();
-        
+
         ModelComboBox.Items.Insert((int)Robbert.RobbertVersion.Base2022, "RobBERT-2022-base");
         ModelComboBox.Items.Insert((int)Robbert.RobbertVersion.Base2023, "RobBERT-2023-base");
         ModelComboBox.Items.Insert((int)Robbert.RobbertVersion.Large2023, "RobBERT-2023-large");
@@ -29,13 +29,14 @@ public partial class HomePanel : UserControl
     {
         if (!ValidateModelSelection())
             return;
-        
+
         if (this.GetVisualRoot()!.GetType() != typeof(HomeWindow))
             throw new NullReferenceException("Panel not in a HomeWindow hierarchy");
 
         if (this.Parent is Panel flexPanel)
         {
-            PromptPanel promptPanel = await TaskUtilities.AwaitNotifyUi(PromptPanel.CreateAsync((Robbert.RobbertVersion)ModelComboBox.SelectedIndex));
+            PromptPanel promptPanel = await TaskUtilities
+                .AwaitNotifyUi(PromptPanel.CreateAsync((Robbert.RobbertVersion)ModelComboBox.SelectedIndex));
 
             flexPanel.Children.Clear();
             flexPanel.Children.Add(promptPanel);
@@ -46,13 +47,14 @@ public partial class HomePanel : UserControl
     {
         if (!ValidateModelSelection())
             return;
-        
+
         if (this.GetVisualRoot()!.GetType() != typeof(HomeWindow))
             throw new NullReferenceException("Panel not in a HomeWindow hierarchy");
 
         if (this.Parent is Panel flexPanel)
         {
-            PronounPromptPanel jouJouwPanel = await TaskUtilities.AwaitNotifyUi(PronounPromptPanel.CreateAsync((Robbert.RobbertVersion)ModelComboBox.SelectedIndex));
+            PronounPromptPanel jouJouwPanel = await TaskUtilities
+                .AwaitNotifyUi(PronounPromptPanel.CreateAsync((Robbert.RobbertVersion)ModelComboBox.SelectedIndex));
 
             flexPanel.Children.Clear();
             flexPanel.Children.Add(jouJouwPanel);
@@ -63,7 +65,7 @@ public partial class HomePanel : UserControl
     {
         if (!ValidateModelSelection())
             return;
-        
+
         if (this.GetVisualRoot()!.GetType() != typeof(HomeWindow))
             throw new NullReferenceException("Panel not in a HomeWindow hierarchy");
 

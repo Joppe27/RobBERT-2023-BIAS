@@ -25,7 +25,7 @@ public partial class BiasPanel : UserControl
 {
     private BiasPromptPanel _biasPromptPanel = null!;
     private Grid _graphGrid = null!;
-    
+
     private BiasPanel()
     {
         InitializeComponent();
@@ -53,7 +53,12 @@ public partial class BiasPanel : UserControl
 
     private void SetupGraphGrid()
     {
-        _graphGrid = new() { VerticalAlignment = VerticalAlignment.Stretch, HorizontalAlignment = HorizontalAlignment.Stretch, Margin = new Thickness(-16, 0, 0, 0) };
+        _graphGrid = new()
+        {
+            VerticalAlignment = VerticalAlignment.Stretch,
+            HorizontalAlignment = HorizontalAlignment.Stretch,
+            Margin = new Thickness(-16, 0, 0, 0),
+        };
 
         _graphGrid.ColumnDefinitions.Add(new ColumnDefinition(GridLength.Auto));
         for (int i = 0; i < 6; i++)
@@ -64,7 +69,13 @@ public partial class BiasPanel : UserControl
             _graphGrid.ColumnDefinitions.Add(new ColumnDefinition());
         }
 
-        var separator = new Rectangle() { Width = 2, Margin = new Thickness(48, 36), VerticalAlignment = VerticalAlignment.Stretch, Fill = Brushes.BlueViolet };
+        var separator = new Rectangle()
+        {
+            Width = 2,
+            Margin = new Thickness(48, 36),
+            VerticalAlignment = VerticalAlignment.Stretch,
+            Fill = Brushes.BlueViolet,
+        };
         _graphGrid.Children.Add(separator);
         Grid.SetRowSpan(separator, 2);
 
@@ -76,8 +87,10 @@ public partial class BiasPanel : UserControl
         // Note: only tokens where 3/5 or more candidates are longer than 1 character are displayed as a graph because if not, 
         // the input token was probably a punctuation mark, space or special character. The model still processes these 
         // tokens so they are visible in its response in the prompt panel if necessary. For demonstration purposes only.
-        var firstPromptTokens = modelOutputs.FirstPrompt.Where(d => d.Keys.Take(5).Count(k => k.Trim().Length > 1) > 2).ToList();
-        var secondPromptTokens = modelOutputs.SecondPrompt.Where(d => d.Keys.Take(5).Count(k => k.Trim().Length > 1) > 2).ToList();
+        var firstPromptTokens = modelOutputs.FirstPrompt
+            .Where(d => d.Keys.Take(5).Count(k => k.Trim().Length > 1) > 2).ToList();
+        var secondPromptTokens = modelOutputs.SecondPrompt
+            .Where(d => d.Keys.Take(5).Count(k => k.Trim().Length > 1) > 2).ToList();
 
         for (int token = 0; token < firstPromptTokens.Count + secondPromptTokens.Count; token++)
         {
@@ -91,7 +104,7 @@ public partial class BiasPanel : UserControl
                 if (double.TryParse(MathUtilities.RoundSignificant(tokenCandidate.Value, 4), out double result))
                     barSource.Add(new BarItem() { Value = result != 0 ? result : double.Epsilon });
                 else
-                    throw new Exception();
+                    throw new FormatException("Failed to parse string to double");
 
                 axesSource.Add(tokenCandidate.Key);
             }
@@ -106,7 +119,8 @@ public partial class BiasPanel : UserControl
                 LabelFormatString = "{0:g}%",
             };
 
-            var maximum = new List<Dictionary<string, float>>(firstPromptTokens).Concat(secondPromptTokens).SelectMany(d => d.Values).Max() * 100;
+            var maximum = new List<Dictionary<string, float>>(firstPromptTokens)
+                .Concat(secondPromptTokens).SelectMany(d => d.Values).Max() * 100;
 
             var linearAxis = new LogarithmicAxis()
             {
@@ -128,7 +142,11 @@ public partial class BiasPanel : UserControl
 
             var plotModel = new PlotModel()
             {
-                Title = $"Prompt {(token < firstPromptTokens.Count ? "1" : "2")} - Token {(token < firstPromptTokens.Count ? modelOutputs.FirstPrompt.IndexOf(firstPromptTokens[token]) + 1 : modelOutputs.SecondPrompt.IndexOf(secondPromptTokens[token - firstPromptTokens.Count]) + 1)}",
+                Title = String.Format("Prompt {0} - Token {1}",
+                    token < firstPromptTokens.Count ? "1" : "2",
+                    token < firstPromptTokens.Count
+                        ? modelOutputs.FirstPrompt.IndexOf(firstPromptTokens[token]) + 1
+                        : modelOutputs.SecondPrompt.IndexOf(secondPromptTokens[token - firstPromptTokens.Count]) + 1),
                 TitleFontSize = 16,
                 TitlePadding = 0,
                 PlotAreaBorderColor = OxyColors.Black,
@@ -137,11 +155,13 @@ public partial class BiasPanel : UserControl
                 Series = { barSeries },
                 Axes = { categoryAxis, linearAxis },
             };
-            
+
             var plotView = new PlotView() { Model = plotModel };
 
             _graphGrid.Children.Add(plotView);
-            Grid.SetColumn(plotView, token < firstPromptTokens.Count ? token + 1 : token + 1 - firstPromptTokens.Count); // token + 1 because the first column is reserved for the separator.
+
+            // Token + 1 because the first column is reserved for the separator.
+            Grid.SetColumn(plotView, token < firstPromptTokens.Count ? token + 1 : token + 1 - firstPromptTokens.Count);
             Grid.SetRow(plotView, token < firstPromptTokens.Count ? 0 : 1);
         }
     }
