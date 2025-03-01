@@ -3,6 +3,7 @@
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
+using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Layout;
 using Avalonia.LogicalTree;
@@ -40,7 +41,7 @@ public partial class PromptPanel : UserControl
         PromptTextBox.Watermark = "Voer een prompt in (vergeet geen <mask>)";
     }
 
-    private async void SendButton_OnClick(object? sender, RoutedEventArgs e)
+    protected async void SendButton_OnClick(object? sender, RoutedEventArgs? e)
     {
         ValidatedPrompts.Clear();
 
@@ -70,6 +71,12 @@ public partial class PromptPanel : UserControl
             ConversationPanel.Children.Add(MakeTextBlock(answer, false));
             ScrollViewer.ScrollToEnd();
         }
+    }
+
+    private void PromptTextBox_OnKeyDown(object? sender, KeyEventArgs e)
+    {
+        if (e.Key == Key.Return)
+            SendButton_OnClick(this, null);
     }
 
     protected virtual bool ValidateUserInput(string? prompt) => prompt != null && prompt.Contains("mask");

@@ -3,6 +3,7 @@
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
+using Avalonia.Input;
 using RobBERT_2023_BIAS.Inference;
 
 #endregion
@@ -45,6 +46,12 @@ public partial class BiasPromptPanel : PromptPanel
             Name = "ExtraTextBox",
             Margin = new Thickness(0, 8, 0, 0),
             Watermark = PromptTextBox.Watermark,
+            TabIndex = 1,
+        };
+        extraTextBox.KeyDown += (_, args) =>
+        {
+            if (args.Key == Key.Return)
+                base.SendButton_OnClick(this, null);
         };
 
         FlyoutBase flyout = FlyoutBase.GetAttachedFlyout(PromptTextBox) ?? throw new NullReferenceException();

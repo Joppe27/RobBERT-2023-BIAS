@@ -19,7 +19,7 @@
             <Grid ColumnDefinitions="*, Auto">
                 <Button Grid.Column="0" x:Name="MainMenuButton" Foreground="White" FontSize="12" FontWeight="Bold"
                         VerticalAlignment="Center" IsVisible="False" Background="Transparent" BorderThickness="0"
-                        Click="MainMenuButton_OnClick">
+                        Click="MainMenuButton_OnClick" TabIndex="10">
                     ← Return to main menu
                 </Button>
                 <StackPanel Grid.Column="1" x:Name="ReadyIndicator" HorizontalAlignment="Right"
