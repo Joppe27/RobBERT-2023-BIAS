@@ -7,10 +7,18 @@
     <Application.Styles>
         <FluentTheme />
         <StyleInclude Source="avares://OxyPlot.Avalonia/Themes/Default.axaml" />
-        <Style Selector="Button.PurpleTheme">
+        <Style Selector="Button.LightPurple">
             <Setter Property="BorderBrush" Value="MediumPurple" />
             <Setter Property="BorderThickness" Value="1" />
             <Setter Property="Background" Value="#fbf5ff" />
+            <Setter Property="HorizontalContentAlignment" Value="Center" />
+        </Style>
+        <Style Selector="Button.DarkPurple">
+            <Setter Property="BorderBrush" Value="MediumPurple" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="Background" Value="BlueViolet" />
+            <Setter Property="Foreground" Value="White" />
+            <Setter Property="FontWeight" Value="Bold" />
             <Setter Property="HorizontalContentAlignment" Value="Center" />
         </Style>
         <Style Selector="Button.PurpleTheme:disabled /template/ ContentPresenter">

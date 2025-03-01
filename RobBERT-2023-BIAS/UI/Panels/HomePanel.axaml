@@ -2,38 +2,46 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-             mc:Ignorable="d" d:DesignWidth="400" d:DesignHeight="700"
+             mc:Ignorable="d" d:DesignWidth="400" d:DesignHeight="628"
              x:Class="RobBERT_2023_BIAS.UI.Panels.HomePanel">
-    <Grid ColumnDefinitions="7*, *, 3*" RowDefinitions="Auto, Auto, Auto, Auto, Auto, Auto, *, Auto" Margin="16">
+    <Grid ColumnDefinitions="9*, *, 4*" RowDefinitions="Auto, Auto, Auto, Auto, Auto, Auto, *, Auto" Margin="16">
         <TextBlock Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="3" Text="This project is powered by:" />
         <Image Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="3"
                Source="avares://RobBERT-2023-BIAS/Resources/UI/robbert_2023_logo.png" Margin="0, 8, 0, 48">
         </Image>
-        <TextBlock Grid.Row="2" Grid.Column="0" TextWrapping="WrapWithOverflow" Padding="0, 12, 0, 12"
-                   Text="Test the general performance of RobBERT-2023-large by entering your own mask:" />
+        <TextBlock Grid.Row="2" Grid.Column="0" TextWrapping="WrapWithOverflow" Padding="0, 12"
+                   Text="Test the general performance of a model by entering your own mask" />
         <Button Grid.Row="2" Grid.Column="2" Click="ModelButton_OnClick" HorizontalAlignment="Stretch"
-                Classes="PurpleTheme">
+                Classes="LightPurple">
             Start model
         </Button>
-        <TextBlock Grid.Row="3" Grid.Column="0" TextWrapping="WrapWithOverflow" Padding="0, 12, 0, 12"
-                   Text="Try out a real-world use-case of RobBERT-2023-large — an automated way to correct the frequent jou/jouw grammar error:" />
+        <TextBlock Grid.Row="3" Grid.Column="0" TextWrapping="WrapWithOverflow" Padding="0, 12"
+                   Text="Try out a real-world use-case of a masked language model — an automated way to correct the frequent jou/jouw grammar error" />
         <Button Grid.Row="3" Grid.Column="2" Click="JouJouwButton_OnClick" HorizontalAlignment="Stretch"
-                Classes="PurpleTheme">
+                Classes="LightPurple">
             Start demo
         </Button>
-        <TextBlock Grid.Row="4" Grid.Column="0" TextWrapping="WrapWithOverflow" Padding="0, 12, 0, 12"
-                   Text="Run a limited example of bias detection for RobBERT-2023-large:" />
+        <TextBlock Grid.Row="4" Grid.Column="0" TextWrapping="WrapWithOverflow" Padding="0, 12"
+                   Text="Visually compare token probability between prompts — a simpler look into the inner workings of the study" />
         <Button Grid.Row="4" Grid.Column="2" Click="BiasButton_OnClick" HorizontalAlignment="Stretch"
-                Classes="PurpleTheme" IsEnabled="True">
+                Classes="LightPurple" IsEnabled="True">
             Start demo
         </Button>
-        <ComboBox Grid.Row="7" Grid.Column="0" Grid.ColumnSpan="3" Name="ModelComboBox" HorizontalAlignment="Stretch"
-                  PlaceholderText="Select a model...">
+        <ComboBox Grid.Row="5" Grid.Column="0" Grid.ColumnSpan="3" Name="ModelComboBox" HorizontalAlignment="Stretch"
+                  Margin="0, 12" PlaceholderText="Select a model...">
             <FlyoutBase.AttachedFlyout>
-                <Flyout Placement="Top" ShowMode="Transient" VerticalOffset="-30">
+                <Flyout Placement="Top" ShowMode="Transient" VerticalOffset="-240">
                     <TextBlock Text="No model selected!" />
                 </Flyout>
             </FlyoutBase.AttachedFlyout>
         </ComboBox>
+        <Rectangle Grid.Row="6" Grid.Column="0" Grid.ColumnSpan="3" Stroke="LightGray" StrokeThickness="2"
+                   Margin="0, 12" Height="2" />
+        <TextBlock Grid.Row="7" Grid.Column="0" TextWrapping="WrapWithOverflow" Padding="0, 12"
+                   Text="Analyze the difference in token probabilities for a large corpus of text and between different models in order to measure English bias " />
+        <Button Grid.Row="7" Grid.Column="2" Click="AnalyzeButton_OnClick" HorizontalAlignment="Stretch"
+                Classes="DarkPurple">
+            Run analysis
+        </Button>
     </Grid>
 </UserControl>

@@ -88,6 +88,11 @@ public partial class HomePanel : UserControl
         }
     }
 
+    private void AnalyzeButton_OnClick(object? sender, RoutedEventArgs e)
+    {
+        throw new NotImplementedException();
+    }
+
     private bool ValidateModelSelection()
     {
         if (ModelComboBox.SelectedIndex < 0)

@@ -15,7 +15,7 @@
         </TextBox>
         <Grid ColumnDefinitions="Auto, *, Auto" DockPanel.Dock="Bottom" Background="White" Height="32"
               VerticalAlignment="Bottom" Margin="0, 16, 0, 8">
-            <Button Grid.Column="0" x:Name="InsertMaskButton" Classes="PurpleTheme" VerticalAlignment="Stretch"
+            <Button Grid.Column="0" x:Name="InsertMaskButton" Classes="LightPurple" VerticalAlignment="Stretch"
                     VerticalContentAlignment="Center" Click="MaskButton_OnClick" TabIndex="5">
                 Insert mask
             </Button>
@@ -30,8 +30,7 @@
                     </Style>
                 </NumericUpDown.Styles>
             </NumericUpDown>
-            <Button Grid.Column="2" Classes="PurpleTheme" Foreground="White" VerticalAlignment="Stretch"
-                    VerticalContentAlignment="Center" Background="BlueViolet" FontWeight="Bold"
+            <Button Grid.Column="2" Classes="DarkPurple" VerticalAlignment="Stretch" VerticalContentAlignment="Center"
                     HorizontalAlignment="Right" Click="SendButton_OnClick" TabIndex="7">
                 Send
             </Button>
