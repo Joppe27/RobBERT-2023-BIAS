@@ -37,4 +37,7 @@
             </Style.Animations>
         </Style>
     </Application.Styles>
+    <Application.Resources>
+        <FontFamily x:Key="Mono">avares://RobBERT-2023-BIAS/Resources/UI/Fonts/JetBrainsMono-Medium.ttf#JetBrains Mono</FontFamily>
+    </Application.Resources>
 </Application>

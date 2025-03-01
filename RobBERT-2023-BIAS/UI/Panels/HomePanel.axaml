@@ -35,8 +35,7 @@
                 </Flyout>
             </FlyoutBase.AttachedFlyout>
         </ComboBox>
-        <Rectangle Grid.Row="6" Grid.Column="0" Grid.ColumnSpan="3" Stroke="LightGray" StrokeThickness="2"
-                   Margin="0, 12" Height="2" />
+        <Rectangle Grid.Row="6" Grid.Column="0" Grid.ColumnSpan="3" Fill="LightGray" Margin="0, 12" Height="2" />
         <TextBlock Grid.Row="7" Grid.Column="0" TextWrapping="WrapWithOverflow" Padding="0, 12"
                    Text="Analyze the difference in token probabilities for a large corpus of text and between different models in order to measure English bias " />
         <Button Grid.Row="7" Grid.Column="2" Click="AnalyzeButton_OnClick" HorizontalAlignment="Stretch"

@@ -118,6 +118,12 @@
         <AvaloniaResource Include="Resources\UI\icon.png">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </AvaloniaResource>
+        <None Remove="Resources\UI\Fonts\JetBrains_Mono.zip"/>
+        <None Remove="Resources\UI\Fonts\JetBrainsMono-Medium.ttf"/>
+        <AvaloniaResource Include="Resources\UI\Fonts\JetBrainsMono-Medium.ttf">
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </AvaloniaResource>
+        <None Remove="Resources\UI\Fonts\JetBrainsMono-VariableFont_wght.ttf"/>
     </ItemGroup>
 
     <ItemGroup>

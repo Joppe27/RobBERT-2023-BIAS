@@ -88,9 +88,28 @@ public partial class HomePanel : UserControl
         }
     }
 
-    private void AnalyzeButton_OnClick(object? sender, RoutedEventArgs e)
+    private async void AnalyzeButton_OnClick(object? sender, RoutedEventArgs e)
     {
-        throw new NotImplementedException();
+        if (this.GetVisualRoot()!.GetType() != typeof(HomeWindow))
+            throw new NullReferenceException("Panel not in a HomeWindow hierarchy");
+
+        if (this.Parent is Panel flexPanel)
+        {
+            AnalyzePanel analyzePanel = await TaskUtilities.AwaitNotifyUi(AnalyzePanel.CreateAsync());
+
+            flexPanel.Children.Clear();
+            flexPanel.Children.Add(analyzePanel);
+
+            if ((Application.Current!.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime)!.MainWindow is HomeWindow homeWindow)
+            {
+                homeWindow.WindowState = WindowState.Maximized;
+                homeWindow.SystemDecorations = SystemDecorations.BorderOnly;
+            }
+            else
+            {
+                throw new NullReferenceException();
+            }
+        }
     }
 
     private bool ValidateModelSelection()

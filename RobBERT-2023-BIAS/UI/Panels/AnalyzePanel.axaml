@@ -1,0 +1,46 @@
+﻿<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             x:Class="RobBERT_2023_BIAS.UI.Panels.AnalyzePanel">
+    <Grid ColumnDefinitions="400, Auto, *" RowDefinitions="*">
+        <Grid Grid.Column="0" Grid.Row="0" ColumnDefinitions="4*, 2*" RowDefinitions="*, Auto, Auto, Auto" Margin="16">
+            <Border Grid.Column="0" Grid.ColumnSpan="2" Grid.Row="0" BorderBrush="MediumPurple" BorderThickness="1"
+                    Margin="0, 0, 0, 8" CornerRadius="3">
+                <TextBlock VerticalAlignment="Stretch" Margin="8" TextWrapping="Wrap"
+                           FontFamily="{StaticResource Mono}">
+                    ***** CONSOLE *****
+                </TextBlock>
+            </Border>
+            <Border Grid.Column="0" Grid.Row="1" MinHeight="30" BorderBrush="MediumPurple" BorderThickness="1"
+                    CornerRadius="3" Margin="0,0,0,8">
+                <TextBlock x:Name="ParallelCorpusText" VerticalAlignment="Center" Margin="8, 0" TextWrapping="NoWrap">
+                    Select file for "parallel" structure...
+                </TextBlock>
+            </Border>
+            <Button Grid.Column="1" Grid.Row="1" x:Name="ParallelCorpusButton" Classes="LightPurple"
+                    HorizontalAlignment="Stretch" Margin="8, 0, 0, 8" Click="SelectCorpus_OnClick">
+                Select corpus
+            </Button>
+            <Border Grid.Column="0" Grid.Row="2" BorderBrush="MediumPurple" MinHeight="30" BorderThickness="1"
+                    CornerRadius="3">
+                <TextBlock x:Name="DifferentCorpusText" VerticalAlignment="Center" Margin="8, 0" TextWrapping="NoWrap">
+                    Select file for "different" structure...
+                </TextBlock>
+            </Border>
+            <Button Grid.Column="1" Grid.Row="2" Classes="LightPurple" HorizontalAlignment="Stretch"
+                    Margin="8, 0, 0, 0" Click="SelectCorpus_OnClick">
+                Select corpus
+            </Button>
+            <Button Grid.Column="0" Grid.ColumnSpan="2" Grid.Row="3" Classes="DarkPurple" HorizontalAlignment="Stretch"
+                    Margin="0,8" Click="StartAnalysis_OnClick">
+                Start analysis
+            </Button>
+        </Grid>
+        <Rectangle Grid.Column="1" Grid.Row="0" Fill="BlueViolet" Width="2" Margin="20, 36, 36, 36" />
+        <Grid Grid.Column="2" Grid.Row="0">
+
+        </Grid>
+    </Grid>
+</UserControl>
