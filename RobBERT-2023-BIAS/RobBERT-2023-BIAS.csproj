@@ -114,6 +114,10 @@
         <AvaloniaResource Include="Resources\UI\Icons\robot-solid.svg"/>
         <None Remove="Resources\UI\Icons\user-solid.svg"/>
         <AvaloniaResource Include="Resources\UI\Icons\user-solid.svg"/>
+        <None Remove="Resources\UI\icon.png"/>
+        <AvaloniaResource Include="Resources\UI\icon.png">
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </AvaloniaResource>
     </ItemGroup>
 
     <ItemGroup>

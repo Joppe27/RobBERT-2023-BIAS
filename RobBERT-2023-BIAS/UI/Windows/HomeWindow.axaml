@@ -7,7 +7,8 @@
         Title="RobBERT-2023-BIAS"
         Width="400"
         Height="700"
-        CanResize="False">
+        CanResize="False"
+        Icon="avares://RobBERT-2023-BIAS/Resources/UI/icon.png">
     <DockPanel LastChildFill="True">
         <Border DockPanel.Dock="Top" Background="BlueViolet" CornerRadius="6" BoxShadow="inset 0 -2 2 0 purple"
                 Height="48">
