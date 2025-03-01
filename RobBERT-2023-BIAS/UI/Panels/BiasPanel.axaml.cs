@@ -2,6 +2,7 @@
 
 using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Controls.Primitives;
 using Avalonia.Controls.Shapes;
 using Avalonia.LogicalTree;
 using Avalonia.Media;
@@ -24,6 +25,7 @@ namespace RobBERT_2023_BIAS.UI.Panels;
 public partial class BiasPanel : UserControl
 {
     private BiasPromptPanel _biasPromptPanel = null!;
+    private Grid _rightPanel = null!;
     private Grid _graphGrid = null!;
 
     private BiasPanel()
@@ -46,40 +48,44 @@ public partial class BiasPanel : UserControl
 
         DockPanel.Children.Add(_biasPromptPanel);
         DockPanel.SetDock(_biasPromptPanel, Dock.Left);
-        SetupGraphGrid();
 
-        _biasPromptPanel.OnModelOutput += CreateGraphs;
-    }
-
-    private void SetupGraphGrid()
-    {
-        _graphGrid = new()
+        DockPanel.Children.Add(_rightPanel = new Grid()
         {
-            VerticalAlignment = VerticalAlignment.Stretch,
             HorizontalAlignment = HorizontalAlignment.Stretch,
-            Margin = new Thickness(-16, 0, 0, 0),
-        };
-
-        _graphGrid.ColumnDefinitions.Add(new ColumnDefinition(GridLength.Auto));
-        for (int i = 0; i < 6; i++)
-        {
-            if (i < 2)
-                _graphGrid.RowDefinitions.Add(new RowDefinition());
-
-            _graphGrid.ColumnDefinitions.Add(new ColumnDefinition());
-        }
+            Margin = new Thickness(-16, 0, 0, 0)
+        });
+        _rightPanel.ColumnDefinitions.Add(new ColumnDefinition(GridLength.Auto));
+        _rightPanel.ColumnDefinitions.Add(new ColumnDefinition(GridLength.Star));
 
         var separator = new Rectangle()
         {
             Width = 2,
-            Margin = new Thickness(48, 36),
+            Margin = new Thickness(36, 36),
             VerticalAlignment = VerticalAlignment.Stretch,
             Fill = Brushes.BlueViolet,
         };
-        _graphGrid.Children.Add(separator);
-        Grid.SetRowSpan(separator, 2);
+        _rightPanel.Children.Add(separator);
+        Grid.SetColumn(separator, 0);
 
-        this.DockPanel.Children.Add(_graphGrid);
+        var scrollViewer = new ScrollViewer()
+        {
+            HorizontalAlignment = HorizontalAlignment.Stretch,
+            HorizontalScrollBarVisibility = ScrollBarVisibility.Visible,
+        };
+        _rightPanel.Children.Add(scrollViewer);
+        Grid.SetColumn(scrollViewer, 1);
+
+        _graphGrid = new()
+        {
+            VerticalAlignment = VerticalAlignment.Stretch,
+            HorizontalAlignment = HorizontalAlignment.Stretch,
+            Margin = new Thickness(0, 0, 0, 16)
+        };
+        scrollViewer.Content = _graphGrid;
+
+        _graphGrid.RowDefinitions.AddRange(Enumerable.Range(0, 2).Select(_ => new RowDefinition()));
+
+        _biasPromptPanel.OnModelOutput += CreateGraphs;
     }
 
     private void CreateGraphs(object? obj, BiasOutputEventArgs modelOutputs)
@@ -88,10 +94,14 @@ public partial class BiasPanel : UserControl
         // the input token was probably a punctuation mark, space or special character. The model still processes these 
         // tokens so they are visible in its response in the prompt panel if necessary. For demonstration purposes only.
         var firstPromptTokens = modelOutputs.FirstPrompt
-            .Where(d => d.Keys.Take(5).Count(k => k.Trim().Length > 1) > 2).ToList();
+            .Where(d => d.Keys.Count(k => k.Trim().Length > 1) > 2).ToList();
         var secondPromptTokens = modelOutputs.SecondPrompt
-            .Where(d => d.Keys.Take(5).Count(k => k.Trim().Length > 1) > 2).ToList();
+            .Where(d => d.Keys.Count(k => k.Trim().Length > 1) > 2).ToList();
 
+        _graphGrid.ColumnDefinitions.Clear();
+        for (int i = 0; i < Math.Max(firstPromptTokens.Count, secondPromptTokens.Count); i++)
+            _graphGrid.ColumnDefinitions.Add(new ColumnDefinition() { MinWidth = 200 });
+        
         for (int token = 0; token < firstPromptTokens.Count + secondPromptTokens.Count; token++)
         {
             var barSource = new List<BarItem>();
@@ -160,8 +170,7 @@ public partial class BiasPanel : UserControl
 
             _graphGrid.Children.Add(plotView);
 
-            // Token + 1 because the first column is reserved for the separator.
-            Grid.SetColumn(plotView, token < firstPromptTokens.Count ? token + 1 : token + 1 - firstPromptTokens.Count);
+            Grid.SetColumn(plotView, token < firstPromptTokens.Count ? token : token - firstPromptTokens.Count);
             Grid.SetRow(plotView, token < firstPromptTokens.Count ? 0 : 1);
         }
     }

@@ -4,5 +4,5 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:Class="RobBERT_2023_BIAS.UI.Panels.BiasPanel">
-    <DockPanel x:Name="DockPanel" VerticalAlignment="Stretch" />
+    <DockPanel x:Name="DockPanel" VerticalAlignment="Stretch" LastChildFill="True" />
 </UserControl>

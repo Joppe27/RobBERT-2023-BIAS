@@ -38,7 +38,7 @@ public partial class BiasPromptPanel : PromptPanel
         InsertMaskButton.IsEnabled = false;
         KCountBox.IsEnabled = false;
 
-        PromptTextBox.Watermark = "Enter a prompt with a length of max. 6 words";
+        PromptTextBox.Watermark = "Enter a prompt";
 
         TextBox extraTextBox = new TextBox()
         {
@@ -56,8 +56,7 @@ public partial class BiasPromptPanel : PromptPanel
         DockPanel.SetDock(extraTextBox, Dock.Bottom);
     }
 
-    // Graphs only have room for 5 tokens in this demo.
-    protected override bool ValidateUserInput(string? prompt) => prompt != null && prompt.Split(' ').Length < 6;
+    protected override bool ValidateUserInput(string? prompt) => prompt != null;
 
     protected override async Task<List<Dictionary<string, float>>> ProcessUserInput()
     {
