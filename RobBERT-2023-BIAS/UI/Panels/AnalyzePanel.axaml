@@ -8,7 +8,7 @@
         <Grid Grid.Column="0" Grid.Row="0" ColumnDefinitions="4*, 2*" RowDefinitions="*, Auto, Auto, Auto" Margin="16">
             <Border Grid.Column="0" Grid.ColumnSpan="2" Grid.Row="0" BorderBrush="MediumPurple" BorderThickness="1"
                     Margin="0, 0, 0, 8" CornerRadius="3">
-                <TextBlock VerticalAlignment="Stretch" Margin="8" TextWrapping="Wrap"
+                <TextBlock x:Name="ConsoleText" VerticalAlignment="Stretch" Margin="8" TextWrapping="Wrap"
                            FontFamily="{StaticResource Mono}">
                     ***** CONSOLE *****
                 </TextBlock>
@@ -16,7 +16,7 @@
             <Border Grid.Column="0" Grid.Row="1" MinHeight="30" BorderBrush="MediumPurple" BorderThickness="1"
                     CornerRadius="3" Margin="0,0,0,8">
                 <TextBlock x:Name="ParallelCorpusText" VerticalAlignment="Center" Margin="8, 0" TextWrapping="NoWrap">
-                    Select file for "parallel" structure...
+                    Select file "parallel" structure...
                 </TextBlock>
             </Border>
             <Button Grid.Column="1" Grid.Row="1" x:Name="ParallelCorpusButton" Classes="LightPurple"
@@ -26,7 +26,7 @@
             <Border Grid.Column="0" Grid.Row="2" BorderBrush="MediumPurple" MinHeight="30" BorderThickness="1"
                     CornerRadius="3">
                 <TextBlock x:Name="DifferentCorpusText" VerticalAlignment="Center" Margin="8, 0" TextWrapping="NoWrap">
-                    Select file for "different" structure...
+                    Select file "different" structure...
                 </TextBlock>
             </Border>
             <Button Grid.Column="1" Grid.Row="2" Classes="LightPurple" HorizontalAlignment="Stretch"

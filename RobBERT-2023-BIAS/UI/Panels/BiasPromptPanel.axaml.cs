@@ -70,8 +70,8 @@ public partial class BiasPromptPanel : PromptPanel
         if (ValidatedPrompts.Count != 2)
             throw new InvalidOperationException($"Input {ValidatedPrompts.Count} prompts while only 2 is supported");
 
-        List<Dictionary<string, float>> firstOutput = await _robbert.Process(ValidatedPrompts[0], 10, true);
-        List<Dictionary<string, float>> secondOutput = await _robbert.Process(ValidatedPrompts[1], 10, true);
+        List<Dictionary<string, float>> firstOutput = await _robbert.Process(ValidatedPrompts[0], 10, null);
+        List<Dictionary<string, float>> secondOutput = await _robbert.Process(ValidatedPrompts[1], 10, null);
 
         OnModelOutput.Invoke(this, new BiasOutputEventArgs(firstOutput, secondOutput));
 

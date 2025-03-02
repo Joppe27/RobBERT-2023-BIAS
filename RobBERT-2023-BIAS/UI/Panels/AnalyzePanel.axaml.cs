@@ -1,10 +1,15 @@
 ﻿#region
 
+using System.Collections.Concurrent;
 using Avalonia.Controls;
 using Avalonia.Interactivity;
 using Avalonia.LogicalTree;
 using Avalonia.Platform.Storage;
+using Avalonia.Threading;
+using Conllu;
+using Conllu.Enums;
 using RobBERT_2023_BIAS.Inference;
+using RobBERT_2023_BIAS.Utilities;
 
 #endregion
 
@@ -32,6 +37,12 @@ public partial class AnalyzePanel : UserControl
         return panel;
     }
 
+    private async Task InitializeAsync()
+    {
+        _robbert2022 = await Robbert.CreateAsync(Robbert.RobbertVersion.Base2022);
+        _robbert2023 = await Robbert.CreateAsync(Robbert.RobbertVersion.Base2023);
+    }
+
     private async void SelectCorpus_OnClick(object? sender, RoutedEventArgs e)
     {
         var topLevel = TopLevel.GetTopLevel(this) ?? throw new NullReferenceException();
@@ -39,10 +50,10 @@ public partial class AnalyzePanel : UserControl
         {
             Title = "Select corpus file...",
             AllowMultiple = false,
-            FileTypeFilter = [FilePickerFileTypes.TextPlain],
+            FileTypeFilter = [new FilePickerFileType("CoNLL-U corpus") { Patterns = ["*.conllu"] }],
         });
 
-        if (selection.SingleOrDefault() is IStorageFile file)
+        if (selection.SingleOrDefault() is { } file)
         {
             if (sender is Button selectButton)
                 if (selectButton.Name == nameof(ParallelCorpusButton))
@@ -60,15 +71,63 @@ public partial class AnalyzePanel : UserControl
         }
     }
 
-    private void StartAnalysis_OnClick(object? sender, RoutedEventArgs e)
+    private async void StartAnalysis_OnClick(object? sender, RoutedEventArgs e)
     {
-        throw new NotImplementedException();
+        if (_parallelCorpus != null && _differentCorpus != null)
+            await TaskUtilities.AwaitNotifyUi(AnalyzeEnglishBias());
+        else
+        {
+            // TODO: show invalid corpus flyout
+        }
     }
 
-    private async Task InitializeAsync()
+    private async Task AnalyzeEnglishBias()
     {
-        _robbert2022 = await Robbert.CreateAsync(Robbert.RobbertVersion.Base2022);
-        _robbert2023 = await Robbert.CreateAsync(Robbert.RobbertVersion.Base2023);
+        var parallelSentences = ConlluParser.ParseFile(_parallelCorpus.Path.LocalPath).ToList();
+        var differentSenteces = ConlluParser.ParseFile(_differentCorpus.Path.LocalPath).ToList();
+
+        ConcurrentBag<float> robbert2022ParallelProbabilities = new();
+        ConcurrentBag<float> robbert2023ParallelProbabilities = new();
+
+        ConcurrentBag<float> robbert2022DifferentProbabilities = new();
+        ConcurrentBag<float> robbert2023DifferentProbabilities = new();
+
+        await Parallel.ForAsync(0, parallelSentences.Count, async (i, token) =>
+        {
+            Dispatcher.UIThread.Post(() => ConsoleText.Text = $"Processing \"parallel\" construction {i}...");
+
+            var auxForm = parallelSentences[i].Tokens.First(t => t.DepRelEnum == DependencyRelation.Aux).Form;
+
+            (await _robbert2022.Process(parallelSentences[i].RawTokenSequence(), 5, auxForm, false)).First()
+                .TryGetValue(auxForm, out float robbert2022AuxProbability);
+            robbert2022ParallelProbabilities.Add(robbert2022AuxProbability);
+
+            (await _robbert2023.Process(parallelSentences[i].RawTokenSequence(), 5, auxForm, false)).First()
+                .TryGetValue(auxForm, out float robbert2023AuxProbability);
+
+            robbert2023ParallelProbabilities.Add(robbert2023AuxProbability);
+        });
+
+        await Parallel.ForAsync(0, differentSenteces.Count, async (i, token) =>
+        {
+            Dispatcher.UIThread.Post(() => ConsoleText.Text = $"Processing \"different\" construction {i}...");
+
+            var auxForm = differentSenteces[i].Tokens.First(t => t.DepRelEnum == DependencyRelation.Aux).Form;
+
+            (await _robbert2022.Process(differentSenteces[i].RawTokenSequence(), 5, auxForm, false)).First(d => d.ContainsKey(auxForm))
+                .TryGetValue(auxForm, out float robbert2022AuxProbability);
+            robbert2022DifferentProbabilities.Add(robbert2022AuxProbability);
+
+            (await _robbert2023.Process(differentSenteces[i].RawTokenSequence(), 5, auxForm, false)).First(d => d.ContainsKey(auxForm))
+                .TryGetValue(auxForm, out float robbert2023AuxProbability);
+
+            robbert2023DifferentProbabilities.Add(robbert2023AuxProbability);
+        });
+
+        ConsoleText.Text =
+            $"Bias ratio RobBERT2022 = {(robbert2022ParallelProbabilities.Sum() / robbert2022ParallelProbabilities.Count) / (robbert2022DifferentProbabilities.Sum() / robbert2022DifferentProbabilities.Count)}";
+        ConsoleText.Text +=
+            $"\nBias ration RobBERT2023 = {(robbert2023ParallelProbabilities.Sum() / robbert2023ParallelProbabilities.Count) / (robbert2023DifferentProbabilities.Sum() / robbert2023DifferentProbabilities.Count)}";
     }
 
     protected override void OnDetachedFromLogicalTree(LogicalTreeAttachmentEventArgs e)

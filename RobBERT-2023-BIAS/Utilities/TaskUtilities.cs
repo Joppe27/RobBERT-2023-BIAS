@@ -24,4 +24,17 @@ public static class TaskUtilities
 
         return result;
     }
+
+    /// <summary>
+    /// Performs an asynchronous task while notifying the UI (to show loading indicator)
+    /// </summary>
+    public static async Task AwaitNotifyUi(Task awaitableTask)
+    {
+        if (!((Application.Current!.ApplicationLifetime as ClassicDesktopStyleApplicationLifetime)!.MainWindow is HomeWindow homeWindow))
+            throw new InvalidOperationException("Main window is not a HomeWindow");
+
+        homeWindow.LoadingStarted.Invoke();
+        await awaitableTask;
+        homeWindow.LoadingFinished.Invoke();
+    }
 }

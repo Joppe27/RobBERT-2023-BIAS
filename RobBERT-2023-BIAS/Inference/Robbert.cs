@@ -18,7 +18,6 @@ public class Robbert : IDisposable
     }
 
     private readonly RunOptions _runOptions = new();
-    private int _maskToken; // See tokenizer_config.json.
     private InferenceSession _model = null!;
     private RobbertVersion _robbertVersion;
     private Tokenizer _tokenizer = null!;
@@ -55,21 +54,18 @@ public class Robbert : IDisposable
                 modelPath = "Resources/RobBERT-2022-base/model.onnx";
                 tokenizerPath = "Resources/RobBERT-2022-base/tokenizer.json";
                 _vocabSize = 42774;
-                _maskToken = 39984;
                 break;
 
             case RobbertVersion.Base2023:
                 modelPath = "Resources/RobBERT-2023-base/model.onnx";
                 tokenizerPath = "Resources/RobBERT-2023-base/tokenizer.json";
                 _vocabSize = 50000;
-                _maskToken = 4;
                 break;
 
             case RobbertVersion.Large2023:
                 modelPath = "Resources/RobBERT-2023-large/model.onnx";
                 tokenizerPath = "Resources/RobBERT-2023-large/tokenizer.json";
                 _vocabSize = 50000;
-                _maskToken = 4;
                 break;
 
             default:
@@ -85,11 +81,25 @@ public class Robbert : IDisposable
 
     /// <param name="userInput">The sentence to be completed by the model. Must include a mask!</param>
     /// <param name="kCount">The amount of replacements for the mask the model should output.</param>
-    /// <param name="decodeAll">Whether to decode only the mask token or all input tokens.</param>
+    /// <param name="maskToken">Which specific token to decode. If null, all tokens are decoded.</param>
     /// <returns>A list containing a single dictionary for each mask with its possible replacements and probabilities, sorted by confidence.</returns>
-    public async Task<List<Dictionary<string, float>>> Process(string userInput, int kCount, bool decodeAll = false)
+    public async Task<List<Dictionary<string, float>>> Process(string userInput, int kCount, string? maskToken = "<mask>", bool calculateProbability = true)
     {
+        // TODO: fix this garbage
         var tokens = _tokenizer.Encode(userInput);
+        int mask = -1;
+
+        if (maskToken != null)
+        {
+            foreach (uint token in tokens)
+            {
+                if (_tokenizer.Decode([token]).Trim() == maskToken)
+                {
+                    mask = (int)token;
+                    break;
+                }
+            }
+        }
 
         var robbertInput = new RobbertInput()
         {
@@ -109,27 +119,39 @@ public class Robbert : IDisposable
         using var output = await Task.Run(() => _model.Run(_runOptions, inputs, _model.OutputNames));
 
         ReadOnlySpan<float> logits = output[0].GetTensorDataAsSpan<float>();
-        Span<float> encodedProbabilities = new float[logits.Length];
-        TensorPrimitives.SoftMax(logits, encodedProbabilities);
 
         List<float[]> encodedMaskProbabilities = new();
-
-        if (decodeAll)
+        if (calculateProbability)
         {
-            foreach (int tokenStart in tokens.Index().Select(i => i.Index * _vocabSize))
-                encodedMaskProbabilities.Add(encodedProbabilities.Slice(tokenStart, _vocabSize).ToArray());
+            Span<float> encodedProbabilities = new float[logits.Length];
+            TensorPrimitives.SoftMax(logits, encodedProbabilities);
+
+            if (mask < 0)
+            {
+                foreach (int tokenStart in tokens.Index().Select(i => i.Index * _vocabSize))
+                    encodedMaskProbabilities.Add(encodedProbabilities.Slice(tokenStart, _vocabSize).ToArray());
+            }
+            else
+            {
+                foreach (int maskStart in tokens.Index().Where(t => t.Item == mask).Select(i => i.Index * _vocabSize))
+                    encodedMaskProbabilities.Add(encodedProbabilities.Slice(maskStart, _vocabSize).ToArray());
+            }
         }
         else
         {
-            foreach (int maskStart in tokens.Index().Where(t => t.Item == _maskToken).Select(i => i.Index * _vocabSize))
-                encodedMaskProbabilities.Add(encodedProbabilities.Slice(maskStart, _vocabSize).ToArray());
+            if (mask < 0)
+            {
+                foreach (int tokenStart in tokens.Index().Select(i => i.Index * _vocabSize))
+                    encodedMaskProbabilities.Add(logits.Slice(tokenStart, _vocabSize).ToArray());
+            }
+            else
+            {
+                foreach (int maskStart in tokens.Index().Where(t => t.Item == mask).Select(i => i.Index * _vocabSize))
+                    encodedMaskProbabilities.Add(logits.Slice(maskStart, _vocabSize).ToArray());
+            }
         }
 
-        if (kCount >= 50 || decodeAll)
-            return await Task.Run(() => DecodeTokens(encodedMaskProbabilities, kCount));
-
-        // When token count is low, thread blocks for such a short time that running async is not worth the overhead.
-        return DecodeTokens(encodedMaskProbabilities, kCount);
+        return await Task.Run(() => DecodeTokens(encodedMaskProbabilities, kCount));
     }
 
     private List<Dictionary<string, float>> DecodeTokens(List<float[]> encodedMaskProbabilities, int kCount)
@@ -137,6 +159,7 @@ public class Robbert : IDisposable
         List<Dictionary<string, float>> decodedMaskProbabilities = new();
         List<float[]> sortedEncodedMaskProbabilities = encodedMaskProbabilities.Select(m => (float[])m.Clone()).ToList();
 
+        // Sort by from highest to lowest logits to be able to sample via top-k (TODO: expensive, optimization somehow?)
         foreach (float[] encodedCandidateTokens in sortedEncodedMaskProbabilities)
         {
             Array.Sort(encodedCandidateTokens);
@@ -146,13 +169,12 @@ public class Robbert : IDisposable
         for (int mask = 0; mask < encodedMaskProbabilities.Count; mask++)
         {
             Dictionary<string, float> decodedCandidateTokens = new();
-
-            for (var i = 0; i < kCount; i++)
+            for (int candidate = 0; candidate < kCount; candidate++)
             {
                 if (decodedCandidateTokens.TryAdd(_tokenizer.Decode([
                         (uint)Array.IndexOf(encodedMaskProbabilities[mask],
-                            sortedEncodedMaskProbabilities[mask][i])
-                    ]).Trim(), sortedEncodedMaskProbabilities[mask][i]) == false)
+                            sortedEncodedMaskProbabilities[mask][candidate])
+                    ]).Trim(), sortedEncodedMaskProbabilities[mask][candidate]) == false)
                 {
                     // Ignored duplicates probably happen because of leading/trailing spaces which get trimmed during decode (see line above).
                     Console.WriteLine("IGNORED TOKEN!");

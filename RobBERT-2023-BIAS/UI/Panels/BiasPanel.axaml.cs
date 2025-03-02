@@ -100,7 +100,7 @@ public partial class BiasPanel : UserControl
 
         _graphGrid.ColumnDefinitions.Clear();
         for (int i = 0; i < Math.Max(firstPromptTokens.Count, secondPromptTokens.Count); i++)
-            _graphGrid.ColumnDefinitions.Add(new ColumnDefinition() { MinWidth = 200 });
+            _graphGrid.ColumnDefinitions.Add(new ColumnDefinition() { MinWidth = 250 });
         
         for (int token = 0; token < firstPromptTokens.Count + secondPromptTokens.Count; token++)
         {
