@@ -1,137 +1,89 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
-
     <PropertyGroup>
-        <OutputType>Exe</OutputType>
         <TargetFramework>net9.0</TargetFramework>
-        <RootNamespace>RobBERT_2023_BIAS</RootNamespace>
-        <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
-        <BuiltInComInteropSupport>true</BuiltInComInteropSupport>
-        <ApplicationManifest>app.manifest</ApplicationManifest>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <LangVersion>latest</LangVersion>
         <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="Avalonia" Version="11.2.2"/>
-        <PackageReference Include="Avalonia.Desktop" Version="11.2.2"/>
-        <!--Condition below is needed to remove Avalonia.Diagnostics package from build output in Release configuration.-->
-        <PackageReference Include="Avalonia.Diagnostics" Version="11.2.1">
-            <IncludeAssets Condition="'$(Configuration)' != 'Debug'">None</IncludeAssets>
-            <PrivateAssets Condition="'$(Configuration)' != 'Debug'">All</PrivateAssets>
-        </PackageReference>
-        <PackageReference Include="Avalonia.Fonts.Inter" Version="11.2.2"/>
-        <PackageReference Include="Avalonia.Svg.Skia" Version="11.2.0.2"/>
-        <PackageReference Include="Avalonia.Themes.Fluent" Version="11.2.2"/>
-        <PackageReference Include="Conllu" Version="1.1.2"/>
-        <PackageReference Include="MathNet.Numerics" Version="5.0.0"/>
-        <PackageReference Include="Microsoft.ML.OnnxRuntime" Version="1.20.1"/>
-        <PackageReference Include="OxyPlot.Avalonia" Version="2.1.0-Avalonia11"/>
-        <PackageReference Include="System.Numerics.Tensors" Version="9.0.1"/>
-        <PackageReference Include="Tokenizers.DotNet" Version="1.0.5"/>
-        <PackageReference Include="Tokenizers.DotNet.runtime.win" Version="1.0.5"/>
-    </ItemGroup>
-
-    <ItemGroup>
-        <None Update="Resources\RobBERT-2023-large\tokenizer.json">
+        <AvaloniaResource Include="Assets\**"/>
+        <None Remove="Resources\UI\Fonts\JetBrainsMono-Medium.ttf"/>
+        <AvaloniaResource Include="Resources\UI\Fonts\JetBrainsMono-Medium.ttf">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-        </None>
+        </AvaloniaResource>
+        <None Remove="Resources\UI\Icons\circle-check-regular.svg"/>
+        <AvaloniaResource Include="Resources\UI\Icons\circle-check-regular.svg">
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </AvaloniaResource>
+        <None Remove="Resources\UI\Icons\circle-notch-solid.svg"/>
+        <AvaloniaResource Include="Resources\UI\Icons\circle-notch-solid.svg">
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </AvaloniaResource>
+        <None Remove="Resources\UI\Icons\robot-solid.svg"/>
+        <AvaloniaResource Include="Resources\UI\Icons\robot-solid.svg">
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </AvaloniaResource>
+        <None Remove="Resources\UI\Icons\user-solid.svg"/>
+        <AvaloniaResource Include="Resources\UI\Icons\user-solid.svg">
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </AvaloniaResource>
+        <None Remove="Resources\UI\icon.png"/>
+        <AvaloniaResource Include="Resources\UI\icon.png">
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </AvaloniaResource>
+        <None Remove="Resources\UI\robbert_2023_logo.png"/>
+        <AvaloniaResource Include="Resources\UI\robbert_2023_logo.png">
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </AvaloniaResource>
+        <None Remove="Resources\Icons\circle-notch-solid.png"/>
+        <AvaloniaResource Include="Resources\Icons\circle-notch-solid.png">
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </AvaloniaResource>
+        <None Remove="Resources\Icons\circle-check-regular.png"/>
+        <AvaloniaResource Include="Resources\Icons\circle-check-regular.png">
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </AvaloniaResource>
         <None Update="Resources\RobBERT-2023-large\model.onnx">
-            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-        </None>
-        <None Update="Resources\RobBERT-2022-base\config.json">
-            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-        </None>
-        <None Update="Resources\RobBERT-2022-base\merges.txt">
-            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-        </None>
-        <None Update="Resources\RobBERT-2022-base\special_tokens_map.json">
-            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-        </None>
-        <None Update="Resources\RobBERT-2022-base\tokenizer.json">
-            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-        </None>
-        <None Update="Resources\RobBERT-2022-base\tokenizer_config.json">
-            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-        </None>
-        <None Update="Resources\RobBERT-2022-base\vocab.json">
-            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-        </None>
-        <None Update="Resources\RobBERT-2023-base\config.json">
-            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-        </None>
-        <None Update="Resources\RobBERT-2023-base\merges.txt">
-            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-        </None>
-        <None Update="Resources\RobBERT-2023-base\special_tokens_map.json">
-            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-        </None>
-        <None Update="Resources\RobBERT-2023-base\tokenizer.json">
-            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-        </None>
-        <None Update="Resources\RobBERT-2023-base\tokenizer_config.json">
-            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-        </None>
-        <None Update="Resources\RobBERT-2023-base\vocab.json">
-            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-        </None>
-        <None Update="Resources\RobBERT-2022-base\model.onnx">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </None>
         <None Update="Resources\RobBERT-2023-base\model.onnx">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </None>
-        <None Update="Resources\RobBERT-2023-large\config.json">
+        <None Update="Resources\RobBERT-2022-base\model.onnx">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </None>
-        <None Update="Resources\RobBERT-2023-large\special_tokens_map.json">
+        <None Update="Resources\RobBERT-2022-base\tokenizer.json">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </None>
-        <None Update="Resources\RobBERT-2023-large\vocab.json">
+        <None Update="Resources\RobBERT-2023-base\tokenizer.json">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </None>
-        <None Update="Resources\RobBERT-2023-large\tokenizer_config.json">
-            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-        </None>
-        <None Update="Resources\RobBERT-2023-large\merges.txt">
+        <None Update="Resources\RobBERT-2023-large\tokenizer.json">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </None>
     </ItemGroup>
 
     <ItemGroup>
-        <None Remove="Resources\UI\robbert_2023_logo.png"/>
-        <AvaloniaResource Include="Resources\UI\robbert_2023_logo.png">
-            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-        </AvaloniaResource>
-        <None Remove="Resources\UI\Icons\circle-check-regular.svg"/>
-        <None Remove="Resources\UI\Icons\circle-notch-solid.svg"/>
-        <None Remove="Resources\UI\Icons\circle-check-regular.png"/>
-        <None Remove="Resources\UI\Icons\circle-notch-solid.png"/>
-        <None Remove="Resources\robbert_2023_logo.png"/>
-        <None Remove="Resources\Icons\circle-notch-solid.png"/>
-        <None Remove="Resources\Icons\circle-check-regular.png"/>
-        <None Remove="Resources\UI\Icons\robot-solid.png"/>
-        <None Remove="Resources\UI\Icons\user-solid.png"/>
-        <None Remove="Resources\UI\Icons\robot-solid.svg"/>
-        <AvaloniaResource Include="Resources\UI\Icons\robot-solid.svg"/>
-        <None Remove="Resources\UI\Icons\user-solid.svg"/>
-        <AvaloniaResource Include="Resources\UI\Icons\user-solid.svg"/>
-        <None Remove="Resources\UI\icon.png"/>
-        <AvaloniaResource Include="Resources\UI\icon.png">
-            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-        </AvaloniaResource>
-        <None Remove="Resources\UI\Fonts\JetBrains_Mono.zip"/>
-        <None Remove="Resources\UI\Fonts\JetBrainsMono-Medium.ttf"/>
-        <AvaloniaResource Include="Resources\UI\Fonts\JetBrainsMono-Medium.ttf">
-            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-        </AvaloniaResource>
-        <None Remove="Resources\UI\Fonts\JetBrainsMono-VariableFont_wght.ttf"/>
+        <PackageReference Include="Avalonia"/>
+        <PackageReference Include="Avalonia.Svg.Skia"/>
+        <PackageReference Include="Avalonia.Themes.Fluent"/>
+        <PackageReference Include="Avalonia.Fonts.Inter"/>
+        <!--Condition below is needed to remove Avalonia.Diagnostics package from build output in Release configuration.-->
+        <PackageReference Include="Avalonia.Diagnostics">
+            <IncludeAssets Condition="'$(Configuration)' != 'Debug'">None</IncludeAssets>
+            <PrivateAssets Condition="'$(Configuration)' != 'Debug'">All</PrivateAssets>
+        </PackageReference>
+        <PackageReference Include="Conllu"/>
+        <PackageReference Include="Microsoft.ML.OnnxRuntime"/>
+        <PackageReference Include="OxyPlot.Avalonia"/>
+        <PackageReference Include="System.Numerics.Tensors"/>
+        <PackageReference Include="Tokenizers.DotNet"/>
+        <PackageReference Include="Tokenizers.DotNet.runtime.win"/>
     </ItemGroup>
 
     <ItemGroup>
-        <AvaloniaResource Include="Resources\UI\Icons\circle-notch-solid.svg"/>
-    </ItemGroup>
-
-    <ItemGroup>
-        <AvaloniaResource Include="Resources\UI\Icons\circle-check-regular.svg"/>
+        <UpToDateCheckInput Remove="Assets\avalonia-logo.ico"/>
     </ItemGroup>
 </Project>

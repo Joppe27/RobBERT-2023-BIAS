@@ -1,12 +1,13 @@
 ﻿#region
 
+using System;
 using Avalonia;
 
 #endregion
 
 namespace RobBERT_2023_BIAS;
 
-class Program
+sealed class Program
 {
     // Initialization code. Don't use any Avalonia, third-party APIs or any
     // SynchronizationContext-reliant code before AppMain is called: things aren't initialized

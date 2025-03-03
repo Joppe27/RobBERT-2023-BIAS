@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="AvaloniaProject">
+    <option name="projectPerEditor">
+      <map>
+        <entry key="RobBERT-2023-BIAS/UI/Panels/BiasPanel.axaml" value="RobBERT-2023-BIAS.Browser/RobBERT-2023-BIAS.Browser.csproj" />
+        <entry key="RobBERT-2023-BIAS/UI/Panels/BiasPromptPanel.axaml" value="RobBERT-2023-BIAS.Browser/RobBERT-2023-BIAS.Browser.csproj" />
+      </map>
+    </option>
+  </component>
+</project>
