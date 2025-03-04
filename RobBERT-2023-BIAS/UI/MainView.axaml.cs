@@ -1,20 +1,22 @@
-#region
+﻿#region
 
+using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Interactivity;
 using Avalonia.Layout;
 using RobBERT_2023_BIAS.UI.Panels;
 
 #endregion
 
-namespace RobBERT_2023_BIAS.UI.Windows;
+namespace RobBERT_2023_BIAS.UI;
 
-public partial class HomeWindow : Window
+public partial class MainView : UserControl
 {
     public readonly Action LoadingFinished;
     public readonly Action LoadingStarted;
 
-    public HomeWindow()
+    public MainView()
     {
         InitializeComponent();
 
@@ -48,7 +50,12 @@ public partial class HomeWindow : Window
         FlexiblePanel.Children.Clear();
         FlexiblePanel.Children.Add(new HomePanel());
 
-        this.WindowState = WindowState.Normal;
-        this.SystemDecorations = SystemDecorations.Full;
+        if (!OperatingSystem.IsBrowser())
+        {
+            var desktopWindow = ((ClassicDesktopStyleApplicationLifetime)Application.Current!.ApplicationLifetime!).MainWindow!;
+
+            desktopWindow.WindowState = WindowState.Normal;
+            desktopWindow.SystemDecorations = SystemDecorations.Full;
+        }
     }
 }

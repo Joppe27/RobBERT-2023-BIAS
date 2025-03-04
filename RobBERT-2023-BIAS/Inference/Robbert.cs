@@ -86,6 +86,7 @@ public class Robbert : IDisposable
     public async Task<List<Dictionary<string, float>>> Process(string userInput, int kCount, string? maskToken = "<mask>", bool calculateProbability = true)
     {
         // TODO: fix this garbage
+        // TODO: robbert2022 broken
         var tokens = _tokenizer.Encode(userInput);
         int mask = -1;
 

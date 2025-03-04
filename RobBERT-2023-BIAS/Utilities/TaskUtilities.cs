@@ -1,8 +1,8 @@
 ﻿#region
 
 using Avalonia;
-using Avalonia.Controls.ApplicationLifetimes;
-using RobBERT_2023_BIAS.UI.Windows;
+using Avalonia.VisualTree;
+using RobBERT_2023_BIAS.UI;
 
 #endregion
 
@@ -13,14 +13,14 @@ public static class TaskUtilities
     /// <summary>
     /// Performs an asynchronous task while notifying the UI (to show loading indicator)
     /// </summary>
-    public static async Task<TResult> AwaitNotifyUi<TResult>(Task<TResult> awaitableTask)
+    public static async Task<TResult> AwaitNotifyUi<TResult>(Visual sender, Task<TResult> awaitableTask)
     {
-        if (!((Application.Current!.ApplicationLifetime as ClassicDesktopStyleApplicationLifetime)!.MainWindow is HomeWindow homeWindow))
-            throw new InvalidOperationException("Main window is not a HomeWindow");
+        MainView mainView = sender.GetVisualAncestors().SingleOrDefault(v => v is MainView) as MainView ??
+                            throw new InvalidOperationException("Sender is not a child of a MainView");
 
-        homeWindow.LoadingStarted.Invoke();
+        mainView.LoadingStarted.Invoke();
         var result = await awaitableTask;
-        homeWindow.LoadingFinished.Invoke();
+        mainView.LoadingFinished.Invoke();
 
         return result;
     }
@@ -28,13 +28,13 @@ public static class TaskUtilities
     /// <summary>
     /// Performs an asynchronous task while notifying the UI (to show loading indicator)
     /// </summary>
-    public static async Task AwaitNotifyUi(Task awaitableTask)
+    public static async Task AwaitNotifyUi(Visual sender, Task awaitableTask)
     {
-        if (!((Application.Current!.ApplicationLifetime as ClassicDesktopStyleApplicationLifetime)!.MainWindow is HomeWindow homeWindow))
-            throw new InvalidOperationException("Main window is not a HomeWindow");
+        MainView mainView = sender.GetVisualAncestors().SingleOrDefault(v => v is MainView) as MainView ??
+                            throw new InvalidOperationException("Sender is not a child of a MainView");
 
-        homeWindow.LoadingStarted.Invoke();
+        mainView.LoadingStarted.Invoke();
         await awaitableTask;
-        homeWindow.LoadingFinished.Invoke();
+        mainView.LoadingFinished.Invoke();
     }
 }

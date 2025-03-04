@@ -1,14 +1,11 @@
-<Window xmlns="https://github.com/avaloniaui"
-        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        mc:Ignorable="d" d:DesignWidth="400" d:DesignHeight="700"
-        x:Class="RobBERT_2023_BIAS.UI.Windows.HomeWindow"
-        Title="RobBERT-2023-BIAS"
-        Width="400"
-        Height="700"
-        CanResize="False"
-        Icon="avares://RobBERT-2023-BIAS/Resources/UI/icon.png">
+﻿<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             x:Class="RobBERT_2023_BIAS.UI.MainView"
+             Width="400"
+             Height="700">
     <DockPanel LastChildFill="True">
         <Border DockPanel.Dock="Top" Background="BlueViolet" CornerRadius="6" BoxShadow="inset 0 -2 2 0 purple"
                 Height="48">
@@ -42,4 +39,4 @@
         </Border>
         <Panel x:Name="FlexiblePanel" />
     </DockPanel>
-</Window>
+</UserControl>

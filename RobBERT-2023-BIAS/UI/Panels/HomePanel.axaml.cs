@@ -5,9 +5,7 @@ using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Controls.Primitives;
 using Avalonia.Interactivity;
-using Avalonia.VisualTree;
 using RobBERT_2023_BIAS.Inference;
-using RobBERT_2023_BIAS.UI.Windows;
 using RobBERT_2023_BIAS.Utilities;
 
 #endregion
@@ -30,13 +28,10 @@ public partial class HomePanel : UserControl
         if (!ValidateModelSelection())
             return;
 
-        if (this.GetVisualRoot()!.GetType() != typeof(HomeWindow))
-            throw new NullReferenceException("Panel not in a HomeWindow hierarchy");
-
         if (this.Parent is Panel flexPanel)
         {
             PromptPanel promptPanel = await TaskUtilities
-                .AwaitNotifyUi(PromptPanel.CreateAsync((Robbert.RobbertVersion)ModelComboBox.SelectedIndex));
+                .AwaitNotifyUi(this, PromptPanel.CreateAsync((Robbert.RobbertVersion)ModelComboBox.SelectedIndex));
 
             flexPanel.Children.Clear();
             flexPanel.Children.Add(promptPanel);
@@ -48,13 +43,10 @@ public partial class HomePanel : UserControl
         if (!ValidateModelSelection())
             return;
 
-        if (this.GetVisualRoot()!.GetType() != typeof(HomeWindow))
-            throw new NullReferenceException("Panel not in a HomeWindow hierarchy");
-
         if (this.Parent is Panel flexPanel)
         {
             PronounPromptPanel jouJouwPanel = await TaskUtilities
-                .AwaitNotifyUi(PronounPromptPanel.CreateAsync((Robbert.RobbertVersion)ModelComboBox.SelectedIndex));
+                .AwaitNotifyUi(this, PronounPromptPanel.CreateAsync((Robbert.RobbertVersion)ModelComboBox.SelectedIndex));
 
             flexPanel.Children.Clear();
             flexPanel.Children.Add(jouJouwPanel);
@@ -66,49 +58,38 @@ public partial class HomePanel : UserControl
         if (!ValidateModelSelection())
             return;
 
-        if (this.GetVisualRoot()!.GetType() != typeof(HomeWindow))
-            throw new NullReferenceException("Panel not in a HomeWindow hierarchy");
-
         if (this.Parent is Panel flexPanel)
         {
-            BiasPanel biasPanel = await TaskUtilities.AwaitNotifyUi(BiasPanel.CreateAsync((Robbert.RobbertVersion)ModelComboBox.SelectedIndex));
+            BiasPanel biasPanel = await TaskUtilities.AwaitNotifyUi(this, BiasPanel.CreateAsync((Robbert.RobbertVersion)ModelComboBox.SelectedIndex));
 
             flexPanel.Children.Clear();
             flexPanel.Children.Add(biasPanel);
 
-            if ((Application.Current!.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime)!.MainWindow is HomeWindow homeWindow)
-            {
-                homeWindow.WindowState = WindowState.Maximized;
-                homeWindow.SystemDecorations = SystemDecorations.BorderOnly;
-            }
-            else
-            {
-                throw new NullReferenceException();
-            }
+            TryMaximizeWindow();
         }
     }
 
     private async void AnalyzeButton_OnClick(object? sender, RoutedEventArgs e)
     {
-        if (this.GetVisualRoot()!.GetType() != typeof(HomeWindow))
-            throw new NullReferenceException("Panel not in a HomeWindow hierarchy");
-
         if (this.Parent is Panel flexPanel)
         {
-            AnalyzePanel analyzePanel = await TaskUtilities.AwaitNotifyUi(AnalyzePanel.CreateAsync());
+            AnalyzePanel analyzePanel = await TaskUtilities.AwaitNotifyUi(this, AnalyzePanel.CreateAsync());
 
             flexPanel.Children.Clear();
             flexPanel.Children.Add(analyzePanel);
 
-            if ((Application.Current!.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime)!.MainWindow is HomeWindow homeWindow)
-            {
-                homeWindow.WindowState = WindowState.Maximized;
-                homeWindow.SystemDecorations = SystemDecorations.BorderOnly;
-            }
-            else
-            {
-                throw new NullReferenceException();
-            }
+            TryMaximizeWindow();
+        }
+    }
+
+    private void TryMaximizeWindow()
+    {
+        if (!OperatingSystem.IsBrowser())
+        {
+            var desktopWindow = ((ClassicDesktopStyleApplicationLifetime)Application.Current!.ApplicationLifetime!).MainWindow!;
+
+            desktopWindow.WindowState = WindowState.Maximized;
+            desktopWindow.SystemDecorations = SystemDecorations.BorderOnly;
         }
     }
 

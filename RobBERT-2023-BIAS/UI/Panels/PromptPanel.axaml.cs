@@ -64,7 +64,7 @@ public partial class PromptPanel : UserControl
             ScrollViewer.ScrollToEnd();
         }
 
-        string[] answers = ProcessModelOutput(await TaskUtilities.AwaitNotifyUi(ProcessUserInput()));
+        string[] answers = ProcessModelOutput(await TaskUtilities.AwaitNotifyUi(this, ProcessUserInput()));
 
         foreach (string answer in answers)
         {
