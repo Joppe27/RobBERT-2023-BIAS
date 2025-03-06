@@ -76,6 +76,7 @@
             <PrivateAssets Condition="'$(Configuration)' != 'Debug'">All</PrivateAssets>
         </PackageReference>
         <PackageReference Include="Conllu"/>
+        <PackageReference Include="Microsoft.Extensions.DependencyInjection"/>
         <PackageReference Include="Microsoft.ML.OnnxRuntime"/>
         <PackageReference Include="OxyPlot.Avalonia"/>
         <PackageReference Include="System.Numerics.Tensors"/>

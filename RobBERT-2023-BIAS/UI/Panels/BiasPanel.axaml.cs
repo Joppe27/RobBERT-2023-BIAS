@@ -33,7 +33,7 @@ public partial class BiasPanel : UserControl
         InitializeComponent();
     }
 
-    public static async Task<BiasPanel> CreateAsync(Robbert.RobbertVersion version)
+    public static async Task<BiasPanel> CreateAsync(RobbertVersion version)
     {
         BiasPanel panel = new();
 
@@ -42,7 +42,7 @@ public partial class BiasPanel : UserControl
         return panel;
     }
 
-    private async Task InitializeAsync(Robbert.RobbertVersion version)
+    private async Task InitializeAsync(RobbertVersion version)
     {
         _biasPromptPanel = await BiasPromptPanel.CreateAsync(version);
 

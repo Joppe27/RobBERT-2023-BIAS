@@ -8,6 +8,7 @@ using Avalonia.Platform.Storage;
 using Avalonia.Threading;
 using Conllu;
 using Conllu.Enums;
+using Microsoft.Extensions.DependencyInjection;
 using RobBERT_2023_BIAS.Inference;
 using RobBERT_2023_BIAS.Utilities;
 
@@ -17,8 +18,8 @@ namespace RobBERT_2023_BIAS.UI.Panels;
 
 public partial class AnalyzePanel : UserControl
 {
-    private Robbert _robbert2022 = null!;
-    private Robbert _robbert2023 = null!;
+    private IRobbert _robbert2022 = null!;
+    private IRobbert _robbert2023 = null!;
 
     private IStorageFile _parallelCorpus = null!;
     private IStorageFile _differentCorpus = null!;
@@ -39,8 +40,10 @@ public partial class AnalyzePanel : UserControl
 
     private async Task InitializeAsync()
     {
-        _robbert2022 = await Robbert.CreateAsync(Robbert.RobbertVersion.Base2022);
-        _robbert2023 = await Robbert.CreateAsync(Robbert.RobbertVersion.Base2023);
+        var robbertFactory = App.ServiceProvider.GetRequiredService<IRobbertFactory>();
+
+        _robbert2022 = await robbertFactory.CreateRobbert(RobbertVersion.Base2022);
+        _robbert2023 = await robbertFactory.CreateRobbert(RobbertVersion.Base2023);
     }
 
     private async void SelectCorpus_OnClick(object? sender, RoutedEventArgs e)

@@ -18,9 +18,9 @@ public partial class HomePanel : UserControl
     {
         InitializeComponent();
 
-        ModelComboBox.Items.Insert((int)Robbert.RobbertVersion.Base2022, "RobBERT-2022-base");
-        ModelComboBox.Items.Insert((int)Robbert.RobbertVersion.Base2023, "RobBERT-2023-base");
-        ModelComboBox.Items.Insert((int)Robbert.RobbertVersion.Large2023, "RobBERT-2023-large");
+        ModelComboBox.Items.Insert((int)RobbertVersion.Base2022, "RobBERT-2022-base");
+        ModelComboBox.Items.Insert((int)RobbertVersion.Base2023, "RobBERT-2023-base");
+        ModelComboBox.Items.Insert((int)RobbertVersion.Large2023, "RobBERT-2023-large");
     }
 
     private async void ModelButton_OnClick(object? sender, RoutedEventArgs e)
@@ -30,8 +30,17 @@ public partial class HomePanel : UserControl
 
         if (this.Parent is Panel flexPanel)
         {
-            PromptPanel promptPanel = await TaskUtilities
-                .AwaitNotifyUi(this, PromptPanel.CreateAsync((Robbert.RobbertVersion)ModelComboBox.SelectedIndex));
+            PromptPanel promptPanel;
+            try
+            {
+                promptPanel = await TaskUtilities
+                    .AwaitNotifyUi(this, PromptPanel.CreateAsync((RobbertVersion)ModelComboBox.SelectedIndex));
+            }
+            catch (Exception exception)
+            {
+                Console.WriteLine(exception);
+                return;
+            }
 
             flexPanel.Children.Clear();
             flexPanel.Children.Add(promptPanel);
@@ -46,7 +55,7 @@ public partial class HomePanel : UserControl
         if (this.Parent is Panel flexPanel)
         {
             PronounPromptPanel jouJouwPanel = await TaskUtilities
-                .AwaitNotifyUi(this, PronounPromptPanel.CreateAsync((Robbert.RobbertVersion)ModelComboBox.SelectedIndex));
+                .AwaitNotifyUi(this, PronounPromptPanel.CreateAsync((RobbertVersion)ModelComboBox.SelectedIndex));
 
             flexPanel.Children.Clear();
             flexPanel.Children.Add(jouJouwPanel);
@@ -60,7 +69,7 @@ public partial class HomePanel : UserControl
 
         if (this.Parent is Panel flexPanel)
         {
-            BiasPanel biasPanel = await TaskUtilities.AwaitNotifyUi(this, BiasPanel.CreateAsync((Robbert.RobbertVersion)ModelComboBox.SelectedIndex));
+            BiasPanel biasPanel = await TaskUtilities.AwaitNotifyUi(this, BiasPanel.CreateAsync((RobbertVersion)ModelComboBox.SelectedIndex));
 
             flexPanel.Children.Clear();
             flexPanel.Children.Add(biasPanel);

@@ -10,5 +10,5 @@
         Height="700"
         CanResize="False"
         Icon="avares://RobBERT-2023-BIAS/Resources/UI/icon.png">
-    <ui:MainView />
+        <ui:MainView />
 </Window>

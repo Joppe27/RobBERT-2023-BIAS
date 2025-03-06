@@ -8,6 +8,7 @@ using Avalonia.Interactivity;
 using Avalonia.Layout;
 using Avalonia.LogicalTree;
 using Avalonia.Media;
+using Microsoft.Extensions.DependencyInjection;
 using RobBERT_2023_BIAS.Inference;
 using RobBERT_2023_BIAS.Utilities;
 
@@ -18,14 +19,14 @@ namespace RobBERT_2023_BIAS.UI.Panels;
 public partial class PromptPanel : UserControl
 {
     protected readonly List<string> ValidatedPrompts = new();
-    protected Robbert Robbert = null!;
+    protected IRobbert Robbert = null!;
 
     protected PromptPanel()
     {
         InitializeComponent();
     }
 
-    public static async Task<PromptPanel> CreateAsync(Robbert.RobbertVersion version)
+    public static async Task<PromptPanel> CreateAsync(RobbertVersion version)
     {
         PromptPanel panel = new();
 
@@ -34,9 +35,11 @@ public partial class PromptPanel : UserControl
         return panel;
     }
 
-    protected virtual async Task InitializeAsync(Robbert.RobbertVersion version)
+    protected virtual async Task InitializeAsync(RobbertVersion version)
     {
-        Robbert = await Robbert.CreateAsync(version);
+        var robbertFactory = App.ServiceProvider.GetRequiredService<IRobbertFactory>();
+
+        Robbert = await robbertFactory.CreateRobbert(version); // TODO: this aka OnlineRobbert (not the DI above, verified) is broken
 
         PromptTextBox.Watermark = "Voer een prompt in (vergeet geen <mask>)";
     }

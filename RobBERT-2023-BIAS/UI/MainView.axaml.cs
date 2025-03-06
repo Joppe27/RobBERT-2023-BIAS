@@ -20,6 +20,12 @@ public partial class MainView : UserControl
     {
         InitializeComponent();
 
+        if (OperatingSystem.IsBrowser())
+        {
+            this.Width = 400;
+            this.Height = 700;
+        }
+
         FlexiblePanel.Children.Add(new HomePanel()
         {
             VerticalAlignment = VerticalAlignment.Stretch,

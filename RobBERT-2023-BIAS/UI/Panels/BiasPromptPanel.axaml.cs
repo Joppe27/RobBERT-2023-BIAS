@@ -12,7 +12,7 @@ namespace RobBERT_2023_BIAS.UI.Panels;
 
 public partial class BiasPromptPanel : PromptPanel
 {
-    private Robbert _robbert = null!;
+    private IRobbert _robbert = null!;
 
     private BiasPromptPanel()
     {
@@ -21,7 +21,7 @@ public partial class BiasPromptPanel : PromptPanel
 
     public event EventHandler<BiasOutputEventArgs> OnModelOutput = null!;
 
-    public new static async Task<BiasPromptPanel> CreateAsync(Robbert.RobbertVersion version)
+    public new static async Task<BiasPromptPanel> CreateAsync(RobbertVersion version)
     {
         BiasPromptPanel biasPromptPanel = new();
 
@@ -30,7 +30,7 @@ public partial class BiasPromptPanel : PromptPanel
         return biasPromptPanel;
     }
 
-    private new async Task InitializeAsync(Robbert.RobbertVersion version)
+    private new async Task InitializeAsync(RobbertVersion version)
     {
         await base.InitializeAsync(version);
 

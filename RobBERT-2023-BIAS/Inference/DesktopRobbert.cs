@@ -8,22 +8,14 @@ using Tokenizers.DotNet;
 
 namespace RobBERT_2023_BIAS.Inference;
 
-public class Robbert : IDisposable
+public class DesktopRobbert : IDisposable, IRobbert
 {
-    public enum RobbertVersion
-    {
-        Base2022,
-        Base2023,
-        Large2023,
-    }
-
     private readonly RunOptions _runOptions = new();
     private InferenceSession _model = null!;
-    private RobbertVersion _robbertVersion;
     private Tokenizer _tokenizer = null!;
     private int _vocabSize; // See tokenizer.json.
 
-    private Robbert()
+    private DesktopRobbert()
     {
     }
 
@@ -31,52 +23,6 @@ public class Robbert : IDisposable
     {
         GC.SuppressFinalize(this);
         _model.Dispose();
-    }
-
-    public static async Task<Robbert> CreateAsync(RobbertVersion version)
-    {
-        Robbert robbert = new();
-        robbert._robbertVersion = version;
-
-        await robbert.InitializeAsync();
-
-        return robbert;
-    }
-
-    private async Task InitializeAsync()
-    {
-        string modelPath;
-        string tokenizerPath;
-
-        switch (_robbertVersion)
-        {
-            case RobbertVersion.Base2022:
-                modelPath = "Resources/RobBERT-2022-base/model.onnx";
-                tokenizerPath = "Resources/RobBERT-2022-base/tokenizer.json";
-                _vocabSize = 42774;
-                break;
-
-            case RobbertVersion.Base2023:
-                modelPath = "Resources/RobBERT-2023-base/model.onnx";
-                tokenizerPath = "Resources/RobBERT-2023-base/tokenizer.json";
-                _vocabSize = 50000;
-                break;
-
-            case RobbertVersion.Large2023:
-                modelPath = "Resources/RobBERT-2023-large/model.onnx";
-                tokenizerPath = "Resources/RobBERT-2023-large/tokenizer.json";
-                _vocabSize = 50000;
-                break;
-
-            default:
-                throw new InvalidOperationException("Unsupported RobBERT version requested");
-        }
-
-        await Task.Run(() =>
-        {
-            _model = new(Path.Combine(Environment.CurrentDirectory, modelPath));
-            _tokenizer = new Tokenizer(Path.Combine(Environment.CurrentDirectory, tokenizerPath));
-        });
     }
 
     /// <param name="userInput">The sentence to be completed by the model. Must include a mask!</param>
@@ -186,5 +132,48 @@ public class Robbert : IDisposable
         }
 
         return decodedMaskProbabilities;
+    }
+
+    public class Factory : IRobbertFactory
+    {
+        public async Task<IRobbert> CreateRobbert(RobbertVersion version)
+        {
+            DesktopRobbert desktopRobbert = new();
+
+            string modelPath;
+            string tokenizerPath;
+
+            switch (version)
+            {
+                case RobbertVersion.Base2022:
+                    modelPath = "Resources/RobBERT-2022-base/model.onnx";
+                    tokenizerPath = "Resources/RobBERT-2022-base/tokenizer.json";
+                    desktopRobbert._vocabSize = 42774;
+                    break;
+
+                case RobbertVersion.Base2023:
+                    modelPath = "Resources/RobBERT-2023-base/model.onnx";
+                    tokenizerPath = "Resources/RobBERT-2023-base/tokenizer.json";
+                    desktopRobbert._vocabSize = 50000;
+                    break;
+
+                case RobbertVersion.Large2023:
+                    modelPath = "Resources/RobBERT-2023-large/model.onnx";
+                    tokenizerPath = "Resources/RobBERT-2023-large/tokenizer.json";
+                    desktopRobbert._vocabSize = 50000;
+                    break;
+
+                default:
+                    throw new InvalidOperationException("Unsupported RobBERT version requested");
+            }
+
+            await Task.Run(() =>
+            {
+                desktopRobbert._model = new(Path.Combine(Environment.CurrentDirectory, modelPath));
+                desktopRobbert._tokenizer = new Tokenizer(Path.Combine(Environment.CurrentDirectory, tokenizerPath));
+            });
+
+            return desktopRobbert;
+        }
     }
 }

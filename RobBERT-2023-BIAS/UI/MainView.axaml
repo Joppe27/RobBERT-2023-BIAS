@@ -3,9 +3,7 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
-             x:Class="RobBERT_2023_BIAS.UI.MainView"
-             Width="400"
-             Height="700">
+             x:Class="RobBERT_2023_BIAS.UI.MainView">
     <DockPanel LastChildFill="True">
         <Border DockPanel.Dock="Top" Background="BlueViolet" CornerRadius="6" BoxShadow="inset 0 -2 2 0 purple"
                 Height="48">

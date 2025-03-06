@@ -14,14 +14,14 @@ public partial class PronounPromptPanel : PromptPanel
     private readonly string[] _politePronouns = ["u", "uw"];
     private readonly string[] _possiblePronouns = ["jou", "jouw", "u", "uw"];
     private readonly List<(string Pronoun, bool PoliteForm)> _userPronouns = new();
-    private Robbert _robbert = null!;
+    private IRobbert _robbert = null!;
 
     private PronounPromptPanel()
     {
         InitializeComponent();
     }
 
-    public new static async Task<PronounPromptPanel> CreateAsync(Robbert.RobbertVersion version)
+    public new static async Task<PronounPromptPanel> CreateAsync(RobbertVersion version)
     {
         PronounPromptPanel pronounPanel = new();
 
@@ -30,7 +30,7 @@ public partial class PronounPromptPanel : PromptPanel
         return pronounPanel;
     }
 
-    protected override async Task InitializeAsync(Robbert.RobbertVersion version)
+    protected override async Task InitializeAsync(RobbertVersion version)
     {
         await base.InitializeAsync(version);
 
