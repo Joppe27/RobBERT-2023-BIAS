@@ -1,0 +1,6 @@
+﻿services:
+  robbert-2023-bias.server:
+    image: robbert-2023-bias.server
+    build:
+      context: .
+      dockerfile: RobBERT-2023-BIAS.Server/Dockerfile
