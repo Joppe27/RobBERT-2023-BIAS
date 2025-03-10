@@ -5,6 +5,7 @@ using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Controls.Primitives;
 using Avalonia.Interactivity;
+using Avalonia.VisualTree;
 using RobBERT_2023_BIAS.Inference;
 using RobBERT_2023_BIAS.Utilities;
 
@@ -74,7 +75,7 @@ public partial class HomePanel : UserControl
             flexPanel.Children.Clear();
             flexPanel.Children.Add(biasPanel);
 
-            TryMaximizeWindow();
+            TryMaximizeWindow(biasPanel);
         }
     }
 
@@ -87,13 +88,21 @@ public partial class HomePanel : UserControl
             flexPanel.Children.Clear();
             flexPanel.Children.Add(analyzePanel);
 
-            TryMaximizeWindow();
+            TryMaximizeWindow(analyzePanel);
         }
     }
 
-    private void TryMaximizeWindow()
+    private void TryMaximizeWindow(UserControl newPanel)
     {
-        if (!OperatingSystem.IsBrowser())
+        if (OperatingSystem.IsBrowser())
+        {
+            MainView mainView = newPanel.GetVisualAncestors().SingleOrDefault(v => v is MainView) as MainView ??
+                                throw new InvalidOperationException("AnalyzePanel is not a child of a MainView");
+
+            mainView.Width = Double.NaN;
+            mainView.Height = Double.NaN;
+        }
+        else
         {
             var desktopWindow = ((ClassicDesktopStyleApplicationLifetime)Application.Current!.ApplicationLifetime!).MainWindow!;
 

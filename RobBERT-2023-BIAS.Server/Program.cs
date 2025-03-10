@@ -1,5 +1,6 @@
 #region
 
+using Microsoft.AspNetCore.Mvc;
 using RobBERT_2023_BIAS.Browser;
 using RobBERT_2023_BIAS.Inference;
 
@@ -11,6 +12,18 @@ var builder = WebApplication.CreateBuilder(args);
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
 
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowOrigins", policyBuilder =>
+    {
+        // TODO: IMPORTANT change to secure specific policy https://learn.microsoft.com/en-us/aspnet/core/security/cors?view=aspnetcore-9.0
+        policyBuilder
+            .AllowAnyOrigin()
+            .AllowAnyHeader()
+            .AllowAnyMethod();
+    });
+});
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -20,18 +33,29 @@ if (app.Environment.IsDevelopment())
 }
 
 // app.UseHttpsRedirection();
+app.UseCors("AllowOrigins");
 
 IRobbert? robbert = null;
 
-app.MapPost("/robbert/create", async (RobbertVersion version) =>
+app.MapPost("/robbert/create", async ([FromBody] RobbertVersion robbertVersion) =>
 {
     Console.WriteLine("Robbert requested!");
 
-    var robbertFactory = new DesktopRobbert.Factory();
-    robbert = await robbertFactory.CreateRobbert(version);
+    if (robbert == null)
+    {
+        var robbertFactory = new DesktopRobbert.Factory();
+        robbert = await robbertFactory.CreateRobbert(robbertVersion);
+    }
+    else
+    {
+        // TODO: this is not good enough: concurrent users, closing page without requesting disposal, etc.
+        Console.WriteLine("Robbert already exists: no new instance created, existing instance returned");
+    }
+
+    return Results.Created();
 }).WithName("Create");
 
-app.MapPost("/robbert/process", async (OnlineRobbert.RobbertProcesessParameters parameters) =>
+app.MapPost("/robbert/process", async ([FromBody] OnlineRobbert.RobbertProcesessParameters parameters) =>
 {
     Console.WriteLine("Robbert prompt processing requested!");
 

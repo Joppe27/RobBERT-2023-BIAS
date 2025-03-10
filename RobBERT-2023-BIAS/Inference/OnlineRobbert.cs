@@ -16,7 +16,7 @@ public class OnlineRobbert : IRobbert
     {
     }
 
-    public async Task<List<Dictionary<string, float>>> Process(string userInput, int kCount, string? maskToken = "<mask>", bool calculateProbability = true)
+    public async Task<List<Dictionary<string, float>>> Process(string userInput, int kCount, string? maskToken, bool calculateProbability = true)
     {
         var httpResponse = await _httpClient.PostAsync("/robbert/process",
             JsonContent.Create(new RobbertProcesessParameters(userInput, kCount, maskToken, calculateProbability)));
@@ -44,5 +44,5 @@ public class OnlineRobbert : IRobbert
         }
     }
 
-    public record RobbertProcesessParameters(string UserInput, int KCount, string? MaskToken = "<mask>", bool CalculateProbability = true);
+    public record RobbertProcesessParameters(string UserInput, int KCount, string? MaskToken, bool CalculateProbability = true);
 }

@@ -14,6 +14,7 @@ public class DesktopRobbert : IDisposable, IRobbert
     private InferenceSession _model = null!;
     private Tokenizer _tokenizer = null!;
     private int _vocabSize; // See tokenizer.json.
+    private int _tokenizerMask; // See tokenizer.json.
 
     private DesktopRobbert()
     {
@@ -31,23 +32,11 @@ public class DesktopRobbert : IDisposable, IRobbert
     /// <returns>A list containing a single dictionary for each mask with its possible replacements and probabilities, sorted by confidence.</returns>
     public async Task<List<Dictionary<string, float>>> Process(string userInput, int kCount, string? maskToken = "<mask>", bool calculateProbability = true)
     {
-        // TODO: fix this garbage
-        // TODO: robbert2022 broken
-        var tokens = _tokenizer.Encode(userInput);
-        int mask = -1;
-
         if (maskToken != null)
-        {
-            foreach (uint token in tokens)
-            {
-                if (_tokenizer.Decode([token]).Trim() == maskToken)
-                {
-                    mask = (int)token;
-                    break;
-                }
-            }
-        }
+            userInput = userInput.Replace(maskToken, "<mask>");
 
+        var tokens = _tokenizer.Encode(userInput);
+        
         var robbertInput = new RobbertInput()
         {
             InputIds = Array.ConvertAll(tokens, token => (long)token),
@@ -73,27 +62,27 @@ public class DesktopRobbert : IDisposable, IRobbert
             Span<float> encodedProbabilities = new float[logits.Length];
             TensorPrimitives.SoftMax(logits, encodedProbabilities);
 
-            if (mask < 0)
+            if (maskToken == null)
             {
                 foreach (int tokenStart in tokens.Index().Select(i => i.Index * _vocabSize))
                     encodedMaskProbabilities.Add(encodedProbabilities.Slice(tokenStart, _vocabSize).ToArray());
             }
             else
             {
-                foreach (int maskStart in tokens.Index().Where(t => t.Item == mask).Select(i => i.Index * _vocabSize))
+                foreach (int maskStart in tokens.Index().Where(t => t.Item == _tokenizerMask).Select(i => i.Index * _vocabSize))
                     encodedMaskProbabilities.Add(encodedProbabilities.Slice(maskStart, _vocabSize).ToArray());
             }
         }
         else
         {
-            if (mask < 0)
+            if (maskToken == null)
             {
                 foreach (int tokenStart in tokens.Index().Select(i => i.Index * _vocabSize))
                     encodedMaskProbabilities.Add(logits.Slice(tokenStart, _vocabSize).ToArray());
             }
             else
             {
-                foreach (int maskStart in tokens.Index().Where(t => t.Item == mask).Select(i => i.Index * _vocabSize))
+                foreach (int maskStart in tokens.Index().Where(t => t.Item == _tokenizerMask).Select(i => i.Index * _vocabSize))
                     encodedMaskProbabilities.Add(logits.Slice(maskStart, _vocabSize).ToArray());
             }
         }
@@ -149,18 +138,21 @@ public class DesktopRobbert : IDisposable, IRobbert
                     modelPath = "Resources/RobBERT-2022-base/model.onnx";
                     tokenizerPath = "Resources/RobBERT-2022-base/tokenizer.json";
                     desktopRobbert._vocabSize = 42774;
+                    desktopRobbert._tokenizerMask = 39984;
                     break;
 
                 case RobbertVersion.Base2023:
                     modelPath = "Resources/RobBERT-2023-base/model.onnx";
                     tokenizerPath = "Resources/RobBERT-2023-base/tokenizer.json";
                     desktopRobbert._vocabSize = 50000;
+                    desktopRobbert._tokenizerMask = 4;
                     break;
 
                 case RobbertVersion.Large2023:
                     modelPath = "Resources/RobBERT-2023-large/model.onnx";
                     tokenizerPath = "Resources/RobBERT-2023-large/tokenizer.json";
                     desktopRobbert._vocabSize = 50000;
+                    desktopRobbert._tokenizerMask = 4;
                     break;
 
                 default:
@@ -169,8 +161,8 @@ public class DesktopRobbert : IDisposable, IRobbert
 
             await Task.Run(() =>
             {
-                desktopRobbert._model = new(Path.Combine(Environment.CurrentDirectory, modelPath));
-                desktopRobbert._tokenizer = new Tokenizer(Path.Combine(Environment.CurrentDirectory, tokenizerPath));
+                desktopRobbert._model = new(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, modelPath));
+                desktopRobbert._tokenizer = new Tokenizer(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, tokenizerPath));
             });
 
             return desktopRobbert;

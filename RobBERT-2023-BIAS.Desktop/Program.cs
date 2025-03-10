@@ -1,8 +1,10 @@
 ﻿#region
 
 using System;
+using System.Linq;
 using Avalonia;
 using Microsoft.Extensions.DependencyInjection;
+using RobBERT_2023_BIAS.Browser;
 using RobBERT_2023_BIAS.Inference;
 
 #endregion
@@ -17,7 +19,10 @@ sealed class Program
     [STAThread]
     public static void Main(string[] args)
     {
-        App.AddServices = serviceCollection => serviceCollection.AddSingleton<IRobbertFactory, DesktopRobbert.Factory>();
+        if (args.Contains("--useserver"))
+            App.AddServices = serviceCollection => serviceCollection.AddSingleton<IRobbertFactory, OnlineRobbert.Factory>();
+        else
+            App.AddServices = serviceCollection => serviceCollection.AddSingleton<IRobbertFactory, DesktopRobbert.Factory>();
 
         BuildAvaloniaApp()
             .StartWithClassicDesktopLifetime(args);
