@@ -16,6 +16,22 @@ public class DesktopRobbert : IDisposable, IRobbert
     private int _vocabSize; // See tokenizer.json.
     private int _tokenizerMask; // See tokenizer.json.
 
+    public event EventHandler<int> BatchProgressChanged = null!;
+
+    private int _batchProgress;
+
+    private int BatchProgress
+    {
+        get => _batchProgress;
+        set
+        {
+            if (value > BatchProgress || value == 0)
+                BatchProgressChanged.Invoke(this, value);
+
+            _batchProgress = value;
+        }
+    }
+    
     private DesktopRobbert()
     {
     }
@@ -88,6 +104,22 @@ public class DesktopRobbert : IDisposable, IRobbert
         }
 
         return await Task.Run(() => DecodeTokens(encodedMaskProbabilities, kCount));
+    }
+
+    public async Task<List<List<Dictionary<string, float>>>> ProcessBatch(List<(string Sentence, string Mask)> userInput, int kCount,
+        bool calculateProbability = true)
+    {
+        List<List<Dictionary<string, float>>> modelOutputs = new();
+
+        BatchProgress = 0;
+
+        await Parallel.ForAsync(0, userInput.Count, async (i, _) =>
+        {
+            modelOutputs.Add(await Process(userInput[i].Sentence, kCount, userInput[i].Mask, calculateProbability));
+            BatchProgress = (int)((float)i / userInput.Count * 100);
+        });
+
+        return modelOutputs;
     }
 
     private List<Dictionary<string, float>> DecodeTokens(List<float[]> encodedMaskProbabilities, int kCount)

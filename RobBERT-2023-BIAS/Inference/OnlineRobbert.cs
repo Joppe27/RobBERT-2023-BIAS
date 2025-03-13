@@ -16,12 +16,20 @@ public class OnlineRobbert : IRobbert
     {
     }
 
+    public event EventHandler<int> BatchProgressChanged = null!;
+
     public async Task<List<Dictionary<string, float>>> Process(string userInput, int kCount, string? maskToken, bool calculateProbability = true)
     {
         var httpResponse = await _httpClient.PostAsync("/robbert/process",
             JsonContent.Create(new RobbertProcesessParameters(userInput, kCount, maskToken, calculateProbability)));
 
         return await httpResponse.Content.ReadFromJsonAsync<List<Dictionary<string, float>>>() ?? throw new NullReferenceException();
+    }
+
+    public Task<List<List<Dictionary<string, float>>>> ProcessBatch(List<(string Sentence, string Mask)> userInput, int kCount,
+        bool calculateProbability = true)
+    {
+        throw new NotImplementedException();
     }
 
     public void Dispose()

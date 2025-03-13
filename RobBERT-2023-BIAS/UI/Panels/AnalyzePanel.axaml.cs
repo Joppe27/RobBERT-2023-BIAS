@@ -1,6 +1,5 @@
 ﻿#region
 
-using System.Collections.Concurrent;
 using Avalonia.Controls;
 using Avalonia.Interactivity;
 using Avalonia.LogicalTree;
@@ -87,51 +86,72 @@ public partial class AnalyzePanel : UserControl
     private async Task AnalyzeEnglishBias()
     {
         var parallelSentences = ConlluParser.ParseFile(_parallelCorpus.Path.LocalPath).ToList();
-        var differentSenteces = ConlluParser.ParseFile(_differentCorpus.Path.LocalPath).ToList();
 
-        ConcurrentBag<float> robbert2022ParallelProbabilities = new();
-        ConcurrentBag<float> robbert2023ParallelProbabilities = new();
+        List<(string Sentence, string Mask)> parallelPrompts = new();
+        List<string> parallelAuxiliaries = new();
 
-        ConcurrentBag<float> robbert2022DifferentProbabilities = new();
-        ConcurrentBag<float> robbert2023DifferentProbabilities = new();
-
-        await Parallel.ForAsync(0, parallelSentences.Count, async (i, token) =>
+        foreach (Sentence sentence in parallelSentences)
         {
-            Dispatcher.UIThread.Post(() => ConsoleText.Text = $"Processing \"parallel\" construction {i}...");
+            string auxForm = sentence.Tokens.First(t => t.DepRelEnum == DependencyRelation.Aux).Form;
+            parallelPrompts.Add((sentence.RawTokenSequence(), auxForm));
+            parallelAuxiliaries.Add(auxForm);
+        }
 
-            var auxForm = parallelSentences[i].Tokens.First(t => t.DepRelEnum == DependencyRelation.Aux).Form;
+        _robbert2022.BatchProgressChanged += ReportProgress;
+        var processedParallelSentences2022 = await _robbert2022.ProcessBatch(parallelPrompts, 5, false);
+        _robbert2022.BatchProgressChanged -= ReportProgress;
 
-            (await _robbert2022.Process(parallelSentences[i].RawTokenSequence(), 5, auxForm, false)).First()
-                .TryGetValue(auxForm, out float robbert2022AuxProbability);
-            robbert2022ParallelProbabilities.Add(robbert2022AuxProbability);
+        _robbert2023.BatchProgressChanged += ReportProgress;
+        var processedParallelSentences2023 = await _robbert2023.ProcessBatch(parallelPrompts, 5, false);
+        _robbert2023.BatchProgressChanged -= ReportProgress;
 
-            (await _robbert2023.Process(parallelSentences[i].RawTokenSequence(), 5, auxForm, false)).First()
-                .TryGetValue(auxForm, out float robbert2023AuxProbability);
+        var parallelLogits2022 = GetAuxiliaryLogits(processedParallelSentences2022, parallelAuxiliaries);
+        var parallelLogits2023 = GetAuxiliaryLogits(processedParallelSentences2023, parallelAuxiliaries);
 
-            robbert2023ParallelProbabilities.Add(robbert2023AuxProbability);
-        });
 
-        await Parallel.ForAsync(0, differentSenteces.Count, async (i, token) =>
+        var differentSentences = ConlluParser.ParseFile(_differentCorpus.Path.LocalPath).ToList();
+
+        List<(string Sentence, string Mask)> differentPrompts = new();
+        List<string> differentAuxiliaries = new();
+
+        foreach (Sentence sentence in differentSentences)
         {
-            Dispatcher.UIThread.Post(() => ConsoleText.Text = $"Processing \"different\" construction {i}...");
+            string auxForm = sentence.Tokens.First(t => t.DepRelEnum == DependencyRelation.Aux).Form;
+            differentPrompts.Add((sentence.RawTokenSequence(), auxForm));
+            differentAuxiliaries.Add(auxForm);
+        }
 
-            var auxForm = differentSenteces[i].Tokens.First(t => t.DepRelEnum == DependencyRelation.Aux).Form;
+        _robbert2022.BatchProgressChanged += ReportProgress;
+        var processedDifferentSentences2022 = await _robbert2022.ProcessBatch(differentPrompts, 5, false);
+        _robbert2022.BatchProgressChanged -= ReportProgress;
 
-            (await _robbert2022.Process(differentSenteces[i].RawTokenSequence(), 5, auxForm, false)).First(d => d.ContainsKey(auxForm))
-                .TryGetValue(auxForm, out float robbert2022AuxProbability);
-            robbert2022DifferentProbabilities.Add(robbert2022AuxProbability);
+        _robbert2023.BatchProgressChanged += ReportProgress;
+        var processedDifferentSentences2023 = await _robbert2023.ProcessBatch(differentPrompts, 5, false);
+        _robbert2023.BatchProgressChanged -= ReportProgress;
 
-            (await _robbert2023.Process(differentSenteces[i].RawTokenSequence(), 5, auxForm, false)).First(d => d.ContainsKey(auxForm))
-                .TryGetValue(auxForm, out float robbert2023AuxProbability);
-
-            robbert2023DifferentProbabilities.Add(robbert2023AuxProbability);
-        });
+        var differentLogits2022 = GetAuxiliaryLogits(processedDifferentSentences2022, differentAuxiliaries);
+        var differentLogits2023 = GetAuxiliaryLogits(processedDifferentSentences2023, differentAuxiliaries);
 
         ConsoleText.Text =
-            $"Bias ratio RobBERT2022 = {(robbert2022ParallelProbabilities.Sum() / robbert2022ParallelProbabilities.Count) / (robbert2022DifferentProbabilities.Sum() / robbert2022DifferentProbabilities.Count)}";
+            $"Bias ratio RobBERT2022 = {(parallelLogits2022.Sum() / parallelLogits2022.Count) / (differentLogits2022.Sum() / differentLogits2022.Count)}";
         ConsoleText.Text +=
-            $"\nBias ration RobBERT2023 = {(robbert2023ParallelProbabilities.Sum() / robbert2023ParallelProbabilities.Count) / (robbert2023DifferentProbabilities.Sum() / robbert2023DifferentProbabilities.Count)}";
+            $"\nBias ratio RobBERT2023 = {(parallelLogits2023.Sum() / parallelLogits2023.Count) / (differentLogits2023.Sum() / differentLogits2023.Count)}";
     }
+
+    private List<float> GetAuxiliaryLogits(List<List<Dictionary<string, float>>> processedSentences, List<string> auxiliaries)
+    {
+        List<float> logits = new();
+
+        for (int i = 0; i < processedSentences.Count; i++)
+        {
+            processedSentences[i].First().TryGetValue(auxiliaries[i], out float parallelAuxiliaryLogits);
+            logits.Add(parallelAuxiliaryLogits);
+        }
+
+        return logits;
+    }
+
+    private void ReportProgress(object? sender, int progress) => Dispatcher.UIThread.Post(() => ConsoleText.Text = $"Processing... ({progress}%)");
 
     protected override void OnDetachedFromLogicalTree(LogicalTreeAttachmentEventArgs e)
     {
