@@ -8,7 +8,7 @@ using Tokenizers.DotNet;
 
 namespace RobBERT_2023_BIAS.Inference;
 
-public class DesktopRobbert : IDisposable, IRobbert
+public class LocalRobbert : IDisposable, IRobbert
 {
     private readonly RunOptions _runOptions = new();
     private InferenceSession _model = null!;
@@ -31,8 +31,8 @@ public class DesktopRobbert : IDisposable, IRobbert
             _batchProgress = value;
         }
     }
-    
-    private DesktopRobbert()
+
+    private LocalRobbert()
     {
     }
 
@@ -159,7 +159,7 @@ public class DesktopRobbert : IDisposable, IRobbert
     {
         public async Task<IRobbert> CreateRobbert(RobbertVersion version)
         {
-            DesktopRobbert desktopRobbert = new();
+            LocalRobbert localRobbert = new();
 
             string modelPath;
             string tokenizerPath;
@@ -169,22 +169,22 @@ public class DesktopRobbert : IDisposable, IRobbert
                 case RobbertVersion.Base2022:
                     modelPath = "Resources/RobBERT-2022-base/model.onnx";
                     tokenizerPath = "Resources/RobBERT-2022-base/tokenizer.json";
-                    desktopRobbert._vocabSize = 42774;
-                    desktopRobbert._tokenizerMask = 39984;
+                    localRobbert._vocabSize = 42774;
+                    localRobbert._tokenizerMask = 39984;
                     break;
 
                 case RobbertVersion.Base2023:
                     modelPath = "Resources/RobBERT-2023-base/model.onnx";
                     tokenizerPath = "Resources/RobBERT-2023-base/tokenizer.json";
-                    desktopRobbert._vocabSize = 50000;
-                    desktopRobbert._tokenizerMask = 4;
+                    localRobbert._vocabSize = 50000;
+                    localRobbert._tokenizerMask = 4;
                     break;
 
                 case RobbertVersion.Large2023:
                     modelPath = "Resources/RobBERT-2023-large/model.onnx";
                     tokenizerPath = "Resources/RobBERT-2023-large/tokenizer.json";
-                    desktopRobbert._vocabSize = 50000;
-                    desktopRobbert._tokenizerMask = 4;
+                    localRobbert._vocabSize = 50000;
+                    localRobbert._tokenizerMask = 4;
                     break;
 
                 default:
@@ -193,11 +193,11 @@ public class DesktopRobbert : IDisposable, IRobbert
 
             await Task.Run(() =>
             {
-                desktopRobbert._model = new(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, modelPath));
-                desktopRobbert._tokenizer = new Tokenizer(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, tokenizerPath));
+                localRobbert._model = new(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, modelPath));
+                localRobbert._tokenizer = new Tokenizer(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, tokenizerPath));
             });
 
-            return desktopRobbert;
+            return localRobbert;
         }
     }
 }

@@ -22,7 +22,7 @@ sealed class Program
         if (args.Contains("--useserver"))
             App.AddServices = serviceCollection => serviceCollection.AddSingleton<IRobbertFactory, OnlineRobbert.Factory>();
         else
-            App.AddServices = serviceCollection => serviceCollection.AddSingleton<IRobbertFactory, DesktopRobbert.Factory>();
+            App.AddServices = serviceCollection => serviceCollection.AddSingleton<IRobbertFactory, LocalRobbert.Factory>();
 
         BuildAvaloniaApp()
             .StartWithClassicDesktopLifetime(args);

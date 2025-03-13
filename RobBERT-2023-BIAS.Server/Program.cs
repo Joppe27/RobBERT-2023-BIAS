@@ -43,7 +43,7 @@ app.MapPost("/robbert/create", async ([FromBody] RobbertVersion robbertVersion) 
 
     if (robbert == null)
     {
-        var robbertFactory = new DesktopRobbert.Factory();
+        var robbertFactory = new LocalRobbert.Factory();
         robbert = await robbertFactory.CreateRobbert(robbertVersion);
     }
     else
