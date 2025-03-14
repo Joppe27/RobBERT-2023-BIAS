@@ -85,24 +85,25 @@ public partial class AnalyzePanel : UserControl
 
     private async Task AnalyzeEnglishBias()
     {
+        // TODO: this MIGHT not be possible online
         var parallelSentences = ConlluParser.ParseFile(_parallelCorpus.Path.LocalPath).ToList();
 
-        List<(string Sentence, string Mask)> parallelPrompts = new();
+        List<RobbertPrompt> parallelPrompts = new();
         List<string> parallelAuxiliaries = new();
 
         foreach (Sentence sentence in parallelSentences)
         {
             string auxForm = sentence.Tokens.First(t => t.DepRelEnum == DependencyRelation.Aux).Form;
-            parallelPrompts.Add((sentence.RawTokenSequence(), auxForm));
+            parallelPrompts.Add(new RobbertPrompt(sentence.RawTokenSequence(), auxForm));
             parallelAuxiliaries.Add(auxForm);
         }
 
         _robbert2022.BatchProgressChanged += ReportProgress;
-        var processedParallelSentences2022 = await _robbert2022.ProcessBatch(parallelPrompts, 5, false);
+        var processedParallelSentences2022 = await _robbert2022.ProcessBatch(parallelPrompts, 50, false);
         _robbert2022.BatchProgressChanged -= ReportProgress;
 
         _robbert2023.BatchProgressChanged += ReportProgress;
-        var processedParallelSentences2023 = await _robbert2023.ProcessBatch(parallelPrompts, 5, false);
+        var processedParallelSentences2023 = await _robbert2023.ProcessBatch(parallelPrompts, 50, false);
         _robbert2023.BatchProgressChanged -= ReportProgress;
 
         var parallelLogits2022 = GetAuxiliaryLogits(processedParallelSentences2022, parallelAuxiliaries);
@@ -111,22 +112,22 @@ public partial class AnalyzePanel : UserControl
 
         var differentSentences = ConlluParser.ParseFile(_differentCorpus.Path.LocalPath).ToList();
 
-        List<(string Sentence, string Mask)> differentPrompts = new();
+        List<RobbertPrompt> differentPrompts = new();
         List<string> differentAuxiliaries = new();
 
         foreach (Sentence sentence in differentSentences)
         {
             string auxForm = sentence.Tokens.First(t => t.DepRelEnum == DependencyRelation.Aux).Form;
-            differentPrompts.Add((sentence.RawTokenSequence(), auxForm));
+            differentPrompts.Add(new RobbertPrompt(sentence.RawTokenSequence(), auxForm));
             differentAuxiliaries.Add(auxForm);
         }
 
         _robbert2022.BatchProgressChanged += ReportProgress;
-        var processedDifferentSentences2022 = await _robbert2022.ProcessBatch(differentPrompts, 5, false);
+        var processedDifferentSentences2022 = await _robbert2022.ProcessBatch(differentPrompts, 50, false);
         _robbert2022.BatchProgressChanged -= ReportProgress;
 
         _robbert2023.BatchProgressChanged += ReportProgress;
-        var processedDifferentSentences2023 = await _robbert2023.ProcessBatch(differentPrompts, 5, false);
+        var processedDifferentSentences2023 = await _robbert2023.ProcessBatch(differentPrompts, 50, false);
         _robbert2023.BatchProgressChanged -= ReportProgress;
 
         var differentLogits2022 = GetAuxiliaryLogits(processedDifferentSentences2022, differentAuxiliaries);
@@ -138,14 +139,17 @@ public partial class AnalyzePanel : UserControl
             $"\nBias ratio RobBERT2023 = {(parallelLogits2023.Sum() / parallelLogits2023.Count) / (differentLogits2023.Sum() / differentLogits2023.Count)}";
     }
 
-    private List<float> GetAuxiliaryLogits(List<List<Dictionary<string, float>>> processedSentences, List<string> auxiliaries)
+    private List<decimal> GetAuxiliaryLogits(List<List<Dictionary<string, float>>> processedSentences, List<string> auxiliaries)
     {
-        List<float> logits = new();
+        // Decimal to avoid floating-point errors.
+        List<decimal> logits = new();
 
         for (int i = 0; i < processedSentences.Count; i++)
         {
-            processedSentences[i].First().TryGetValue(auxiliaries[i], out float parallelAuxiliaryLogits);
-            logits.Add(parallelAuxiliaryLogits);
+            if (!processedSentences[i].First().TryGetValue(auxiliaries[i], out float parallelAuxiliaryLogits) || processedSentences[i].Count > 1)
+                Console.WriteLine($"SKIPPED --- model: {processedSentences[i].First().Keys} (count: {processedSentences[i].Count}), aux: {auxiliaries[i]}");
+            else
+                logits.Add((decimal)parallelAuxiliaryLogits);
         }
 
         return logits;

@@ -35,16 +35,17 @@ if (app.Environment.IsDevelopment())
 // app.UseHttpsRedirection();
 app.UseCors("AllowOrigins");
 
-IRobbert? robbert = null;
+List<IRobbert> robbertInstances = new();
+int batchProgess = 0;
 
 app.MapPost("/robbert/create", async ([FromBody] RobbertVersion robbertVersion) =>
 {
     Console.WriteLine("Robbert requested!");
 
-    if (robbert == null)
+    if (!robbertInstances.Exists(r => r.Version == robbertVersion))
     {
         var robbertFactory = new LocalRobbert.Factory();
-        robbert = await robbertFactory.CreateRobbert(robbertVersion);
+        robbertInstances.Add(await robbertFactory.CreateRobbert(robbertVersion));
     }
     else
     {
@@ -55,28 +56,53 @@ app.MapPost("/robbert/create", async ([FromBody] RobbertVersion robbertVersion) 
     return Results.Created();
 }).WithName("Create");
 
-app.MapPost("/robbert/process", async ([FromBody] OnlineRobbert.RobbertProcesessParameters parameters) =>
+app.MapPost("/robbert/process", async ([FromBody] OnlineRobbert.OnlineRobbertProcessParameters parameters) =>
 {
     Console.WriteLine("Robbert prompt processing requested!");
 
-    if (robbert != null)
+    if (robbertInstances.Exists(r => r.Version == parameters.Version))
+    {
+        var robbert = robbertInstances.First(r => r.Version == parameters.Version);
         return Results.Json(await robbert.Process(parameters.UserInput, parameters.KCount, parameters.MaskToken, parameters.CalculateProbability));
+    }
 
-    return Results.BadRequest("Unable to process request: no RobBERT instance to process data");
+    return Results.BadRequest($"Unable to process request: no {parameters.Version} RobBERT instance to process data");
 }).WithName("Process");
 
-app.MapDelete("/robbert/dispose", () =>
+app.MapPost("/robbert/processbatch", async ([FromBody] OnlineRobbert.OnlineRobbertProcessBatchParameters parameters) =>
+{
+    Console.WriteLine("Robbert prompt batch processing requested!");
+
+    if (robbertInstances.Exists(r => r.Version == parameters.Version))
+    {
+        var robbert = robbertInstances.First(r => r.Version == parameters.Version);
+        
+        robbert.BatchProgressChanged += UpdateProgress;
+        var result = await robbert.ProcessBatch(parameters.UserInput, parameters.KCount, parameters.CalculateProbability);
+        robbert.BatchProgressChanged -= UpdateProgress;
+        
+        return Results.Json(result);
+    }
+
+    return Results.BadRequest($"Unable to process request: no {parameters.Version} RobBERT instance to process data");
+}).WithName("ProcessBatch");
+
+app.MapGet("/robbert/processbatch/getprogress", () => Results.Ok(batchProgess)).WithName("GetProgress");
+
+app.MapDelete("/robbert/dispose", ([FromBody] RobbertVersion version) =>
 {
     Console.WriteLine("Robbert disposal requested!");
 
-    if (robbert != null)
+    if (robbertInstances.Exists(r => r.Version == version))
     {
-        robbert.Dispose();
+        robbertInstances.First(r => r.Version == version).Dispose();
 
         return Results.NoContent();
     }
 
-    return Results.BadRequest("Unable to process request: no RobBERT instance to dispose");
+    return Results.BadRequest($"Unable to process request: no {version} RobBERT instance to dispose");
 }).WithName("Dispose");
 
 app.Run();
+
+void UpdateProgress(object? sender, int progress) => batchProgess = progress;

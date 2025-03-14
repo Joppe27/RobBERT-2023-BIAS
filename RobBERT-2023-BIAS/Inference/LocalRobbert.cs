@@ -1,6 +1,7 @@
 ﻿#region
 
 using System.Numerics.Tensors;
+using System.Text.RegularExpressions;
 using Microsoft.ML.OnnxRuntime;
 using Tokenizers.DotNet;
 
@@ -16,7 +17,8 @@ public class LocalRobbert : IDisposable, IRobbert
     private int _vocabSize; // See tokenizer.json.
     private int _tokenizerMask; // See tokenizer.json.
 
-    public event EventHandler<int> BatchProgressChanged = null!;
+    public RobbertVersion Version { get; private set; }
+    public event EventHandler<int>? BatchProgressChanged;
 
     private int _batchProgress;
 
@@ -25,7 +27,7 @@ public class LocalRobbert : IDisposable, IRobbert
         get => _batchProgress;
         set
         {
-            if (value > BatchProgress || value == 0)
+            if (BatchProgressChanged != null && (value > BatchProgress || value == 0))
                 BatchProgressChanged.Invoke(this, value);
 
             _batchProgress = value;
@@ -45,12 +47,16 @@ public class LocalRobbert : IDisposable, IRobbert
     /// <param name="userInput">The sentence to be completed by the model. Must include a mask!</param>
     /// <param name="kCount">The amount of replacements for the mask the model should output.</param>
     /// <param name="maskToken">Which specific token to decode. If null, all tokens are decoded.</param>
+    /// <param name="calculateProbability">Whether to calculate the token candidates' probability. If false, logits are returned.</param>
     /// <returns>A list containing a single dictionary for each mask with its possible replacements and probabilities, sorted by confidence.</returns>
     public async Task<List<Dictionary<string, float>>> Process(string userInput, int kCount, string? maskToken = "<mask>", bool calculateProbability = true)
     {
         if (maskToken != null)
-            userInput = userInput.Replace(maskToken, "<mask>");
-
+        {
+            var maskRegex = new Regex(@$"(?<!\w){maskToken}(?!\w)");
+            userInput = maskRegex.Replace(userInput, "<mask>");
+        }
+        
         var tokens = _tokenizer.Encode(userInput);
         
         var robbertInput = new RobbertInput()
@@ -106,20 +112,21 @@ public class LocalRobbert : IDisposable, IRobbert
         return await Task.Run(() => DecodeTokens(encodedMaskProbabilities, kCount));
     }
 
-    public async Task<List<List<Dictionary<string, float>>>> ProcessBatch(List<(string Sentence, string Mask)> userInput, int kCount,
+    public async Task<List<List<Dictionary<string, float>>>> ProcessBatch(List<RobbertPrompt> userInput, int kCount,
         bool calculateProbability = true)
     {
-        List<List<Dictionary<string, float>>> modelOutputs = new();
+        List<Dictionary<string, float>>[] modelOutputs = new List<Dictionary<string, float>>[userInput.Count];
 
         BatchProgress = 0;
-
+        
         await Parallel.ForAsync(0, userInput.Count, async (i, _) =>
         {
-            modelOutputs.Add(await Process(userInput[i].Sentence, kCount, userInput[i].Mask, calculateProbability));
+            // Important: sentences are returned in the original order here as analysis depends on this!
+            modelOutputs[i] = await Process(userInput[i].Sentence, kCount, userInput[i].Mask, calculateProbability);
             BatchProgress = (int)((float)i / userInput.Count * 100);
         });
 
-        return modelOutputs;
+        return modelOutputs.ToList();
     }
 
     private List<Dictionary<string, float>> DecodeTokens(List<float[]> encodedMaskProbabilities, int kCount)
@@ -191,9 +198,11 @@ public class LocalRobbert : IDisposable, IRobbert
                     throw new InvalidOperationException("Unsupported RobBERT version requested");
             }
 
+            localRobbert.Version = version;
+
             await Task.Run(() =>
             {
-                localRobbert._model = new(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, modelPath));
+                localRobbert._model = new InferenceSession(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, modelPath));
                 localRobbert._tokenizer = new Tokenizer(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, tokenizerPath));
             });
 
