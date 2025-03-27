@@ -39,7 +39,7 @@ public partial class PromptPanel : UserControl
     {
         var robbertFactory = App.ServiceProvider.GetRequiredService<IRobbertFactory>();
 
-        Robbert = await robbertFactory.CreateRobbert(version); // TODO: this aka OnlineRobbert (not the DI above, verified) is broken
+        Robbert = await robbertFactory.CreateRobbert(version);
 
         PromptTextBox.Watermark = "Voer een prompt in (vergeet geen <mask>)";
     }

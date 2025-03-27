@@ -1,0 +1,9 @@
+{
+  "profiles": {
+    "RobBERT_2023_BIAS.Azure": {
+      "commandName": "Project",
+      "commandLineArgs": "--port 7180",
+      "launchBrowser": false
+    }
+  }
+}
