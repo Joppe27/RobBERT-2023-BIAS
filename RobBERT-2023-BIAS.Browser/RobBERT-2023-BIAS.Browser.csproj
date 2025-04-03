@@ -5,6 +5,10 @@
         <OutputType>Exe</OutputType>
         <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
         <Nullable>enable</Nullable>
+        <InvariantGlobalization>true</InvariantGlobalization>
+        <CompressionEnabled>true</CompressionEnabled>
+        <PublishTrimmed>true</PublishTrimmed>
+        <TrimMode>full</TrimMode>
     </PropertyGroup>
 
     <ItemGroup>
@@ -13,5 +17,11 @@
 
     <ItemGroup>
         <ProjectReference Include="..\RobBERT-2023-BIAS\RobBERT-2023-BIAS.csproj"/>
+    </ItemGroup>
+
+    <ItemGroup>
+        <None Include="wwwroot\appsettings.json">
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </None>
     </ItemGroup>
 </Project>

@@ -25,16 +25,15 @@ public partial class App : Application
 
     public override void OnFrameworkInitializationCompleted()
     {
-        var environment = Environment.GetEnvironmentVariable("DOTNET_ENVIRONMENT") == "Development" ? "Development" : "Production";
-
-        Configuration = new ConfigurationBuilder().AddJsonFile($"appsettings.{environment}.json", false, false).Build();
-        
         if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
         {
             // Avoid duplicate validations from both Avalonia and the CommunityToolkit. 
             // More info: https://docs.avaloniaui.net/docs/guides/development-guides/data-validation#manage-validationplugins
             DisableAvaloniaDataAnnotationValidation();
 
+            var environment = Environment.GetEnvironmentVariable("DOTNET_ENVIRONMENT") == "Development" ? "Development" : "Production";
+            Configuration = new ConfigurationBuilder().AddJsonFile($"appsettings.{environment}.json", false, false).Build();
+            
             var desktopServiceCollection = new ServiceCollection();
             AddServices.Invoke(desktopServiceCollection);
             ServiceProvider = desktopServiceCollection.BuildServiceProvider();
@@ -43,6 +42,8 @@ public partial class App : Application
         }
         else if (ApplicationLifetime is ISingleViewApplicationLifetime singleViewPlatform)
         {
+            Configuration = new ConfigurationBuilder().AddJsonFile($"appsettings.json", false, false).Build();
+            
             var browserServiceCollection = new ServiceCollection();
             AddServices.Invoke(browserServiceCollection);
             ServiceProvider = browserServiceCollection.BuildServiceProvider();
