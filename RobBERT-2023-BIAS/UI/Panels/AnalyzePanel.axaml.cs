@@ -41,8 +41,8 @@ public partial class AnalyzePanel : UserControl
     {
         var robbertFactory = App.ServiceProvider.GetRequiredService<IRobbertFactory>();
 
-        _robbert2022 = await robbertFactory.CreateRobbert(RobbertVersion.Base2022);
-        _robbert2023 = await robbertFactory.CreateRobbert(RobbertVersion.Base2023);
+        _robbert2022 = await robbertFactory.Create(RobbertVersion.Base2022);
+        _robbert2023 = await robbertFactory.Create(RobbertVersion.Base2023);
     }
 
     private async void SelectCorpus_OnClick(object? sender, RoutedEventArgs e)

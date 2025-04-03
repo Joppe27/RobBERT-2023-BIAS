@@ -39,7 +39,7 @@ public partial class PromptPanel : UserControl
     {
         var robbertFactory = App.ServiceProvider.GetRequiredService<IRobbertFactory>();
 
-        Robbert = await robbertFactory.CreateRobbert(version);
+        Robbert = await robbertFactory.Create(version);
 
         PromptTextBox.Watermark = "Voer een prompt in (vergeet geen <mask>)";
     }

@@ -1,7 +1,9 @@
 ﻿#region
 
+using System.Net.Http.Json;
 using System.Numerics.Tensors;
 using System.Text.RegularExpressions;
+using Azure.Storage.Blobs;
 using Microsoft.ML.OnnxRuntime;
 using Tokenizers.DotNet;
 
@@ -164,7 +166,7 @@ public class LocalRobbert : IDisposable, IRobbert
 
     public class Factory : IRobbertFactory
     {
-        public async Task<IRobbert> CreateRobbert(RobbertVersion version)
+        public async Task<IRobbert> Create(RobbertVersion version)
         {
             LocalRobbert localRobbert = new();
 
@@ -205,6 +207,60 @@ public class LocalRobbert : IDisposable, IRobbert
                 localRobbert._model = new InferenceSession(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, modelPath));
                 localRobbert._tokenizer = new Tokenizer(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, tokenizerPath));
             });
+
+            return localRobbert;
+        }
+
+        public async Task<IRobbert> CreateFromBlob(RobbertVersion version)
+        {
+            LocalRobbert localRobbert = new();
+
+            switch (version)
+            {
+                case RobbertVersion.Base2022:
+                    localRobbert._vocabSize = 42774;
+                    localRobbert._tokenizerMask = 39984;
+                    break;
+
+                case RobbertVersion.Base2023:
+                    localRobbert._vocabSize = 50000;
+                    localRobbert._tokenizerMask = 4;
+                    break;
+
+                case RobbertVersion.Large2023:
+                    localRobbert._vocabSize = 50000;
+                    localRobbert._tokenizerMask = 4;
+                    break;
+
+                default:
+                    throw new InvalidOperationException("Unsupported RobBERT version requested");
+            }
+
+            var httpClient = new HttpClient() { BaseAddress = new Uri("http://localhost:5164/api/") };
+
+            var httpResponse = await httpClient.GetAsync($"getrobbertsas?version={(int)version}");
+
+            var containerUri = await httpResponse.Content.ReadFromJsonAsync<string>() ?? throw new NullReferenceException();
+
+            var containerClient = new BlobContainerClient(new Uri(containerUri));
+
+            var modelClient = containerClient.GetBlobClient("model.onnx");
+            var modelStream = new MemoryStream();
+            await modelClient.DownloadToAsync(modelStream);
+
+            var tokenizerClient = containerClient.GetBlobClient("tokenizer.json");
+            var tokenizerStream = File.Create("tokenizer.json");
+            await tokenizerClient.DownloadToAsync(tokenizerStream);
+
+            await Task.Run(() =>
+            {
+                localRobbert._model = new InferenceSession(modelStream.ToArray());
+                modelStream.Dispose();
+
+                localRobbert._tokenizer = new Tokenizer("tokenizer.json");
+            });
+
+            localRobbert.Version = version;
 
             return localRobbert;
         }

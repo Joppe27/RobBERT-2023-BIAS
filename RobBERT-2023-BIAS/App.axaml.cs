@@ -4,6 +4,7 @@ using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Data.Core.Plugins;
 using Avalonia.Markup.Xaml;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using RobBERT_2023_BIAS.UI;
 
@@ -15,6 +16,7 @@ public partial class App : Application
 {
     public static ServiceProvider ServiceProvider { get; private set; } = null!;
     public static Action<IServiceCollection> AddServices { get; set; } = null!;
+    public static IConfiguration Configuration { get; private set; } = null!;
 
     public override void Initialize()
     {
@@ -23,6 +25,10 @@ public partial class App : Application
 
     public override void OnFrameworkInitializationCompleted()
     {
+        var environment = Environment.GetEnvironmentVariable("DOTNET_ENVIRONMENT") == "Development" ? "Development" : "Production";
+
+        Configuration = new ConfigurationBuilder().AddJsonFile($"appsettings.{environment}.json", false, false).Build();
+        
         if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
         {
             // Avoid duplicate validations from both Avalonia and the CommunityToolkit. 

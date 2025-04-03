@@ -15,7 +15,10 @@
     <PackageVersion Include="Avalonia.iOS" Version="11.2.1"/>
     <PackageVersion Include="Avalonia.Browser" Version="11.2.1"/>
     <PackageVersion Include="Avalonia.Android" Version="11.2.1"/>
+    <PackageVersion Include="Azure.Storage.Blobs" Version="12.24.0"/>
     <PackageVersion Include="Conllu" Version="1.1.2"/>
+    <PackageVersion Include="Microsoft.Extensions.Configuration" Version="9.0.3"/>
+    <PackageVersion Include="Microsoft.Extensions.Configuration.Json" Version="9.0.3"/>
     <PackageVersion Include="Microsoft.Extensions.DependencyInjection" Version="9.0.2"/>
     <PackageVersion Include="Microsoft.ML.OnnxRuntime" Version="1.20.1"/>
     <PackageVersion Include="OxyPlot.Avalonia" Version="2.1.0-Avalonia11"/>

@@ -45,7 +45,7 @@ app.MapPost("/robbert/create", async ([FromBody] RobbertVersion robbertVersion) 
     if (!robbertInstances.Exists(r => r.Version == robbertVersion))
     {
         var robbertFactory = new LocalRobbert.Factory();
-        robbertInstances.Add(await robbertFactory.CreateRobbert(robbertVersion));
+        robbertInstances.Add(await robbertFactory.Create(robbertVersion));
     }
     else
     {

@@ -2,5 +2,5 @@
 
 public interface IRobbertFactory
 {
-    Task<IRobbert> CreateRobbert(RobbertVersion version);
+    Task<IRobbert> Create(RobbertVersion version);
 }

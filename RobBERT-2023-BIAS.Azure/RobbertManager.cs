@@ -21,7 +21,7 @@ public class RobbertManager
         if (!_robbertInstances.Exists(r => r.Version == robbertVersion))
         {
             var robbertFactory = new LocalRobbert.Factory();
-            _robbertInstances.Add(await robbertFactory.CreateRobbert(robbertVersion));
+            _robbertInstances.Add(await robbertFactory.CreateFromBlob(robbertVersion));
         }
         else
         {
