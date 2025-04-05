@@ -236,7 +236,8 @@ public class LocalRobbert : IDisposable, IRobbert
                     throw new InvalidOperationException("Unsupported RobBERT version requested");
             }
 
-            var httpClient = new HttpClient() { BaseAddress = new Uri("http://localhost:5164/api/") };
+            // TODO: this URI can't be hardcoded 
+            var httpClient = new HttpClient() { BaseAddress = new Uri("https://bias.joppe27.be/api/") };
 
             var httpResponse = await httpClient.GetAsync($"getrobbertsas?version={(int)version}");
 
