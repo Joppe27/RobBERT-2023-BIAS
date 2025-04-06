@@ -2,6 +2,7 @@
 
 using System;
 using System.Diagnostics;
+using System.Net.Http;
 using System.Threading.Tasks;
 using Avalonia;
 using Avalonia.Browser;
@@ -16,7 +17,16 @@ internal sealed partial class Program
 {
     private static Task Main(string[] args)
     {
-        App.AddServices = serviceCollection => serviceCollection.AddSingleton<IRobbertFactory, OnlineRobbert.Factory>();
+        App.AddServices = collection =>
+        {
+            collection.AddSingleton<IRobbertFactory, OnlineRobbert.Factory>();
+            // TODO: instead of increasing timeout, avoid long-running function in the first place https://learn.microsoft.com/en-us/azure/azure-functions/performance-reliability#avoid-long-running-functions
+            collection.AddSingleton(new HttpClient()
+            {
+                BaseAddress = new Uri(App.Configuration.GetSection("AzureFunctionsUri").Value ?? throw new NullReferenceException()),
+                Timeout = TimeSpan.FromMinutes(5),
+            });
+        };
 
         Trace.Listeners.Add(new TextWriterTraceListener(Console.Out));
 

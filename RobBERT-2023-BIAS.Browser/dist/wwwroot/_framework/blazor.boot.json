@@ -1,7 +1,7 @@
 {
   "mainAssemblyName": "RobBERT-2023-BIAS.Browser",
   "resources": {
-    "hash": "sha256-Oe4+RFgqqhELPYB0ojpcIexa6n6dGHIlISZse0jCOkc=",
+    "hash": "sha256-AQ2eXhverPsCXfAo5mFsv9x3XXxlpul3zGnxgpjOdXs=",
     "fingerprinting": {
       "Avalonia.Base.qxk1q6yo6q.wasm": "Avalonia.Base.wasm",
       "Avalonia.Browser.9mwul1inea.wasm": "Avalonia.Browser.wasm",
@@ -48,8 +48,8 @@
       "netstandard.or41gtprh3.wasm": "netstandard.wasm",
       "OxyPlot.Avalonia.3ud9dvkuw3.wasm": "OxyPlot.Avalonia.wasm",
       "OxyPlot.8odhtga7z6.wasm": "OxyPlot.wasm",
-      "RobBERT-2023-BIAS.Browser.6ewqw7ssfu.wasm": "RobBERT-2023-BIAS.Browser.wasm",
-      "RobBERT-2023-BIAS.pulu5gbacd.wasm": "RobBERT-2023-BIAS.wasm",
+      "RobBERT-2023-BIAS.Browser.di0c1ct73r.wasm": "RobBERT-2023-BIAS.Browser.wasm",
+      "RobBERT-2023-BIAS.i38rso1zlc.wasm": "RobBERT-2023-BIAS.wasm",
       "ShimSkiaSharp.h5tyhlmmqx.wasm": "ShimSkiaSharp.wasm",
       "SkiaSharp.HarfBuzz.x0lh071aex.wasm": "SkiaSharp.HarfBuzz.wasm",
       "SkiaSharp.26lzoruyax.wasm": "SkiaSharp.wasm",
@@ -221,7 +221,7 @@
       "System.Xml.XmlSerializer.0sc0ourwbb.wasm": "System.Xml.XmlSerializer.wasm",
       "System.Xml.XPath.6zhyzqh2n6.wasm": "System.Xml.XPath.wasm",
       "System.Xml.XPath.XDocument.7m1x4rd2b8.wasm": "System.Xml.XPath.XDocument.wasm",
-      "Tokenizers.DotNet.omepbylcru.wasm": "Tokenizers.DotNet.wasm",
+      "Tokenizers.DotNet.1fs3bnysgk.wasm": "Tokenizers.DotNet.wasm",
       "WindowsBase.ag32297siy.wasm": "WindowsBase.wasm",
       "dotnet.native.g348cldirf.js": "dotnet.native.js",
       "dotnet.native.nay8a64un7.wasm": "dotnet.native.wasm",
@@ -287,8 +287,8 @@
       "netstandard.or41gtprh3.wasm": "sha256-nD1KqAI5YYz+YohqHaZ5EmXi7Eq9Uy9sUknnI8sj1AM=",
       "OxyPlot.Avalonia.3ud9dvkuw3.wasm": "sha256-tYjNB5NGhiSuFG+tB5ByuAi8PqmTV/YFnU7ezJOYiGA=",
       "OxyPlot.8odhtga7z6.wasm": "sha256-eDwz72qWmJpBr6gA8gnE+4yQ9PXN5SNAiVlvs1DC5Bs=",
-      "RobBERT-2023-BIAS.Browser.6ewqw7ssfu.wasm": "sha256-gn0yVTbZlerrfk1oXIuxBMVNUKj6G7LboQv1gf6poMw=",
-      "RobBERT-2023-BIAS.pulu5gbacd.wasm": "sha256-IV/Uv8z3Ot1dkwiPhAHxcrZcgrxIfW3I0J86P9sPJhY=",
+      "RobBERT-2023-BIAS.Browser.di0c1ct73r.wasm": "sha256-lW6Jnbfm1KYZPXU2E8gb4jpgYI4y1JRe7Hy58Hme39s=",
+      "RobBERT-2023-BIAS.i38rso1zlc.wasm": "sha256-QtIoY+sirOrtnmTsj1O7rtRmazJ/yDHWbLPMgg5hA6k=",
       "ShimSkiaSharp.h5tyhlmmqx.wasm": "sha256-6zIxMG3ie+WslxcylFjJZQXZXyO9gC0OwrGlaKVf+9U=",
       "SkiaSharp.HarfBuzz.x0lh071aex.wasm": "sha256-sZB2Srwxh58hn9uVYNHRUbyXhqZGZphzjZGEQnbkLKM=",
       "SkiaSharp.26lzoruyax.wasm": "sha256-FuaZRL1BQxWKGMtmMq8twUVP906lz1iAN+r+CSxuA/k=",
@@ -458,7 +458,7 @@
       "System.Xml.XmlSerializer.0sc0ourwbb.wasm": "sha256-sEDsdRnHVbBNVz6bccuTQVGhvbDDG4FjUvsAs9JYWWk=",
       "System.Xml.XPath.6zhyzqh2n6.wasm": "sha256-gsrp2UsBOpo6DVsZu4ARBsWCm3JQPuNVXUQ+okp6R0A=",
       "System.Xml.XPath.XDocument.7m1x4rd2b8.wasm": "sha256-b6b4ScTgYcA196w5Fu47Y93t3RS0WF43M2zkxQjqZV4=",
-      "Tokenizers.DotNet.omepbylcru.wasm": "sha256-UBnAe21IxuNm80ErNP6nj0Zfk9eP4gRFyxvd3gmp8wc=",
+      "Tokenizers.DotNet.1fs3bnysgk.wasm": "sha256-nXmw7A5lfzMRYUH9Nbd5/8UIuGU18vkf3RUcSyg/IIg=",
       "WindowsBase.ag32297siy.wasm": "sha256-BgyZxTgdU9rIYlNC9ZMiMjnvBAJSL0eQH8Y87o1M+q4="
     }
   },

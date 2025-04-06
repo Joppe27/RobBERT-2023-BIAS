@@ -59,6 +59,8 @@ public class RobbertManager
 
     public int GetProgress() => _batchProgess;
 
+    public bool InstanceExists(RobbertVersion robbertVersion) => _robbertInstances.Exists(r => r.Version == robbertVersion);
+
     public void Dispose(RobbertVersion version)
     {
         if (_robbertInstances.Exists(r => r.Version == version))

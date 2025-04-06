@@ -10,9 +10,9 @@ using FromBodyHttp = Microsoft.Azure.Functions.Worker.Http.FromBodyAttribute;
 
 namespace RobBERT_2023_BIAS.Azure.Functions;
 
-public class RobbertProcessBatch(RobbertManager robbertManager)
+public class ProcessBatch(RobbertManager robbertManager)
 {
-    [Function("processbatch")]
+    [Function("ProcessBatch")]
     public async Task<IActionResult> Run([HttpTrigger(AuthorizationLevel.Anonymous, "post")] HttpRequest req,
         [FromBodyHttp] OnlineRobbert.OnlineRobbertProcessBatchParameters parameters)
     {

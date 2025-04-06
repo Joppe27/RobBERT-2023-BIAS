@@ -3,7 +3,9 @@
 using System.Net.Http.Json;
 using System.Numerics.Tensors;
 using System.Text.RegularExpressions;
+using Azure.Core.Pipeline;
 using Azure.Storage.Blobs;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.ML.OnnxRuntime;
 using Tokenizers.DotNet;
 
@@ -236,22 +238,30 @@ public class LocalRobbert : IDisposable, IRobbert
                     throw new InvalidOperationException("Unsupported RobBERT version requested");
             }
 
-            // TODO: this URI can't be hardcoded 
-            var httpClient = new HttpClient() { BaseAddress = new Uri("https://bias.joppe27.be/api/") };
+            HttpClient httpClient;
+            if (App.ServiceProvider is IServiceProvider provider)
+                httpClient = provider.GetRequiredService<HttpClient>();
+            else
+                httpClient = new HttpClient()
+                {
+                    BaseAddress = new Uri("https://bias.joppe27.be/api/"),
+                    Timeout = TimeSpan.FromMinutes(5),
+                };
 
-            var httpResponse = await httpClient.GetAsync($"getrobbertsas?version={(int)version}");
+            var httpResponse = await httpClient.GetAsync($"GetSas?version={(int)version}");
 
             var containerUri = await httpResponse.Content.ReadFromJsonAsync<string>() ?? throw new NullReferenceException();
 
-            var containerClient = new BlobContainerClient(new Uri(containerUri));
+            var containerClient = new BlobContainerClient(new Uri(containerUri), new BlobClientOptions() { Transport = new HttpClientTransport(httpClient) });
 
             var modelClient = containerClient.GetBlobClient("model.onnx");
             var modelStream = new MemoryStream();
             await modelClient.DownloadToAsync(modelStream);
-
+            
             var tokenizerClient = containerClient.GetBlobClient("tokenizer.json");
             var tokenizerStream = File.Create("tokenizer.json");
             await tokenizerClient.DownloadToAsync(tokenizerStream);
+            await tokenizerStream.DisposeAsync();
 
             await Task.Run(() =>
             {

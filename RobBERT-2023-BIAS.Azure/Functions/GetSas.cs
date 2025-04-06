@@ -11,9 +11,9 @@ using RobBERT_2023_BIAS.Inference;
 
 namespace RobBERT_2023_BIAS.Azure.Functions;
 
-public class GetRobbertSAS
+public class GetSas
 {
-    [Function("getrobbertsas")]
+    [Function("GetSas")]
     public async Task<IActionResult> Run([HttpTrigger(AuthorizationLevel.Anonymous, "get")] HttpRequest req, int version)
     {
         var client = new BlobServiceClient(Environment.GetEnvironmentVariable("BLOB_CONNECTION_STRING"));
@@ -36,7 +36,7 @@ public class GetRobbertSAS
         }
 
         var containerClient = client.GetBlobContainerClient(containerName) ?? throw new NullReferenceException();
-        var containerSas = containerClient.GenerateSasUri(BlobContainerSasPermissions.Read, DateTimeOffset.Now.AddMinutes(1));
+        var containerSas = containerClient.GenerateSasUri(BlobContainerSasPermissions.Read, DateTimeOffset.Now.AddMinutes(5));
 
         return new JsonResult(containerSas);
     }

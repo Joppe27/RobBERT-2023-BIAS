@@ -10,15 +10,13 @@ using FromBodyHttp = Microsoft.Azure.Functions.Worker.Http.FromBodyAttribute;
 
 namespace RobBERT_2023_BIAS.Azure.Functions;
 
-public class RobbertCreate(RobbertManager robbertManager)
+public class Create(RobbertManager robbertManager)
 {
-    [Function("create")]
+    [Function("Create")]
     public async Task<IActionResult> Run([HttpTrigger(AuthorizationLevel.Anonymous, "post")] HttpRequest req, [FromBodyHttp] RobbertVersion robbertVersion)
     {
-        Console.WriteLine("Robbert requested!");
-
         await robbertManager.Create(robbertVersion);
 
-        return new CreatedResult();
+        return new AcceptedResult();
     }
 }

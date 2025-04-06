@@ -2,6 +2,7 @@
 
 using System;
 using System.Linq;
+using System.Net.Http;
 using Avalonia;
 using Microsoft.Extensions.DependencyInjection;
 using RobBERT_2023_BIAS.Browser;
@@ -19,10 +20,19 @@ sealed class Program
     [STAThread]
     public static void Main(string[] args)
     {
-        if (args.Contains("--useserver"))
-            App.AddServices = serviceCollection => serviceCollection.AddSingleton<IRobbertFactory, OnlineRobbert.Factory>();
-        else
-            App.AddServices = serviceCollection => serviceCollection.AddSingleton<IRobbertFactory, LocalRobbert.Factory>();
+        App.AddServices = collection =>
+        {
+            if (args.Contains("--useserver"))
+                collection.AddSingleton<IRobbertFactory, OnlineRobbert.Factory>();
+            else
+                collection.AddSingleton<IRobbertFactory, LocalRobbert.Factory>();
+
+            collection.AddSingleton(new HttpClient()
+            {
+                BaseAddress = new Uri(App.Configuration.GetSection("AzureFunctionsUri").Value ?? throw new NullReferenceException()),
+                Timeout = TimeSpan.FromMinutes(5),
+            });
+        };
 
         BuildAvaloniaApp()
             .StartWithClassicDesktopLifetime(args);

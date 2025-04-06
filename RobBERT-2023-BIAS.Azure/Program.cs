@@ -13,6 +13,8 @@ builder.ConfigureFunctionsWebApplication();
 
 builder.Services.AddSingleton<RobbertManager>();
 
+builder.Services.BuildServiceProvider();
+
 // Application Insights isn't enabled by default. See https://aka.ms/AAt8mw4.
 // builder.Services
 //     .AddApplicationInsightsTelemetryWorkerService()

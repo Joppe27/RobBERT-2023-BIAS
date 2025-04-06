@@ -10,9 +10,9 @@ using FromBodyHttp = Microsoft.Azure.Functions.Worker.Http.FromBodyAttribute;
 
 namespace RobBERT_2023_BIAS.Azure.Functions;
 
-public class RobbertDispose(RobbertManager robbertManager)
+public class Dispose(RobbertManager robbertManager)
 {
-    [Function("dispose")]
+    [Function("Dispose")]
     public IActionResult Run([HttpTrigger(AuthorizationLevel.Anonymous, "delete")] HttpRequest req, [FromBodyHttp] RobbertVersion robbertVersion)
     {
         Console.WriteLine("Robbert disposal requested!");

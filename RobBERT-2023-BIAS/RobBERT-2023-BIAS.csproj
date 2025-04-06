@@ -90,7 +90,7 @@
         <PackageReference Include="OxyPlot.Avalonia"/>
         <PackageReference Include="System.Numerics.Tensors"/>
         <PackageReference Include="Tokenizers.DotNet"/>
-        <PackageReference Include="Tokenizers.DotNet.runtime.win"/>
+        <PackageReference Include="Tokenizers.DotNet.runtime.win-x64"/>
     </ItemGroup>
 
     <ItemGroup>
