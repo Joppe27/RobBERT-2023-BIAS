@@ -76,7 +76,7 @@ public partial class AnalyzePanel : UserControl
     private async void StartAnalysis_OnClick(object? sender, RoutedEventArgs e)
     {
         if (_parallelCorpus != null && _differentCorpus != null)
-            await TaskUtilities.AwaitNotifyUi(this, AnalyzeEnglishBias());
+            await TaskUtilities.AwaitNotify(this, AnalyzeEnglishBias());
         else
         {
             // TODO: show invalid corpus flyout

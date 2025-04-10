@@ -39,5 +39,19 @@
     </Application.Styles>
     <Application.Resources>
         <FontFamily x:Key="Mono">avares://RobBERT-2023-BIAS/Resources/UI/Fonts/JetBrainsMono-Medium.ttf#JetBrains Mono</FontFamily>
+        <Animation x:Key="ErrorAnimation" x:SetterTargetType="Svg" Duration="0:0:1.0" IterationCount="4">
+            <KeyFrame Cue="0%">
+                <Setter Property="Opacity" Value="1.0" />
+            </KeyFrame>
+            <KeyFrame Cue="49%">
+                <Setter Property="Opacity" Value="1.0" />
+            </KeyFrame>
+            <KeyFrame Cue="50%">
+                <Setter Property="Opacity" Value="0.0" />
+            </KeyFrame>
+            <KeyFrame Cue="100%">
+                <Setter Property="Opacity" Value="0.0" />
+            </KeyFrame>
+        </Animation>
     </Application.Resources>
 </Application>

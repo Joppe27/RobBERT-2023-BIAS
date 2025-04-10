@@ -35,11 +35,12 @@ public partial class HomePanel : UserControl
             try
             {
                 promptPanel = await TaskUtilities
-                    .AwaitNotifyUi(this, PromptPanel.CreateAsync((RobbertVersion)ModelComboBox.SelectedIndex));
+                    .AwaitNotify(this, PromptPanel.CreateAsync((RobbertVersion)ModelComboBox.SelectedIndex));
             }
             catch (Exception exception)
             {
                 Console.WriteLine(exception);
+                ExceptionUtilities.ExceptionNotify(this, exception);
                 return;
             }
 
@@ -56,7 +57,7 @@ public partial class HomePanel : UserControl
         if (this.Parent is Panel flexPanel)
         {
             PronounPromptPanel jouJouwPanel = await TaskUtilities
-                .AwaitNotifyUi(this, PronounPromptPanel.CreateAsync((RobbertVersion)ModelComboBox.SelectedIndex));
+                .AwaitNotify(this, PronounPromptPanel.CreateAsync((RobbertVersion)ModelComboBox.SelectedIndex));
 
             flexPanel.Children.Clear();
             flexPanel.Children.Add(jouJouwPanel);
@@ -70,7 +71,7 @@ public partial class HomePanel : UserControl
 
         if (this.Parent is Panel flexPanel)
         {
-            BiasPanel biasPanel = await TaskUtilities.AwaitNotifyUi(this, BiasPanel.CreateAsync((RobbertVersion)ModelComboBox.SelectedIndex));
+            BiasPanel biasPanel = await TaskUtilities.AwaitNotify(this, BiasPanel.CreateAsync((RobbertVersion)ModelComboBox.SelectedIndex));
 
             flexPanel.Children.Clear();
             flexPanel.Children.Add(biasPanel);
@@ -83,7 +84,7 @@ public partial class HomePanel : UserControl
     {
         if (this.Parent is Panel flexPanel)
         {
-            AnalyzePanel analyzePanel = await TaskUtilities.AwaitNotifyUi(this, AnalyzePanel.CreateAsync());
+            AnalyzePanel analyzePanel = await TaskUtilities.AwaitNotify(this, AnalyzePanel.CreateAsync());
 
             flexPanel.Children.Clear();
             flexPanel.Children.Add(analyzePanel);

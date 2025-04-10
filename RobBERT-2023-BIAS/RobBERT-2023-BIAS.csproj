@@ -38,13 +38,7 @@
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </AvaloniaResource>
         <None Remove="Resources\Icons\circle-notch-solid.png"/>
-        <AvaloniaResource Include="Resources\Icons\circle-notch-solid.png">
-            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-        </AvaloniaResource>
         <None Remove="Resources\Icons\circle-check-regular.png"/>
-        <AvaloniaResource Include="Resources\Icons\circle-check-regular.png">
-            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-        </AvaloniaResource>
         <None Update="Resources\RobBERT-2023-large\model.onnx">
             <CopyToOutputDirectory>Never</CopyToOutputDirectory>
         </None>
@@ -69,6 +63,10 @@
         <None Update="appsettings.Production.json">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </None>
+        <None Remove="Resources\UI\Icons\circle-xmark-regular.svg"/>
+        <AvaloniaResource Include="Resources\UI\Icons\circle-xmark-regular.svg">
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </AvaloniaResource>
     </ItemGroup>
 
     <ItemGroup>

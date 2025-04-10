@@ -2,7 +2,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             mc:Ignorable="d" d:DesignWidth="400" d:DesignHeight="700"
              x:Class="RobBERT_2023_BIAS.UI.MainView">
     <DockPanel LastChildFill="True">
         <Border DockPanel.Dock="Top" Background="BlueViolet" CornerRadius="6" BoxShadow="inset 0 -2 2 0 purple"
@@ -18,7 +18,7 @@
                         Click="MainMenuButton_OnClick" TabIndex="10">
                     ← Return to main menu
                 </Button>
-                <StackPanel Grid.Column="1" x:Name="ReadyIndicator" HorizontalAlignment="Right"
+                <StackPanel Grid.Column="1" x:Name="ReadyIndicator" IsVisible="True" HorizontalAlignment="Right"
                             VerticalAlignment="Center" Margin="0,0,8,0" Orientation="Horizontal">
                     <Svg Path="avares://RobBERT-2023-BIAS/Resources/UI/Icons/circle-check-regular.svg"
                          VerticalAlignment="Center" Stretch="Uniform" Height="13" Margin="0, 0, 5, 0" />
@@ -31,6 +31,16 @@
                          Classes="LoadingRotation" VerticalAlignment="Center" Stretch="Uniform" Height="13"
                          Margin="0, 0, 5, 0" />
                     <TextBlock Text="Busy..." Foreground="White" MinWidth="40" FontWeight="SemiBold" FontSize="12"
+                               VerticalAlignment="Center" />
+                </StackPanel>
+                <StackPanel Grid.Column="1" x:Name="ErrorIndicator" IsVisible="False" HorizontalAlignment="Right"
+                            VerticalAlignment="Center" Margin="0,0,8,0" Orientation="Horizontal">
+                    <Svg x:Name="ErrorIndicatorIcon"
+                         Path="avares://RobBERT-2023-BIAS/Resources/UI/Icons/circle-xmark-regular.svg"
+                         VerticalAlignment="Center" Stretch="Uniform" Height="13"
+                         Margin="0, 0, 5, 0" />
+                    <TextBlock x:Name="ErrorIndicatorText" Text="Error!" Foreground="White" MinWidth="40"
+                               FontWeight="SemiBold" FontSize="12"
                                VerticalAlignment="Center" />
                 </StackPanel>
             </Grid>

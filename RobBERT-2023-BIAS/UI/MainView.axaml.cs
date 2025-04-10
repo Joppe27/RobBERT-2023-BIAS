@@ -2,6 +2,7 @@
 
 using System.Numerics;
 using Avalonia;
+using Avalonia.Animation;
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Interactivity;
@@ -17,6 +18,7 @@ public partial class MainView : UserControl
 {
     public readonly Action LoadingFinished;
     public readonly Action LoadingStarted;
+    public readonly Action ExceptionThrown;
 
     private static readonly Vector2 HomePanelSize = new(400, 700);
 
@@ -50,8 +52,24 @@ public partial class MainView : UserControl
 
         LoadingFinished += () =>
         {
-            ReadyIndicator.IsVisible = true;
             LoadingIndicator.IsVisible = false;
+            ReadyIndicator.IsVisible = true;
+        };
+
+        ExceptionThrown += async () =>
+        {
+            ErrorIndicatorText.Text = "Request failed! Exception logged to console";
+
+            ReadyIndicator.IsVisible = false;
+            ErrorIndicator.IsVisible = true;
+
+            var animation = (Animation)App.Current.Resources["ErrorAnimation"] ?? throw new NullReferenceException();
+            await animation.RunAsync(ErrorIndicatorIcon);
+
+            await Task.Delay(5000);
+
+            ErrorIndicator.IsVisible = false;
+            ReadyIndicator.IsVisible = true;
         };
     }
 

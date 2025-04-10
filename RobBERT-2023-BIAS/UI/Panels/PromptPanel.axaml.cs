@@ -67,9 +67,15 @@ public partial class PromptPanel : UserControl
             ScrollViewer.ScrollToEnd();
         }
 
-        string[] answers = ProcessModelOutput(await TaskUtilities.AwaitNotifyUi(this, ProcessUserInput()));
+        var modelOutput = await TaskUtilities.AwaitNotify(this, ProcessUserInput());
+        string[] userFacingOutput;
 
-        foreach (string answer in answers)
+        if (modelOutput != null)
+            userFacingOutput = ProcessModelOutput(modelOutput);
+        else
+            return;
+
+        foreach (string answer in userFacingOutput)
         {
             ConversationPanel.Children.Add(MakeTextBlock(answer, false));
             ScrollViewer.ScrollToEnd();
@@ -84,12 +90,23 @@ public partial class PromptPanel : UserControl
 
     protected virtual bool ValidateUserInput(string? prompt) => prompt != null && prompt.Contains("mask");
 
-    protected virtual async Task<List<Dictionary<string, float>>> ProcessUserInput() =>
-        await Robbert.Process(ValidatedPrompts.Count == 1
-                ? ValidatedPrompts[0]
-                : throw new InvalidOperationException($"Input {ValidatedPrompts.Count} prompts while only 1 is supported"),
-            KCountBox.Value != null ? (int)KCountBox.Value : 1);
+    protected virtual async Task<List<Dictionary<string, float>>?> ProcessUserInput()
+    {
+        try
+        {
+            return await Robbert.Process(ValidatedPrompts.Count == 1
+                    ? ValidatedPrompts[0]
+                    : throw new InvalidOperationException($"Input {ValidatedPrompts.Count} prompts while only 1 is supported"),
+                KCountBox.Value != null ? (int)KCountBox.Value : 1);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine(ex); // TODO: use ILogger everywhere
 
+            return null;
+        }
+    }
+    
     protected virtual string[] ProcessModelOutput(List<Dictionary<string, float>> robbertOutput)
     {
         string[] conversationOutputs = new string[robbertOutput.Count];
