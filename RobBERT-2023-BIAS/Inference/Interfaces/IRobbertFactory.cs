@@ -2,5 +2,5 @@
 
 public interface IRobbertFactory
 {
-    Task<IRobbert> Create(RobbertVersion version);
+    Task<IRobbert> Create(RobbertVersion version, bool usingBlobs = false);
 }

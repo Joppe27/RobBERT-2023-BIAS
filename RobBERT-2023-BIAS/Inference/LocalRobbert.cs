@@ -1,11 +1,7 @@
 ﻿#region
 
-using System.Net.Http.Json;
 using System.Numerics.Tensors;
 using System.Text.RegularExpressions;
-using Azure.Core.Pipeline;
-using Azure.Storage.Blobs;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.ML.OnnxRuntime;
 using Tokenizers.DotNet;
 
@@ -69,18 +65,18 @@ public class LocalRobbert : IDisposable, IRobbert
             AttentionMask = Enumerable.Repeat((long)1, tokens.Length).ToArray() // All tokens given same attention for now.
         };
 
-        using var inputOrt = OrtValue.CreateTensorValueFromMemory(robbertInput.InputIds, new long[] { 1, robbertInput.InputIds.Length });
-        using var attOrt = OrtValue.CreateTensorValueFromMemory(robbertInput.AttentionMask, new long[] { 1, robbertInput.AttentionMask.Length });
+        ReadOnlySpan<float> logits;
 
-        var inputs = new Dictionary<string, OrtValue>()
+        using (OrtValue inputOrt = OrtValue.CreateTensorValueFromMemory(robbertInput.InputIds, new long[] { 1, robbertInput.InputIds.Length }),
+               attOrt = OrtValue.CreateTensorValueFromMemory(robbertInput.AttentionMask, new long[] { 1, robbertInput.AttentionMask.Length }))
         {
-            { "input_ids", inputOrt },
-            { "attention_mask", attOrt },
-        };
+            List<string> inputNames = new() { "input_ids", "attention_mask" };
+            List<OrtValue> inputValues = new() { inputOrt, attOrt };
 
-        using var output = await Task.Run(() => _model.Run(_runOptions, inputs, _model.OutputNames));
+            var output = _model.Run(_runOptions, inputNames, inputValues, _model.OutputNames);
 
-        ReadOnlySpan<float> logits = output[0].GetTensorDataAsSpan<float>();
+            logits = output[0].GetTensorDataAsSpan<float>();
+        }
 
         List<float[]> encodedMaskProbabilities = new();
         if (calculateProbability)
@@ -168,32 +164,32 @@ public class LocalRobbert : IDisposable, IRobbert
 
     public class Factory : IRobbertFactory
     {
-        public async Task<IRobbert> Create(RobbertVersion version)
+        public async Task<IRobbert> Create(RobbertVersion version, bool usingBlobs = false)
         {
             LocalRobbert localRobbert = new();
-
+            
             string modelPath;
             string tokenizerPath;
 
             switch (version)
             {
                 case RobbertVersion.Base2022:
-                    modelPath = "Resources/RobBERT-2022-base/model.onnx";
-                    tokenizerPath = "Resources/RobBERT-2022-base/tokenizer.json";
+                    modelPath = $"{(usingBlobs ? "BlobResources" : "Resources")}/RobBERT-2022-base/model.onnx";
+                    tokenizerPath = $"{(usingBlobs ? "BlobResources" : "Resources")}/RobBERT-2022-base/tokenizer.json";
                     localRobbert._vocabSize = 42774;
                     localRobbert._tokenizerMask = 39984;
                     break;
 
                 case RobbertVersion.Base2023:
-                    modelPath = "Resources/RobBERT-2023-base/model.onnx";
-                    tokenizerPath = "Resources/RobBERT-2023-base/tokenizer.json";
+                    modelPath = $"{(usingBlobs ? "BlobResources" : "Resources")}/RobBERT-2023-base/model.onnx";
+                    tokenizerPath = $"{(usingBlobs ? "BlobResources" : "Resources")}/RobBERT-2023-base/tokenizer.json";
                     localRobbert._vocabSize = 50000;
                     localRobbert._tokenizerMask = 4;
                     break;
 
                 case RobbertVersion.Large2023:
-                    modelPath = "Resources/RobBERT-2023-large/model.onnx";
-                    tokenizerPath = "Resources/RobBERT-2023-large/tokenizer.json";
+                    modelPath = $"{(usingBlobs ? "BlobResources" : "Resources")}/RobBERT-2023-large/model.onnx";
+                    tokenizerPath = $"{(usingBlobs ? "BlobResources" : "Resources")}/RobBERT-2023-large/tokenizer.json";
                     localRobbert._vocabSize = 50000;
                     localRobbert._tokenizerMask = 4;
                     break;
@@ -202,75 +198,13 @@ public class LocalRobbert : IDisposable, IRobbert
                     throw new InvalidOperationException("Unsupported RobBERT version requested");
             }
 
-            localRobbert.Version = version;
-
             await Task.Run(() =>
             {
-                localRobbert._model = new InferenceSession(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, modelPath));
+                localRobbert._model = new InferenceSession(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, modelPath),
+                    new SessionOptions() { EnableCpuMemArena = false });
                 localRobbert._tokenizer = new Tokenizer(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, tokenizerPath));
             });
-
-            return localRobbert;
-        }
-
-        public async Task<IRobbert> CreateFromBlob(RobbertVersion version)
-        {
-            LocalRobbert localRobbert = new();
-
-            switch (version)
-            {
-                case RobbertVersion.Base2022:
-                    localRobbert._vocabSize = 42774;
-                    localRobbert._tokenizerMask = 39984;
-                    break;
-
-                case RobbertVersion.Base2023:
-                    localRobbert._vocabSize = 50000;
-                    localRobbert._tokenizerMask = 4;
-                    break;
-
-                case RobbertVersion.Large2023:
-                    localRobbert._vocabSize = 50000;
-                    localRobbert._tokenizerMask = 4;
-                    break;
-
-                default:
-                    throw new InvalidOperationException("Unsupported RobBERT version requested");
-            }
-
-            HttpClient httpClient;
-            if (App.ServiceProvider is IServiceProvider provider)
-                httpClient = provider.GetRequiredService<HttpClient>();
-            else
-                httpClient = new HttpClient()
-                {
-                    BaseAddress = new Uri("https://bias.joppe27.be/api/"),
-                    Timeout = TimeSpan.FromMinutes(5),
-                };
-
-            var httpResponse = await httpClient.GetAsync($"GetSas?version={(int)version}");
-
-            var containerUri = await httpResponse.Content.ReadFromJsonAsync<string>() ?? throw new NullReferenceException();
-
-            var containerClient = new BlobContainerClient(new Uri(containerUri), new BlobClientOptions() { Transport = new HttpClientTransport(httpClient) });
-
-            var modelClient = containerClient.GetBlobClient("model.onnx");
-            var modelStream = new MemoryStream();
-            await modelClient.DownloadToAsync(modelStream);
             
-            var tokenizerClient = containerClient.GetBlobClient("tokenizer.json");
-            var tokenizerStream = File.Create("tokenizer.json");
-            await tokenizerClient.DownloadToAsync(tokenizerStream);
-            await tokenizerStream.DisposeAsync();
-
-            await Task.Run(() =>
-            {
-                localRobbert._model = new InferenceSession(modelStream.ToArray());
-                modelStream.Dispose();
-
-                localRobbert._tokenizer = new Tokenizer("tokenizer.json");
-            });
-
             localRobbert.Version = version;
 
             return localRobbert;

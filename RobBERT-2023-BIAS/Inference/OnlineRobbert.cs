@@ -36,7 +36,7 @@ public class OnlineRobbert : IRobbert
 
     public async Task<List<Dictionary<string, float>>> Process(string userInput, int kCount, string? maskToken, bool calculateProbability = true)
     {
-        var httpResponse = await _httpClient.PostAsync("Process",
+        var httpResponse = await _httpClient.PostAsync("robbert/process",
             JsonContent.Create(new OnlineRobbertProcessParameters(userInput, kCount, maskToken, Version, calculateProbability)));
 
         return await httpResponse.Content.ReadFromJsonAsync<List<Dictionary<string, float>>>() ?? throw new NullReferenceException();
@@ -45,7 +45,7 @@ public class OnlineRobbert : IRobbert
     public async Task<List<List<Dictionary<string, float>>>> ProcessBatch(List<RobbertPrompt> userInput, int kCount,
         bool calculateProbability = true)
     {
-        var httpResult = _httpClient.PostAsync("ProcessBatch",
+        var httpResult = _httpClient.PostAsync("robbert/processbatch",
             JsonContent.Create(new OnlineRobbertProcessBatchParameters(userInput, kCount, Version, calculateProbability)));
 
         while (!httpResult.IsCompleted)
@@ -56,12 +56,12 @@ public class OnlineRobbert : IRobbert
 
     public void Dispose()
     {
-        _httpClient.DeleteAsync("Dispose");
+        _httpClient.DeleteAsync($"robbert/dispose?version={(int)Version}");
     }
 
     private async Task PollBatchProgress()
     {
-        var httpResponse = await _httpClient.GetAsync("PollProcessBatch");
+        var httpResponse = await _httpClient.GetAsync("robbert/processbatch/getprogress");
         int.TryParse(await httpResponse.Content.ReadAsStringAsync(), out int currentProgress);
         
         BatchProgress = currentProgress;
@@ -71,14 +71,17 @@ public class OnlineRobbert : IRobbert
 
     public class Factory : IRobbertFactory
     {
-        public async Task<IRobbert> Create(RobbertVersion version)
+        public async Task<IRobbert> Create(RobbertVersion version, bool usingBlobs = false)
         {
             var onlineRobbert = new OnlineRobbert();
 
+            if (usingBlobs)
+                throw new InvalidOperationException();
+            
             onlineRobbert._httpClient = App.ServiceProvider.GetRequiredService<HttpClient>();
             onlineRobbert.Version = version;
 
-            await onlineRobbert._httpClient.PostAsync("Create", JsonContent.Create((int)version));
+            await onlineRobbert._httpClient.PostAsync("robbert/create", JsonContent.Create(version));
 
             // bool robbertCreated = false;
             //

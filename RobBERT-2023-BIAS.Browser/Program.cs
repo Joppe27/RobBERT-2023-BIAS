@@ -19,13 +19,14 @@ internal sealed partial class Program
     {
         App.AddServices = collection =>
         {
-            collection.AddSingleton<IRobbertFactory, OnlineRobbert.Factory>();
-            // TODO: instead of increasing timeout, avoid long-running function in the first place https://learn.microsoft.com/en-us/azure/azure-functions/performance-reliability#avoid-long-running-functions
-            collection.AddSingleton(new HttpClient()
-            {
-                BaseAddress = new Uri(App.Configuration.GetSection("AzureFunctionsUri").Value ?? throw new NullReferenceException()),
-                Timeout = TimeSpan.FromMinutes(5),
-            });
+            collection
+                .AddSingleton<IRobbertFactory, OnlineRobbert.Factory>()
+                .AddSingleton(new HttpClient()
+                {
+                    // TODO: instead of increasing timeout, avoid long-running function in the first place https://learn.microsoft.com/en-us/azure/azure-functions/performance-reliability#avoid-long-running-functions
+                    BaseAddress = new Uri(App.Configuration.GetSection("ApiUri").Value ?? throw new NullReferenceException()),
+                    Timeout = TimeSpan.FromMinutes(5),
+                });
         };
 
         Trace.Listeners.Add(new TextWriterTraceListener(Console.Out));

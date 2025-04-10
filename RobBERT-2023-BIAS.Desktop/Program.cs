@@ -29,7 +29,7 @@ sealed class Program
 
             collection.AddSingleton(new HttpClient()
             {
-                BaseAddress = new Uri(App.Configuration.GetSection("AzureFunctionsUri").Value ?? throw new NullReferenceException()),
+                BaseAddress = new Uri(App.Configuration.GetSection("ApiUri").Value ?? throw new NullReferenceException()),
                 Timeout = TimeSpan.FromMinutes(5),
             });
         };
