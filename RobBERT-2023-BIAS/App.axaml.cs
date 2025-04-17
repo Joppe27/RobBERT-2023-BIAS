@@ -17,6 +17,7 @@ public partial class App : Application
     public static ServiceProvider ServiceProvider { get; private set; } = null!;
     public static Action<IServiceCollection> AddServices { get; set; } = null!;
     public static IConfiguration Configuration { get; private set; } = null!;
+    public static Guid Guid { get; private set; } = Guid.NewGuid();
 
     public override void Initialize()
     {
@@ -40,15 +41,13 @@ public partial class App : Application
 
             desktop.MainWindow = new DesktopWindow();
         }
-        else if (ApplicationLifetime is ISingleViewApplicationLifetime singleViewPlatform)
+        else if (ApplicationLifetime is ISingleViewApplicationLifetime browser)
         {
-            Configuration = new ConfigurationBuilder().AddJsonFile($"appsettings.json", false, false).Build();
-            
             var browserServiceCollection = new ServiceCollection();
             AddServices.Invoke(browserServiceCollection);
             ServiceProvider = browserServiceCollection.BuildServiceProvider();
 
-            singleViewPlatform.MainView = new MainView();
+            browser.MainView = new MainView();
         }
 
         base.OnFrameworkInitializationCompleted();

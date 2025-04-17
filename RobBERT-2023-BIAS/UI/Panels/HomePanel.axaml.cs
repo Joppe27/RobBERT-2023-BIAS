@@ -32,6 +32,7 @@ public partial class HomePanel : UserControl
         if (this.Parent is Panel flexPanel)
         {
             PromptPanel promptPanel;
+            
             try
             {
                 promptPanel = await TaskUtilities
@@ -39,8 +40,7 @@ public partial class HomePanel : UserControl
             }
             catch (Exception exception)
             {
-                Console.WriteLine(exception);
-                ExceptionUtilities.ExceptionNotify(this, exception);
+                ExceptionUtilities.LogNotify(this, exception);
                 return;
             }
 
@@ -56,8 +56,18 @@ public partial class HomePanel : UserControl
 
         if (this.Parent is Panel flexPanel)
         {
-            PronounPromptPanel jouJouwPanel = await TaskUtilities
-                .AwaitNotify(this, PronounPromptPanel.CreateAsync((RobbertVersion)ModelComboBox.SelectedIndex));
+            PronounPromptPanel jouJouwPanel;
+
+            try
+            {
+                jouJouwPanel = await TaskUtilities
+                    .AwaitNotify(this, PronounPromptPanel.CreateAsync((RobbertVersion)ModelComboBox.SelectedIndex));
+            }
+            catch (Exception ex)
+            {
+                ExceptionUtilities.LogNotify(this, ex);
+                return;
+            }
 
             flexPanel.Children.Clear();
             flexPanel.Children.Add(jouJouwPanel);
@@ -71,12 +81,22 @@ public partial class HomePanel : UserControl
 
         if (this.Parent is Panel flexPanel)
         {
-            BiasPanel biasPanel = await TaskUtilities.AwaitNotify(this, BiasPanel.CreateAsync((RobbertVersion)ModelComboBox.SelectedIndex));
+            BiasPanel biasPanel;
+
+            try
+            {
+                biasPanel = await TaskUtilities.AwaitNotify(this, BiasPanel.CreateAsync((RobbertVersion)ModelComboBox.SelectedIndex));
+            }
+            catch (Exception ex)
+            {
+                ExceptionUtilities.LogNotify(this, ex);
+                return;
+            }
 
             flexPanel.Children.Clear();
             flexPanel.Children.Add(biasPanel);
 
-            TryMaximizeWindow(biasPanel);
+            MaximizeView(biasPanel);
         }
     }
 
@@ -84,16 +104,26 @@ public partial class HomePanel : UserControl
     {
         if (this.Parent is Panel flexPanel)
         {
-            AnalyzePanel analyzePanel = await TaskUtilities.AwaitNotify(this, AnalyzePanel.CreateAsync());
+            AnalyzePanel analyzePanel;
+
+            try
+            {
+                analyzePanel = await TaskUtilities.AwaitNotify(this, AnalyzePanel.CreateAsync());
+            }
+            catch (Exception ex)
+            {
+                ExceptionUtilities.LogNotify(this, ex);
+                return;
+            }
 
             flexPanel.Children.Clear();
             flexPanel.Children.Add(analyzePanel);
 
-            TryMaximizeWindow(analyzePanel);
+            MaximizeView(analyzePanel);
         }
     }
 
-    private void TryMaximizeWindow(UserControl newPanel)
+    private void MaximizeView(UserControl newPanel)
     {
         if (OperatingSystem.IsBrowser())
         {

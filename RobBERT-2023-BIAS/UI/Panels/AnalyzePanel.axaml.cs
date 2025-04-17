@@ -76,7 +76,16 @@ public partial class AnalyzePanel : UserControl
     private async void StartAnalysis_OnClick(object? sender, RoutedEventArgs e)
     {
         if (_parallelCorpus != null && _differentCorpus != null)
-            await TaskUtilities.AwaitNotify(this, AnalyzeEnglishBias());
+        {
+            try
+            {
+                await TaskUtilities.AwaitNotify(this, AnalyzeEnglishBias());
+            }
+            catch (Exception ex)
+            {
+                ExceptionUtilities.LogNotify(this, ex);
+            }
+        }
         else
         {
             // TODO: show invalid corpus flyout
@@ -159,11 +168,15 @@ public partial class AnalyzePanel : UserControl
 
     protected override void OnDetachedFromLogicalTree(LogicalTreeAttachmentEventArgs e)
     {
-        if (_robbert2022 != null)
+        try
+        {
             _robbert2022.Dispose();
-
-        if (_robbert2023 != null)
             _robbert2023.Dispose();
+        }
+        catch (Exception ex)
+        {
+            ExceptionUtilities.LogNotify(this, ex);
+        }
 
         base.OnDetachedFromLogicalTree(e);
     }

@@ -67,13 +67,19 @@ public partial class PromptPanel : UserControl
             ScrollViewer.ScrollToEnd();
         }
 
-        var modelOutput = await TaskUtilities.AwaitNotify(this, ProcessUserInput());
-        string[] userFacingOutput;
+        List<Dictionary<string, float>> modelOutput;
 
-        if (modelOutput != null)
-            userFacingOutput = ProcessModelOutput(modelOutput);
-        else
+        try
+        {
+            modelOutput = await TaskUtilities.AwaitNotify(this, ProcessUserInput());
+        }
+        catch (Exception ex)
+        {
+            ExceptionUtilities.LogNotify(this, ex);
             return;
+        }
+
+        string[] userFacingOutput = ProcessModelOutput(modelOutput);
 
         foreach (string answer in userFacingOutput)
         {
@@ -90,21 +96,12 @@ public partial class PromptPanel : UserControl
 
     protected virtual bool ValidateUserInput(string? prompt) => prompt != null && prompt.Contains("mask");
 
-    protected virtual async Task<List<Dictionary<string, float>>?> ProcessUserInput()
+    protected virtual async Task<List<Dictionary<string, float>>> ProcessUserInput()
     {
-        try
-        {
-            return await Robbert.Process(ValidatedPrompts.Count == 1
-                    ? ValidatedPrompts[0]
-                    : throw new InvalidOperationException($"Input {ValidatedPrompts.Count} prompts while only 1 is supported"),
-                KCountBox.Value != null ? (int)KCountBox.Value : 1);
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine(ex); // TODO: use ILogger everywhere
-
-            return null;
-        }
+        return await Robbert.Process(ValidatedPrompts.Count == 1
+                ? ValidatedPrompts[0]
+                : throw new InvalidOperationException($"Input {ValidatedPrompts.Count} prompts while only 1 is supported"),
+            KCountBox.Value != null ? (int)KCountBox.Value : 1);
     }
     
     protected virtual string[] ProcessModelOutput(List<Dictionary<string, float>> robbertOutput)
@@ -163,8 +160,14 @@ public partial class PromptPanel : UserControl
 
     protected override void OnDetachedFromLogicalTree(LogicalTreeAttachmentEventArgs e)
     {
-        if (Robbert != null)
+        try
+        {
             Robbert.Dispose();
+        }
+        catch (Exception ex)
+        {
+            ExceptionUtilities.LogNotify(this, ex);
+        }
 
         base.OnDetachedFromLogicalTree(e);
     }

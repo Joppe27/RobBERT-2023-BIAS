@@ -58,7 +58,7 @@ public partial class MainView : UserControl
 
         ExceptionThrown += async () =>
         {
-            ErrorIndicatorText.Text = "Request failed! Exception logged to console";
+            ErrorIndicatorText.Text = "Exception thrown: request failed!";
 
             ReadyIndicator.IsVisible = false;
             ErrorIndicator.IsVisible = true;

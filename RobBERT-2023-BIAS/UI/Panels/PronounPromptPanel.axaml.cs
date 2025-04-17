@@ -3,6 +3,7 @@
 using Avalonia.Controls.Primitives;
 using Avalonia.LogicalTree;
 using RobBERT_2023_BIAS.Inference;
+using RobBERT_2023_BIAS.Utilities;
 
 #endregion
 
@@ -143,8 +144,14 @@ public partial class PronounPromptPanel : PromptPanel
 
     protected override void OnDetachedFromLogicalTree(LogicalTreeAttachmentEventArgs e)
     {
-        if (_robbert != null)
+        try
+        {
             _robbert.Dispose();
+        }
+        catch (Exception ex)
+        {
+            ExceptionUtilities.LogNotify(this, ex);
+        }
 
         base.OnDetachedFromLogicalTree(e);
     }

@@ -4,7 +4,9 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
 using Avalonia.Input;
+using Avalonia.LogicalTree;
 using RobBERT_2023_BIAS.Inference;
+using RobBERT_2023_BIAS.Utilities;
 
 #endregion
 
@@ -77,6 +79,20 @@ public partial class BiasPromptPanel : PromptPanel
 
         firstOutput.AddRange(secondOutput);
         return firstOutput;
+    }
+
+    protected override void OnDetachedFromLogicalTree(LogicalTreeAttachmentEventArgs e)
+    {
+        try
+        {
+            _robbert.Dispose();
+        }
+        catch (Exception ex)
+        {
+            ExceptionUtilities.LogNotify(this, ex);
+        }
+
+        base.OnDetachedFromLogicalTree(e);
     }
 }
 

@@ -24,7 +24,7 @@ internal sealed partial class Program
                 .AddSingleton(new HttpClient()
                 {
                     // TODO: instead of increasing timeout, avoid long-running function in the first place https://learn.microsoft.com/en-us/azure/azure-functions/performance-reliability#avoid-long-running-functions
-                    BaseAddress = new Uri(App.Configuration.GetSection("ApiUri").Value ?? throw new NullReferenceException()),
+                    BaseAddress = new Uri("https://api.bias.joppe27.be/"),
                     Timeout = TimeSpan.FromMinutes(5),
                 });
         };
