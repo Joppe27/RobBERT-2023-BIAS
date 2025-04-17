@@ -3,6 +3,7 @@
 using System.Net.Http.Json;
 using Microsoft.Extensions.DependencyInjection;
 using RobBERT_2023_BIAS.Inference;
+using RobBERT_2023_BIAS.Utilities;
 
 #endregion
 
@@ -13,6 +14,8 @@ public class OnlineRobbert : IRobbert
     public RobbertVersion Version { get; private set; }
     
     private HttpClient _httpClient = null!;
+
+    private Timer _idleTimer = null!;
     
     private OnlineRobbert()
     {
@@ -36,37 +39,63 @@ public class OnlineRobbert : IRobbert
 
     public async Task<List<Dictionary<string, float>>> Process(string userInput, int kCount, string? maskToken, bool calculateProbability = true)
     {
-        var httpResponse = await _httpClient.PostAsync("robbert/process",
+        var httpResponse = await _httpClient.PostAsync($"robbert/process?clientGuid={App.Guid.ToString()}",
             JsonContent.Create(new OnlineRobbertProcessParameters(userInput, kCount, maskToken, Version, calculateProbability)));
 
+        httpResponse.EnsureSuccessStatusCode();
+        
         return await httpResponse.Content.ReadFromJsonAsync<List<Dictionary<string, float>>>() ?? throw new NullReferenceException();
     }
 
     public async Task<List<List<Dictionary<string, float>>>> ProcessBatch(List<RobbertPrompt> userInput, int kCount,
         bool calculateProbability = true)
     {
-        var httpResult = _httpClient.PostAsync("robbert/processbatch",
+        var httpResponse = _httpClient.PostAsync($"robbert/processbatch?clientGuid={App.Guid.ToString()}",
             JsonContent.Create(new OnlineRobbertProcessBatchParameters(userInput, kCount, Version, calculateProbability)));
 
-        while (!httpResult.IsCompleted)
+        while (!httpResponse.IsCompleted)
             await PollBatchProgress();
 
-        return await httpResult.Result.Content.ReadFromJsonAsync<List<List<Dictionary<string, float>>>>() ?? throw new NullReferenceException();
+        httpResponse.Result.EnsureSuccessStatusCode();
+
+        return await httpResponse.Result.Content.ReadFromJsonAsync<List<List<Dictionary<string, float>>>>() ?? throw new NullReferenceException();
     }
 
     public void Dispose()
     {
-        _httpClient.DeleteAsync($"robbert/dispose?version={(int)Version}");
+        var httpResponse = _httpClient.DeleteAsync($"robbert/endsessions?clientGuid={App.Guid.ToString()}").ConfigureAwait(false).GetAwaiter().GetResult();
+
+        httpResponse.EnsureSuccessStatusCode();
+
+        _idleTimer.Dispose();
     }
 
     private async Task PollBatchProgress()
     {
         var httpResponse = await _httpClient.GetAsync("robbert/processbatch/getprogress");
+
+        httpResponse.EnsureSuccessStatusCode();
+        
         int.TryParse(await httpResponse.Content.ReadAsStringAsync(), out int currentProgress);
         
         BatchProgress = currentProgress;
 
         await Task.Delay(2000);
+    }
+
+    private async void PingServer(object? state)
+    {
+        var httpresponse = await _httpClient.PostAsync($"robbert/pingsession?version={(int)Version}&clientGuid={App.Guid}", null);
+
+        try
+        {
+            httpresponse.EnsureSuccessStatusCode();
+        }
+        catch (Exception ex)
+        {
+            ExceptionUtilities.LogNotify(null, ex);
+            await _idleTimer.DisposeAsync();
+        }
     }
 
     public class Factory : IRobbertFactory
@@ -79,19 +108,12 @@ public class OnlineRobbert : IRobbert
                 throw new InvalidOperationException();
             
             onlineRobbert._httpClient = App.ServiceProvider.GetRequiredService<HttpClient>();
+
+            var httpResponse = await onlineRobbert._httpClient.PostAsync($"robbert/beginsession?version={(int)version}&clientGuid={App.Guid.ToString()}", null);
+            httpResponse.EnsureSuccessStatusCode();
+
+            onlineRobbert._idleTimer = new Timer(onlineRobbert.PingServer, null, TimeSpan.Zero, TimeSpan.FromMinutes(1));
             onlineRobbert.Version = version;
-
-            await onlineRobbert._httpClient.PostAsync("robbert/create", JsonContent.Create(version));
-
-            // bool robbertCreated = false;
-            //
-            // while (!robbertCreated)
-            // {
-            //     var httpRespose = await onlineRobbert._httpClient.GetAsync($"PollCreate?version={(int)version}");
-            //     robbertCreated = httpRespose.StatusCode == HttpStatusCode.OK;
-            //
-            //     await Task.Delay(2000);
-            // }
             
             return onlineRobbert;
         }
