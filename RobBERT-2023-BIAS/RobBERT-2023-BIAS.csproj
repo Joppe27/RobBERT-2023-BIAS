@@ -57,10 +57,10 @@
         <None Update="Resources\RobBERT-2023-large\tokenizer.json">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </None>
-        <None Update="appsettings.Development.json">
+        <None Update="robbertsettings.Development.json">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </None>
-        <None Update="appsettings.Production.json">
+        <None Update="robbertsettings.Production.json">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </None>
         <None Remove="Resources\UI\Icons\circle-xmark-regular.svg"/>

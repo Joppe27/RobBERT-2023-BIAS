@@ -33,7 +33,7 @@ public partial class App : Application
             DisableAvaloniaDataAnnotationValidation();
 
             var environment = Environment.GetEnvironmentVariable("DOTNET_ENVIRONMENT") == "Development" ? "Development" : "Production";
-            Configuration = new ConfigurationBuilder().AddJsonFile($"appsettings.{environment}.json", false, false).Build();
+            Configuration = new ConfigurationBuilder().AddJsonFile($"robbertsettings.{environment}.json", false, false).Build();
             
             var desktopServiceCollection = new ServiceCollection();
             AddServices.Invoke(desktopServiceCollection);
