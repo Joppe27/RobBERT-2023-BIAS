@@ -7,7 +7,7 @@ on:
     branches: 
       [ release ]
     paths:
-    - '**'
+    - 'RobBERT-2023-BIAS.Server/**'
     - '.github/workflows/robbert-2023-bias-server-AutoDeployTrigger-5f62acf4-c58b-41e9-b8a9-eee823881b9d.yml'
 
   # Allow manual trigger 
