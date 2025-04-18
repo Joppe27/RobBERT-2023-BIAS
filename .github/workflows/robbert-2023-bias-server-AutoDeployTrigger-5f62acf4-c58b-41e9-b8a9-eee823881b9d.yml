@@ -41,7 +41,7 @@ jobs:
           registryPassword: ${{ secrets.ROBBERT2023BIASSERVER_REGISTRY_PASSWORD }}
           containerAppName: robbert-2023-bias-server
           resourceGroup: RobBERT-2023-BIAS_group
-          imageToBuild: joppe27@hotmail.com/robbert-2023-bias-server:${{ github.sha }}
+          imageToBuild: joppe27/robbert-2023-bias-server:${{ github.sha }}
           _buildArgumentsKey_: |
             _buildArgumentsValues_
 
