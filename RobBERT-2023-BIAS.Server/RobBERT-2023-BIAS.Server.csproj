@@ -12,6 +12,7 @@
     <ItemGroup>
         <PackageReference Include="CommunityToolkit.HighPerformance"/>
         <PackageReference Include="Microsoft.AspNetCore.OpenApi"/>
+        <PackageReference Include="Tokenizers.DotNet.runtime.linux-x64"/>
     </ItemGroup>
 
     <ItemGroup>
