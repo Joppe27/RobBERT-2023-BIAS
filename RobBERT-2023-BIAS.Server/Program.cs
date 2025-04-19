@@ -25,6 +25,18 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
+app.Use(async (context, next) =>
+{
+    if (context.Request.Host.Host != "bias.joppe27.be")
+    {
+        context.Response.StatusCode = StatusCodes.Status400BadRequest;
+        await context.Response.WriteAsync("Invalid Host");
+        return;
+    }
+    
+    await next();
+});
+
 PrepareDirectoryStructure();
 
 List<IRobbert> robbertInstances = new();
