@@ -1,7 +1,7 @@
 {
   "mainAssemblyName": "RobBERT-2023-BIAS.Browser",
   "resources": {
-    "hash": "sha256-9nBWLdXV3UfX+0DM6zcSab82CDxYBo9QusGoAw2u5OI=",
+    "hash": "sha256-X7pMLWq8HhD8jFQQUI44dssCAlIMgqpb6/EFW/zyaKQ=",
     "fingerprinting": {
       "Avalonia.Base.qxk1q6yo6q.wasm": "Avalonia.Base.wasm",
       "Avalonia.Browser.9mwul1inea.wasm": "Avalonia.Browser.wasm",
@@ -57,8 +57,8 @@
       "netstandard.d82br99ghv.wasm": "netstandard.wasm",
       "OxyPlot.Avalonia.3ud9dvkuw3.wasm": "OxyPlot.Avalonia.wasm",
       "OxyPlot.8odhtga7z6.wasm": "OxyPlot.wasm",
-      "RobBERT-2023-BIAS.Browser.lfc4krt8qv.wasm": "RobBERT-2023-BIAS.Browser.wasm",
-      "RobBERT-2023-BIAS.cf2jqoruqo.wasm": "RobBERT-2023-BIAS.wasm",
+      "RobBERT-2023-BIAS.Browser.4r8ef6qf7u.wasm": "RobBERT-2023-BIAS.Browser.wasm",
+      "RobBERT-2023-BIAS.yd40hb6y98.wasm": "RobBERT-2023-BIAS.wasm",
       "ShimSkiaSharp.h5tyhlmmqx.wasm": "ShimSkiaSharp.wasm",
       "SkiaSharp.HarfBuzz.x0lh071aex.wasm": "SkiaSharp.HarfBuzz.wasm",
       "SkiaSharp.26lzoruyax.wasm": "SkiaSharp.wasm",
@@ -305,8 +305,8 @@
       "netstandard.d82br99ghv.wasm": "sha256-DS8keXxU4eQpa1kIoiFxOA2Ii2g9hoNWSaVi8F8AnIE=",
       "OxyPlot.Avalonia.3ud9dvkuw3.wasm": "sha256-tYjNB5NGhiSuFG+tB5ByuAi8PqmTV/YFnU7ezJOYiGA=",
       "OxyPlot.8odhtga7z6.wasm": "sha256-eDwz72qWmJpBr6gA8gnE+4yQ9PXN5SNAiVlvs1DC5Bs=",
-      "RobBERT-2023-BIAS.Browser.lfc4krt8qv.wasm": "sha256-Dzgw3wKbgmrKYKf36oO8Kl+JdMGwOM9QgdkSFI1uuvA=",
-      "RobBERT-2023-BIAS.cf2jqoruqo.wasm": "sha256-CH0jv6Wghwo+qR8Ti4pptazJmNLOqhFVoLmWvMs+kqs=",
+      "RobBERT-2023-BIAS.Browser.4r8ef6qf7u.wasm": "sha256-0MqmXmR8fP07JfRo1/PehXPe+lCWu0d8xwv4UCRGV/4=",
+      "RobBERT-2023-BIAS.yd40hb6y98.wasm": "sha256-NrMAw/gnExAlb6fUCwa1YOiiqHbjs4KbLDbU1snMG7Q=",
       "ShimSkiaSharp.h5tyhlmmqx.wasm": "sha256-6zIxMG3ie+WslxcylFjJZQXZXyO9gC0OwrGlaKVf+9U=",
       "SkiaSharp.HarfBuzz.x0lh071aex.wasm": "sha256-sZB2Srwxh58hn9uVYNHRUbyXhqZGZphzjZGEQnbkLKM=",
       "SkiaSharp.26lzoruyax.wasm": "sha256-FuaZRL1BQxWKGMtmMq8twUVP906lz1iAN+r+CSxuA/k=",

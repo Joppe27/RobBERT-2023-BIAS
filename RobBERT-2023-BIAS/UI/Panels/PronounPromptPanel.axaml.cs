@@ -141,18 +141,4 @@ public partial class PronounPromptPanel : PromptPanel
 
         return processedModelOutput;
     }
-
-    protected override void OnDetachedFromLogicalTree(LogicalTreeAttachmentEventArgs e)
-    {
-        try
-        {
-            _robbert.DisposeAsync();
-        }
-        catch (Exception ex)
-        {
-            ExceptionUtilities.LogNotify(this, ex);
-        }
-
-        base.OnDetachedFromLogicalTree(e);
-    }
 }

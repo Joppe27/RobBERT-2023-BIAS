@@ -80,20 +80,6 @@ public partial class BiasPromptPanel : PromptPanel
         firstOutput.AddRange(secondOutput);
         return firstOutput;
     }
-
-    protected override void OnDetachedFromLogicalTree(LogicalTreeAttachmentEventArgs e)
-    {
-        try
-        {
-            _robbert.DisposeAsync();
-        }
-        catch (Exception ex)
-        {
-            ExceptionUtilities.LogNotify(this, ex);
-        }
-
-        base.OnDetachedFromLogicalTree(e);
-    }
 }
 
 public class BiasOutputEventArgs(List<Dictionary<string, float>> firstPrompt, List<Dictionary<string, float>> secondPrompt) : EventArgs
