@@ -1,3 +1,4 @@
+
 var createDotnetRuntime = (() => {
     var _scriptDir = import.meta.url;
 
@@ -2490,20 +2491,6 @@ var createDotnetRuntime = (() => {
                             this.chunks = []
                         }
 
-                        get length() {
-                            if (!this.lengthKnown) {
-                                this.cacheLength()
-                            }
-                            return this._length
-                        }
-
-                        get chunkSize() {
-                            if (!this.lengthKnown) {
-                                this.cacheLength()
-                            }
-                            return this._chunkSize
-                        }
-
                         get(idx) {
                             if (idx > this.length - 1 || idx < 0) {
                                 return undefined
@@ -2565,6 +2552,20 @@ var createDotnetRuntime = (() => {
                             this._length = datalength;
                             this._chunkSize = chunkSize;
                             this.lengthKnown = true
+                        }
+
+                        get length() {
+                            if (!this.lengthKnown) {
+                                this.cacheLength()
+                            }
+                            return this._length
+                        }
+
+                        get chunkSize() {
+                            if (!this.lengthKnown) {
+                                this.cacheLength()
+                            }
+                            return this._chunkSize
                         }
                     }
 

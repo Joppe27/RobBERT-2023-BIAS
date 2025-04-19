@@ -42,7 +42,9 @@ public class OnlineRobbert : IRobbert
         var httpResponse = await _httpClient.PostAsync($"robbert/process?clientGuid={App.Guid.ToString()}",
             JsonContent.Create(new OnlineRobbertProcessParameters(userInput, kCount, maskToken, Version, calculateProbability)));
 
-        httpResponse.EnsureSuccessStatusCode();
+        if (!httpResponse.IsSuccessStatusCode)
+            throw new HttpRequestException(
+                $"HTTP request failed with status code {httpResponse.StatusCode}: {await httpResponse.Content.ReadAsStringAsync()}");
         
         return await httpResponse.Content.ReadFromJsonAsync<List<Dictionary<string, float>>>() ?? throw new NullReferenceException();
     }
@@ -56,7 +58,9 @@ public class OnlineRobbert : IRobbert
         while (!httpResponse.IsCompleted)
             await PollBatchProgress();
 
-        httpResponse.Result.EnsureSuccessStatusCode();
+        if (!httpResponse.Result.IsSuccessStatusCode)
+            throw new HttpRequestException(
+                $"HTTP request failed with status code {httpResponse.Result.StatusCode}: {await httpResponse.Result.Content.ReadAsStringAsync()}");
 
         return await httpResponse.Result.Content.ReadFromJsonAsync<List<List<Dictionary<string, float>>>>() ?? throw new NullReferenceException();
     }
@@ -65,7 +69,9 @@ public class OnlineRobbert : IRobbert
     {
         var httpResponse = _httpClient.DeleteAsync($"robbert/endsessions?clientGuid={App.Guid.ToString()}").ConfigureAwait(false).GetAwaiter().GetResult();
 
-        httpResponse.EnsureSuccessStatusCode();
+        if (!httpResponse.IsSuccessStatusCode)
+            throw new HttpRequestException(
+                $"HTTP request failed with status code {httpResponse.StatusCode}: {httpResponse.Content.ReadAsStringAsync().ConfigureAwait(false).GetAwaiter().GetResult()}");
 
         _idleTimer.Dispose();
     }
@@ -74,7 +80,9 @@ public class OnlineRobbert : IRobbert
     {
         var httpResponse = await _httpClient.GetAsync("robbert/processbatch/getprogress");
 
-        httpResponse.EnsureSuccessStatusCode();
+        if (!httpResponse.IsSuccessStatusCode)
+            throw new HttpRequestException(
+                $"HTTP request failed with status code {httpResponse.StatusCode}: {await httpResponse.Content.ReadAsStringAsync()}");
         
         int.TryParse(await httpResponse.Content.ReadAsStringAsync(), out int currentProgress);
         
@@ -85,11 +93,13 @@ public class OnlineRobbert : IRobbert
 
     private async void PingServer(object? state)
     {
-        var httpresponse = await _httpClient.PostAsync($"robbert/pingsession?version={(int)Version}&clientGuid={App.Guid}", null);
+        var httpResponse = await _httpClient.PostAsync($"robbert/pingsession?version={(int)Version}&clientGuid={App.Guid}", null);
 
         try
         {
-            httpresponse.EnsureSuccessStatusCode();
+            if (!httpResponse.IsSuccessStatusCode)
+                throw new HttpRequestException(
+                    $"HTTP request failed with status code {httpResponse.StatusCode}: {await httpResponse.Content.ReadAsStringAsync()}");
         }
         catch (Exception ex)
         {
@@ -110,7 +120,10 @@ public class OnlineRobbert : IRobbert
             onlineRobbert._httpClient = App.ServiceProvider.GetRequiredService<HttpClient>();
 
             var httpResponse = await onlineRobbert._httpClient.PostAsync($"robbert/beginsession?version={(int)version}&clientGuid={App.Guid.ToString()}", null);
-            httpResponse.EnsureSuccessStatusCode();
+
+            if (!httpResponse.IsSuccessStatusCode)
+                throw new HttpRequestException(
+                    $"HTTP request failed with status code {httpResponse.StatusCode}: {await httpResponse.Content.ReadAsStringAsync()}");
 
             onlineRobbert._idleTimer = new Timer(onlineRobbert.PingServer, null, TimeSpan.Zero, TimeSpan.FromMinutes(1));
             onlineRobbert.Version = version;
