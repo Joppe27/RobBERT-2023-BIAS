@@ -65,15 +65,15 @@ public class OnlineRobbert : IRobbert
         return await httpResponse.Result.Content.ReadFromJsonAsync<List<List<Dictionary<string, float>>>>() ?? throw new NullReferenceException();
     }
 
-    public void Dispose()
+    public async ValueTask DisposeAsync()
     {
-        var httpResponse = _httpClient.DeleteAsync($"robbert/endsessions?clientGuid={App.Guid.ToString()}").ConfigureAwait(false).GetAwaiter().GetResult();
+        await _idleTimer.DisposeAsync();
+
+        var httpResponse = await _httpClient.DeleteAsync($"robbert/endsessions?clientGuid={App.Guid.ToString()}");
 
         if (!httpResponse.IsSuccessStatusCode)
             throw new HttpRequestException(
-                $"HTTP request failed with status code {httpResponse.StatusCode}: {httpResponse.Content.ReadAsStringAsync().ConfigureAwait(false).GetAwaiter().GetResult()}");
-
-        _idleTimer.Dispose();
+                $"HTTP request failed with status code {httpResponse.StatusCode}: {await httpResponse.Content.ReadAsStringAsync()}");
     }
 
     private async Task PollBatchProgress()

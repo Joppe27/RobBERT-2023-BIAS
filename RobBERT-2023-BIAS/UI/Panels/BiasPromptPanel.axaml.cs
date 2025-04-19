@@ -85,7 +85,7 @@ public partial class BiasPromptPanel : PromptPanel
     {
         try
         {
-            _robbert.Dispose();
+            _robbert.DisposeAsync();
         }
         catch (Exception ex)
         {

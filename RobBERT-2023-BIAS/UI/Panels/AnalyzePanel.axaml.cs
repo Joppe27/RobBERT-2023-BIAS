@@ -170,8 +170,8 @@ public partial class AnalyzePanel : UserControl
     {
         try
         {
-            _robbert2022.Dispose();
-            _robbert2023.Dispose();
+            _robbert2022.DisposeAsync();
+            _robbert2023.DisposeAsync();
         }
         catch (Exception ex)
         {

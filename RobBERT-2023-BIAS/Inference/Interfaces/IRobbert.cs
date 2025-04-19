@@ -10,5 +10,5 @@ public interface IRobbert
 
     Task<List<List<Dictionary<string, float>>>> ProcessBatch(List<RobbertPrompt> userInput, int kCount, bool calculateProbability = true);
 
-    void Dispose();
+    ValueTask DisposeAsync();
 }

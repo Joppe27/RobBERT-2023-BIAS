@@ -162,7 +162,7 @@ public partial class PromptPanel : UserControl
     {
         try
         {
-            Robbert.Dispose();
+            Robbert.DisposeAsync();
         }
         catch (Exception ex)
         {

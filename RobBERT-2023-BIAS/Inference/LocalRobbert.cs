@@ -9,7 +9,7 @@ using Tokenizers.DotNet;
 
 namespace RobBERT_2023_BIAS.Inference;
 
-public class LocalRobbert : IDisposable, IRobbert
+public class LocalRobbert : IAsyncDisposable, IRobbert
 {
     private readonly RunOptions _runOptions = new();
     private InferenceSession _model = null!;
@@ -38,7 +38,7 @@ public class LocalRobbert : IDisposable, IRobbert
     {
     }
 
-    public void Dispose()
+    public async ValueTask DisposeAsync()
     {
         GC.SuppressFinalize(this);
         _model.Dispose();

@@ -146,7 +146,7 @@ public partial class PronounPromptPanel : PromptPanel
     {
         try
         {
-            _robbert.Dispose();
+            _robbert.DisposeAsync();
         }
         catch (Exception ex)
         {

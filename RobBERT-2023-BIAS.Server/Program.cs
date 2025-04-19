@@ -193,7 +193,7 @@ void DisposeRobbertInstance(RobbertVersion version)
 
         if (robbertInstances.Remove(versionForDisposal))
         {
-            versionForDisposal.Dispose();
+            versionForDisposal.DisposeAsync();
 
             if (robbertInstances.Count == 0)
             {
