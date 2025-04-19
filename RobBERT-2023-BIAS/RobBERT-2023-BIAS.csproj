@@ -40,13 +40,13 @@
         <None Remove="Resources\Icons\circle-notch-solid.png"/>
         <None Remove="Resources\Icons\circle-check-regular.png"/>
         <None Update="Resources\RobBERT-2023-large\model.onnx">
-            <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </None>
         <None Update="Resources\RobBERT-2023-base\model.onnx">
-            <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </None>
         <None Update="Resources\RobBERT-2022-base\model.onnx">
-            <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </None>
         <None Update="Resources\RobBERT-2022-base\tokenizer.json">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>

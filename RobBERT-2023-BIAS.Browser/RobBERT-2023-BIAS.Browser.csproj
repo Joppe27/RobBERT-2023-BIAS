@@ -1,6 +1,6 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk.WebAssembly">
     <PropertyGroup>
-        <!-- TODO: This SHOULD be net9.0-browser but Oryx doesn't support it (yet?), see https://github.com/microsoft/Oryx/issues/2577 -->
+        <!-- This should probably be net9.0-browser but Oryx doesn't support it (yet?), see https://github.com/microsoft/Oryx/issues/2577. It doesn't matter that much though. -->
         <TargetFramework>net9.0</TargetFramework>
         <OutputType>Exe</OutputType>
         <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
