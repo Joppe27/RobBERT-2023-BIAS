@@ -14,6 +14,7 @@ var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
+builder.Logging.AddConsole();
 
 var app = builder.Build();
 
@@ -27,6 +28,8 @@ app.UseHttpsRedirection();
 
 PrepareDirectoryStructure();
 
+var logger = app.Services.GetRequiredService<ILogger<Program>>();
+
 List<IRobbert> robbertInstances = new();
 List<RobbertSession> robbertSessions = new();
 int batchProgess = 0;
@@ -38,14 +41,14 @@ app.MapPost("robbert/beginsession", async (int version, string clientGuid) =>
 {
     var robbertVersion = (RobbertVersion)version;
 
-    Console.WriteLine(
+    logger.LogInformation(
         $"New {robbertVersion} session requested for client {clientGuid}");
 
     robbertSessions.Add(new RobbertSession()
         { Version = robbertVersion, ClientGuid = clientGuid, CreationTime = DateTimeOffset.Now, LastClientRequest = DateTimeOffset.Now });
 
     idleTimer ??= new Timer(CheckIdleSessions, null, TimeSpan.Zero, TimeSpan.FromSeconds(30));
-    Console.WriteLine("New idle timer created");
+    logger.LogInformation("New idle timer created");
     
     if (!robbertInstances.Exists(r => r.Version == robbertVersion))
     {
@@ -55,17 +58,18 @@ app.MapPost("robbert/beginsession", async (int version, string clientGuid) =>
         }
         catch (Exception ex)
         {
-            return Results.Problem($"Failed to create Robbert instance: {ex}");
+            string message = $"Failed to create Robbert instance: {ex}";
+            logger.LogError(message);
+            return Results.Problem(message);
         }
     }
     else
     {
-        Console.WriteLine($"No new {robbertVersion} instance created: instance already exists");
+        logger.LogInformation($"No new {robbertVersion} instance created: instance already exists");
     }
 
-    Console.WriteLine(
+    logger.LogInformation(
         $"New {robbertVersion} session added for client {clientGuid}: {robbertSessions.Count(s => s.Version == robbertVersion)} sessions and {robbertInstances.Count(i => i.Version == robbertVersion)} instances of version {robbertVersion} now active ({robbertSessions.Count} sessions and {robbertInstances.Count} instances accross all versions)");
-
     return Results.Ok();
 });
 
@@ -73,7 +77,7 @@ app.MapPost("robbert/pingsession", (RobbertVersion version, string clientGuid) =
 
 app.MapPost("robbert/process", async ([FromBody] OnlineRobbert.OnlineRobbertProcessParameters parameters, string clientGuid) =>
 {
-    Console.WriteLine($"Processing requested for version {parameters.Version} on client {clientGuid}");
+    logger.LogInformation($"Processing requested for version {parameters.Version} on client {clientGuid}");
 
     UpdateLastRequestTime(parameters.Version, clientGuid);
     
@@ -84,12 +88,14 @@ app.MapPost("robbert/process", async ([FromBody] OnlineRobbert.OnlineRobbertProc
         return Results.Json(result, JsonSerializerOptions.Default, null, 200);
     }
 
-    return Results.BadRequest($"Unable to process request: no {parameters.Version} RobBERT instance to process data");
+    string message = $"Unable to process request: no {parameters.Version} RobBERT instance to process data";
+    logger.LogError(message);
+    return Results.BadRequest(message);
 });
 
 app.MapPost("robbert/processbatch", async ([FromBody] OnlineRobbert.OnlineRobbertProcessBatchParameters parameters, string clientGuid) =>
 {
-    Console.WriteLine($"Batch processing requested for version {parameters.Version} on client {clientGuid}");
+    logger.LogInformation($"Batch processing requested for version {parameters.Version} on client {clientGuid}");
 
     UpdateLastRequestTime(parameters.Version, clientGuid);
 
@@ -104,18 +110,24 @@ app.MapPost("robbert/processbatch", async ([FromBody] OnlineRobbert.OnlineRobber
         return Results.Json(result, JsonSerializerOptions.Default, null, 200);
     }
 
-    return Results.BadRequest($"Unable to process request: no {parameters.Version} RobBERT instance to process data");
+    string message = $"Unable to process request: no {parameters.Version} RobBERT instance to process data";
+    logger.LogError(message);
+    return Results.BadRequest(message);
 });
 
 app.MapGet("robbert/processbatch/getprogress", () => Results.Ok(batchProgess));
 
 app.MapDelete("robbert/endsessions", (string clientGuid) =>
 {
-    Console.WriteLine($"Termination of all sessions for client {clientGuid} requested");
+    logger.LogInformation($"Termination of all sessions for client {clientGuid} requested");
 
     if (!robbertSessions.Exists(t => t.ClientGuid == clientGuid))
-        return Results.BadRequest($"Unable to end session: no sessions for client {clientGuid} exist");
-
+    {
+        string message = $"Unable to end session: no sessions for client {clientGuid} exist";
+        logger.LogError(message);
+        return Results.BadRequest(message);
+    }
+    
     foreach (var sessionToRemove in robbertSessions.Where(t => t.ClientGuid == clientGuid).ToList())
     {
         try
@@ -124,13 +136,14 @@ app.MapDelete("robbert/endsessions", (string clientGuid) =>
         }
         catch (Exception ex)
         {
-            return Results.Problem($"Failed to end session: {ex}");
+            string message = $"Failed to end session: {ex}";
+            logger.LogError(message);
+            return Results.Problem(message);
         }
     }
 
-    Console.WriteLine(
+    logger.LogInformation(
         $"All sessions for client {clientGuid} ended: {robbertSessions.Count} sessions and {robbertInstances.Count} instances now active accross all versions");
-
     return Results.Ok();
 });
 
@@ -141,7 +154,10 @@ async Task CreateRobbertInstance(RobbertVersion version)
     if (!File.Exists(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "BlobResources", GetDirectoryName(version, false), "model.onnx")) ||
         !File.Exists(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "BlobResources", GetDirectoryName(version, false), "tokenizer.json")))
     {
-        var containerUri = GetSas(version);
+        logger.LogInformation("Acquiring SAS to start model download");
+        var containerUri = GetSas(version) ?? throw new NullReferenceException();
+
+        logger.LogInformation("Downloading model...");
 
         var containerClient = new BlobContainerClient(containerUri);
 
@@ -169,19 +185,19 @@ void RemoveRobbertSession(RobbertSession session)
     if (sessionCount > 1)
     {
         robbertSessions.Remove(session);
-        Console.WriteLine($"Session of version {session.Version} for client {session.ClientGuid} ended");
+        logger.LogInformation($"Session of version {session.Version} for client {session.ClientGuid} ended");
     }
     else if (sessionCount == 1)
     {
         robbertSessions.Remove(session);
-        Console.WriteLine($"Session of version {session.Version} for client {session.ClientGuid} ended");
+        logger.LogInformation($"Session of version {session.Version} for client {session.ClientGuid} ended");
 
         DisposeRobbertInstance(session.Version);
-        Console.WriteLine($"Instance of version {session.Version} disposed");
+        logger.LogInformation($"Instance of version {session.Version} disposed");
     }
     else
     {
-        throw new InvalidOperationException($"Unable to end session: no sessions of version {session.Version} exist");
+        logger.LogError($"Unable to end session: no sessions of version {session.Version} exist");
     }
 }
 
@@ -189,26 +205,26 @@ void DisposeRobbertInstance(RobbertVersion version)
 {
     if (robbertInstances.Exists(r => r.Version == version))
     {
-        var versionForDisposal = robbertInstances.First(r => r.Version == version);
+        var instanceForDisposal = robbertInstances.First(r => r.Version == version);
 
-        if (robbertInstances.Remove(versionForDisposal))
+        if (robbertInstances.Remove(instanceForDisposal))
         {
-            versionForDisposal.DisposeAsync();
+            instanceForDisposal.DisposeAsync();
 
             if (robbertInstances.Count == 0)
             {
                 idleTimer!.Dispose();
-                Console.WriteLine("Idle timer disposed because no active instances left to check");
+                logger.LogInformation("Idle timer disposed because no active instances left to check");
             }
         }
         else
         {
-            throw new InvalidOperationException();
+            logger.LogError("Unable to dispose instance: something went VERY wrong");
         }
     }
     else
     {
-        throw new InvalidOperationException();
+        logger.LogError($"Unable to dispose instance: instance of {version} does not exist");
     }
 }
 
@@ -216,7 +232,7 @@ void UpdateProgress(object? sender, int progress) => batchProgess = progress;
 
 IResult UpdateLastRequestTime(RobbertVersion version, string clientGuid)
 {
-    Console.WriteLine($"Update to last request time for version {version} on client {clientGuid} requested");
+    logger.LogInformation($"Update to last request time for version {version} on client {clientGuid} requested");
 
     RobbertSession session;
 
@@ -226,12 +242,14 @@ IResult UpdateLastRequestTime(RobbertVersion version, string clientGuid)
     }
     catch (InvalidOperationException ex)
     {
-        return Results.BadRequest("Unable to update last request time for session: session not found");
+        string message = "Unable to update last request time for session: session not found";
+        logger.LogError(message);
+        return Results.BadRequest(message);
     }
 
     session.LastClientRequest = DateTimeOffset.Now;
-    Console.WriteLine($"Updated last request time for version {version} on client {clientGuid} to {DateTimeOffset.Now}");
 
+    logger.LogInformation($"Updated last request time for version {version} on client {clientGuid} to {DateTimeOffset.Now}");
     return Results.Ok();
 }
 
@@ -242,17 +260,24 @@ void CheckIdleSessions(object? state)
         if (DateTimeOffset.Now.Subtract(session.LastClientRequest).Duration() > TimeSpan.FromMinutes(2) ||
             DateTimeOffset.Now.Subtract(session.CreationTime).Duration() > TimeSpan.FromMinutes(20))
         {
-            Console.WriteLine($"Removing idle session for version {session.Version} on client {session.ClientGuid}");
+            logger.LogInformation($"Removing idle session for version {session.Version} on client {session.ClientGuid}");
             RemoveRobbertSession(session);
         }
     }
 }
 
-Uri GetSas(RobbertVersion version)
+Uri? GetSas(RobbertVersion version)
 {
     var client = new BlobServiceClient(builder.Configuration["blob-connection-string"]);
 
-    var containerClient = client.GetBlobContainerClient(GetDirectoryName(version, true)) ?? throw new NullReferenceException();
+    var containerClient = client.GetBlobContainerClient(GetDirectoryName(version, true));
+
+    if (containerClient == null)
+    {
+        logger.LogError("Unable to acquire SAS: blob container not found");
+        return null;
+    }
+    
     return containerClient.GenerateSasUri(BlobContainerSasPermissions.Read, DateTimeOffset.Now.AddMinutes(5));
 }
 
