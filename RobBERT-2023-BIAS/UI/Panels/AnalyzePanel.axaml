@@ -33,9 +33,15 @@
                     Margin="8, 0, 0, 0" Click="SelectCorpus_OnClick">
                 Select corpus
             </Button>
-            <Button Grid.Column="0" Grid.ColumnSpan="2" Grid.Row="3" Classes="DarkPurple" HorizontalAlignment="Stretch"
+            <Button Grid.Column="0" Grid.ColumnSpan="2" Grid.Row="3" x:Name="StartButton" Classes="DarkPurple"
+                    HorizontalAlignment="Stretch"
                     Margin="0,8" Click="StartAnalysis_OnClick">
                 Start analysis
+                <FlyoutBase.AttachedFlyout>
+                    <Flyout Placement="Top" ShowMode="Transient" VerticalOffset="-120">
+                        <TextBlock Text="Necessary corpora not selected!" />
+                    </Flyout>
+                </FlyoutBase.AttachedFlyout>
             </Button>
         </Grid>
         <Rectangle Grid.Column="1" Grid.Row="0" Fill="BlueViolet" Width="2" Margin="20, 36, 36, 36" />

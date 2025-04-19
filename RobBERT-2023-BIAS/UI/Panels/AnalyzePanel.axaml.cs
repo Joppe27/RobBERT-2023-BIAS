@@ -1,6 +1,7 @@
 ﻿#region
 
 using Avalonia.Controls;
+using Avalonia.Controls.Primitives;
 using Avalonia.Interactivity;
 using Avalonia.LogicalTree;
 using Avalonia.Platform.Storage;
@@ -88,7 +89,7 @@ public partial class AnalyzePanel : UserControl
         }
         else
         {
-            // TODO: show invalid corpus flyout
+            FlyoutBase.ShowAttachedFlyout(StartButton);
         }
     }
 
