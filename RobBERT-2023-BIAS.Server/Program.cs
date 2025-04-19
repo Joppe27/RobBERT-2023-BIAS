@@ -39,7 +39,7 @@ app.MapPost("robbert/beginsession", async (int version, string clientGuid) =>
     var robbertVersion = (RobbertVersion)version;
 
     Console.WriteLine(
-        $"New {robbertVersion} session requested for client {clientGuid}"); // TODO: throw when creating more than 1 session per version per client
+        $"New {robbertVersion} session requested for client {clientGuid}");
 
     robbertSessions.Add(new RobbertSession()
         { Version = robbertVersion, ClientGuid = clientGuid, CreationTime = DateTimeOffset.Now, LastClientRequest = DateTimeOffset.Now });
