@@ -1,9 +1,11 @@
 ﻿#region
 
 using System;
+using System.Diagnostics;
 using System.Linq;
 using System.Net.Http;
 using Avalonia;
+using Avalonia.Logging;
 using Microsoft.Extensions.DependencyInjection;
 using RobBERT_2023_BIAS.Browser;
 using RobBERT_2023_BIAS.Inference;
@@ -27,12 +29,16 @@ sealed class Program
             else
                 collection.AddSingleton<IRobbertFactory, LocalRobbert.Factory>();
 
-            collection.AddSingleton(new HttpClient()
-            {
-                BaseAddress = new Uri(App.Configuration.GetSection("ApiUri").Value ?? throw new NullReferenceException()),
-                Timeout = TimeSpan.FromMinutes(5),
-            });
+            collection
+                .AddSingleton(new HttpClient()
+                {
+                    BaseAddress = new Uri(App.Configuration.GetSection("ApiUri").Value ?? throw new NullReferenceException()),
+                    Timeout = TimeSpan.FromMinutes(5),
+                })
+                .AddSingleton(Logger.Sink ?? throw new NullReferenceException());
         };
+
+        Trace.Listeners.Add(new ConsoleTraceListener());
 
         BuildAvaloniaApp()
             .StartWithClassicDesktopLifetime(args);

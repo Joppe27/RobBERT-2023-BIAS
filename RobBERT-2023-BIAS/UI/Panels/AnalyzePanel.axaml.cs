@@ -3,6 +3,7 @@
 using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
 using Avalonia.Interactivity;
+using Avalonia.Logging;
 using Avalonia.LogicalTree;
 using Avalonia.Platform.Storage;
 using Avalonia.Threading;
@@ -153,13 +154,20 @@ public partial class AnalyzePanel : UserControl
     {
         // Decimal to avoid floating-point errors.
         List<decimal> logits = new();
-
+        var logger = (ILogSink?)App.ServiceProvider.GetService(typeof(ILogSink));
+                    
         for (int i = 0; i < processedSentences.Count; i++)
         {
             if (!processedSentences[i].First().TryGetValue(auxiliaries[i], out float parallelAuxiliaryLogits) || processedSentences[i].Count > 1)
-                Console.WriteLine($"SKIPPED --- model: {processedSentences[i].First().Keys} (count: {processedSentences[i].Count}), aux: {auxiliaries[i]}");
+            {
+                if (logger != null)
+                    logger.Log(LogEventLevel.Warning, "NON-AVALONIA", this,
+                        $"SKIPPED --- model: {processedSentences[i].First().Keys} (count: {processedSentences[i].Count}), aux: {auxiliaries[i]}");
+            }
             else
+            {
                 logits.Add((decimal)parallelAuxiliaryLogits);
+            }
         }
 
         return logits;

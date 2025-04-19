@@ -1,7 +1,9 @@
 ﻿#region
 
 using Avalonia;
+using Avalonia.Logging;
 using Avalonia.VisualTree;
+using Microsoft.Extensions.DependencyInjection;
 using RobBERT_2023_BIAS.UI;
 
 #endregion
@@ -12,6 +14,8 @@ public static class ExceptionUtilities
 {
     public static void LogNotify(Visual? sender, Exception ex)
     {
+        var logger = App.ServiceProvider.GetRequiredService<ILogSink>();
+        
         if (sender != null)
         {
             MainView mainView = sender.GetVisualAncestors().SingleOrDefault(v => v is MainView) as MainView ??
@@ -21,10 +25,9 @@ public static class ExceptionUtilities
         }
         else
         {
-            Console.WriteLine("Exception thrown without notifying user!");
+            logger.Log(LogEventLevel.Warning, "NON-AVALONIA", null, "Exception thrown without notifying user!");
         }
 
-        // TODO: ILOGGER HERE https://learn.microsoft.com/en-us/dotnet/core/extensions/logging?tabs=command-line#get-an-ilogger-from-di
-        Console.WriteLine(ex);
+        logger.Log(LogEventLevel.Error, "NON-AVALONIA", sender, ex.ToString());
     }
 }

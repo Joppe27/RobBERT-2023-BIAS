@@ -2,6 +2,7 @@
 
 using System.Numerics.Tensors;
 using System.Text.RegularExpressions;
+using Avalonia.Logging;
 using Microsoft.ML.OnnxRuntime;
 using Tokenizers.DotNet;
 
@@ -152,7 +153,10 @@ public class LocalRobbert : IAsyncDisposable, IRobbert
                     ]).Trim(), sortedEncodedMaskProbabilities[mask][candidate]) == false)
                 {
                     // Ignored duplicates probably happen because of leading/trailing spaces which get trimmed during decode (see line above).
-                    Console.WriteLine("IGNORED TOKEN!");
+                    var logger = (ILogSink?)App.ServiceProvider.GetService(typeof(ILogSink));
+
+                    if (logger != null)
+                        logger.Log(LogEventLevel.Warning, "NON-AVALONIA", this, "Token ignored during decoding of masks");
                 }
             }
 
