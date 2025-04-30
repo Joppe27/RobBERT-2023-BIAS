@@ -1,7 +1,7 @@
 {
   "mainAssemblyName": "RobBERT-2023-BIAS.Browser",
   "resources": {
-    "hash": "sha256-RnO/dILQPxHSC85/lO3Io5JxV3ECXisoaux1rIk3f+I=",
+    "hash": "sha256-F4V1XGNihnOpewYgDx2Qd5CjaQZT474C/NidGOOiTiw=",
     "fingerprinting": {
       "Avalonia.Base.qxk1q6yo6q.wasm": "Avalonia.Base.wasm",
       "Avalonia.Browser.9mwul1inea.wasm": "Avalonia.Browser.wasm",
@@ -26,6 +26,7 @@
       "Conllu.5trrs018ho.wasm": "Conllu.wasm",
       "ExCSS.vo340561u5.wasm": "ExCSS.wasm",
       "HarfBuzzSharp.cwwvusfvt0.wasm": "HarfBuzzSharp.wasm",
+      "MathNet.Numerics.4iylnyy3ah.wasm": "MathNet.Numerics.wasm",
       "MicroCom.Runtime.8lt3mh4b1t.wasm": "MicroCom.Runtime.wasm",
       "Microsoft.AspNetCore.Http.Abstractions.5jy9omvvsv.wasm": "Microsoft.AspNetCore.Http.Abstractions.wasm",
       "Microsoft.AspNetCore.Http.Extensions.57zig84vjd.wasm": "Microsoft.AspNetCore.Http.Extensions.wasm",
@@ -57,8 +58,8 @@
       "netstandard.d82br99ghv.wasm": "netstandard.wasm",
       "OxyPlot.Avalonia.3ud9dvkuw3.wasm": "OxyPlot.Avalonia.wasm",
       "OxyPlot.8odhtga7z6.wasm": "OxyPlot.wasm",
-      "RobBERT-2023-BIAS.Browser.g8gjg2b2rw.wasm": "RobBERT-2023-BIAS.Browser.wasm",
-      "RobBERT-2023-BIAS.le9d4kxer3.wasm": "RobBERT-2023-BIAS.wasm",
+      "RobBERT-2023-BIAS.Browser.5sfnguo8l9.wasm": "RobBERT-2023-BIAS.Browser.wasm",
+      "RobBERT-2023-BIAS.drhknej0ef.wasm": "RobBERT-2023-BIAS.wasm",
       "ShimSkiaSharp.h5tyhlmmqx.wasm": "ShimSkiaSharp.wasm",
       "SkiaSharp.HarfBuzz.x0lh071aex.wasm": "SkiaSharp.HarfBuzz.wasm",
       "SkiaSharp.26lzoruyax.wasm": "SkiaSharp.wasm",
@@ -232,19 +233,19 @@
       "System.Xml.XPath.XDocument.dvarvms6fh.wasm": "System.Xml.XPath.XDocument.wasm",
       "Tokenizers.DotNet.1fs3bnysgk.wasm": "Tokenizers.DotNet.wasm",
       "WindowsBase.5lai2eowco.wasm": "WindowsBase.wasm",
-      "dotnet.native.v4dma02dan.js": "dotnet.native.js",
-      "dotnet.native.rjqxjbglbz.wasm": "dotnet.native.wasm",
+      "dotnet.native.gilm1vv8qp.js": "dotnet.native.js",
+      "dotnet.native.8txfhda0bv.wasm": "dotnet.native.wasm",
       "dotnet.js": "dotnet.js",
-      "dotnet.runtime.cymp1amu5g.js": "dotnet.runtime.js"
+      "dotnet.runtime.5nhp1wfg9b.js": "dotnet.runtime.js"
     },
     "jsModuleNative": {
-      "dotnet.native.v4dma02dan.js": "sha256-AWqCr/39C+vhZNEMxRxjjF6iunPKBYAGij2nWSYvjEo="
+      "dotnet.native.gilm1vv8qp.js": "sha256-aIOGOXuqV7pQ3rPk4D+24Ruc4D1Wkvs0Q0bdNTNBK/8="
     },
     "jsModuleRuntime": {
-      "dotnet.runtime.cymp1amu5g.js": "sha256-dCmS9Zx4egtLYSUgTI3R6gMS+Yg8MkzxW1CgEMJKAEw="
+      "dotnet.runtime.5nhp1wfg9b.js": "sha256-kTZbe5ESp04VMT22TnjRmFj88VbtEcohZfCm4og/IDw="
     },
     "wasmNative": {
-      "dotnet.native.rjqxjbglbz.wasm": "sha256-WbxoACLXCfbKeogYfwJBK/Cq1w+jucFM1xs37CpVahM="
+      "dotnet.native.8txfhda0bv.wasm": "sha256-FAJ5V0H5TNCwYm2EC07OOCCN10r6ichiPVArU0X3fUQ="
     },
     "coreAssembly": {
       "System.Private.CoreLib.wejp19zmu1.wasm": "sha256-iEPGi1OS5IQuHAewjUSiRdMd3+Xdkmlu0NIN8J253Vc=",
@@ -274,6 +275,7 @@
       "Conllu.5trrs018ho.wasm": "sha256-d458doa/BG26cDjXOLbXAdr5v68Ato5IWdOGe9HdkQU=",
       "ExCSS.vo340561u5.wasm": "sha256-UUDdQpFUY9H2fvZxvGhWLfifbi0vztUkLr14L1HLE9U=",
       "HarfBuzzSharp.cwwvusfvt0.wasm": "sha256-TDZqaOaLLxcNw8w7g/Dabsw0Tuzz4ZYB4EbHNiR9NqQ=",
+      "MathNet.Numerics.4iylnyy3ah.wasm": "sha256-7MB/AdpJ1M5QLPfFuGFjCLGIJyd1QJSLoYMVWiC8/QU=",
       "MicroCom.Runtime.8lt3mh4b1t.wasm": "sha256-dI22KS20yc+ziyg4tSUpmSjG0ebPXDL5QTSZf+ehjwI=",
       "Microsoft.AspNetCore.Http.Abstractions.5jy9omvvsv.wasm": "sha256-7wgz1ZHwXmXV8y00xn+jT4BGeuCQQbVYGQl+PNvBfnQ=",
       "Microsoft.AspNetCore.Http.Extensions.57zig84vjd.wasm": "sha256-sbIJEHnGL6std1HkIJ83mfNTk5yznrGRZbaacPDI5w4=",
@@ -305,8 +307,8 @@
       "netstandard.d82br99ghv.wasm": "sha256-DS8keXxU4eQpa1kIoiFxOA2Ii2g9hoNWSaVi8F8AnIE=",
       "OxyPlot.Avalonia.3ud9dvkuw3.wasm": "sha256-tYjNB5NGhiSuFG+tB5ByuAi8PqmTV/YFnU7ezJOYiGA=",
       "OxyPlot.8odhtga7z6.wasm": "sha256-eDwz72qWmJpBr6gA8gnE+4yQ9PXN5SNAiVlvs1DC5Bs=",
-      "RobBERT-2023-BIAS.Browser.g8gjg2b2rw.wasm": "sha256-8GAayckNcVsHof7XBrE0jLvkKa6eqg16pntaMxvKzTk=",
-      "RobBERT-2023-BIAS.le9d4kxer3.wasm": "sha256-I6vbGy5EoCixmJUQtgbEgAoTeLJN08ITfGpWkvtlHzQ=",
+      "RobBERT-2023-BIAS.Browser.5sfnguo8l9.wasm": "sha256-pXeOqQeuPrYyXCX7UM+HxNKcoy3UgDS+aC6jHXK9PTs=",
+      "RobBERT-2023-BIAS.drhknej0ef.wasm": "sha256-F8o2wOiYgPuwE/DWqDVjvYBDDEn+HhYguTmZ7W6f7bo=",
       "ShimSkiaSharp.h5tyhlmmqx.wasm": "sha256-6zIxMG3ie+WslxcylFjJZQXZXyO9gC0OwrGlaKVf+9U=",
       "SkiaSharp.HarfBuzz.x0lh071aex.wasm": "sha256-sZB2Srwxh58hn9uVYNHRUbyXhqZGZphzjZGEQnbkLKM=",
       "SkiaSharp.26lzoruyax.wasm": "sha256-FuaZRL1BQxWKGMtmMq8twUVP906lz1iAN+r+CSxuA/k=",
