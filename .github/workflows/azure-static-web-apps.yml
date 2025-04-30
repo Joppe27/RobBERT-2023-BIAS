@@ -5,8 +5,8 @@ on:
   push:
     branches:
       - release
-    paths-ignore:
-      - "RobBERT-2023-BIAS.Server/**"
+    paths:
+      - "RobBERT-2023-BIAS.Browser/dist/**"
 
 jobs:
   build_and_deploy_job:
