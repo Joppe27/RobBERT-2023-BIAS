@@ -154,7 +154,7 @@ public partial class AnalyzePanel : UserControl
     {
         // Decimal to avoid floating-point errors.
         List<decimal> logits = new();
-        var logger = (ILogSink?)App.ServiceProvider.GetService(typeof(ILogSink));
+        var logger = App.ServiceProvider.GetRequiredService<ILogSink>();
                     
         for (int i = 0; i < processedSentences.Count; i++)
         {

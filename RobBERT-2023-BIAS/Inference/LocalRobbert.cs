@@ -3,6 +3,7 @@
 using System.Numerics.Tensors;
 using System.Text.RegularExpressions;
 using Avalonia.Logging;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.ML.OnnxRuntime;
 using Tokenizers.DotNet;
 
@@ -152,11 +153,14 @@ public class LocalRobbert : IAsyncDisposable, IRobbert
                             sortedEncodedMaskProbabilities[mask][candidate])
                     ]).Trim(), sortedEncodedMaskProbabilities[mask][candidate]) == false)
                 {
-                    // Ignored duplicates probably happen because of leading/trailing spaces which get trimmed during decode (see line above).
-                    var logger = (ILogSink?)App.ServiceProvider.GetService(typeof(ILogSink));
+                    // The service provider can be null here because LocalRobbert also gets used server-side (which is completely separate from App)
+                    if (App.ServiceProvider != null)
+                    {
+                        var logger = App.ServiceProvider.GetRequiredService<ILogSink>();
 
-                    if (logger != null)
+                        // Ignored duplicates probably happen because of leading/trailing spaces which get trimmed during decode (see line above).
                         logger.Log(LogEventLevel.Warning, "NON-AVALONIA", this, "Token ignored during decoding of masks");
+                    }
                 }
             }
 
