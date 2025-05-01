@@ -15,18 +15,11 @@ public static class ExceptionUtilities
     public static void LogNotify(Visual? sender, Exception ex)
     {
         var logger = App.ServiceProvider.GetRequiredService<ILogSink>();
-        
-        if (sender != null)
-        {
-            MainView mainView = sender.GetVisualAncestors().SingleOrDefault(v => v is MainView) as MainView ??
-                                throw new InvalidOperationException("Sender is not a child of a MainView");
 
+        if (sender != null && sender.GetVisualAncestors().SingleOrDefault(v => v is MainView) is MainView mainView)
             mainView.ExceptionThrown.Invoke();
-        }
         else
-        {
             logger.Log(LogEventLevel.Warning, "NON-AVALONIA", null, "Exception thrown without notifying user!");
-        }
 
         logger.Log(LogEventLevel.Error, "NON-AVALONIA", sender, ex.ToString());
     }
