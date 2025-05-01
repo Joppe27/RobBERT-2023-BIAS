@@ -41,7 +41,7 @@ public partial class PromptPanel : UserControl
 
         Robbert = await robbertFactory.Create(version);
 
-        PromptTextBox.Watermark = "Voer een prompt in (vergeet geen <mask>)";
+        PromptTextBox.Watermark = "Enter prompt containing at least one <mask>";
     }
 
     protected async void SendButton_OnClick(object? sender, RoutedEventArgs? e)

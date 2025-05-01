@@ -1,9 +1,7 @@
 ﻿#region
 
 using Avalonia.Controls.Primitives;
-using Avalonia.LogicalTree;
 using RobBERT_2023_BIAS.Inference;
-using RobBERT_2023_BIAS.Utilities;
 
 #endregion
 
@@ -37,7 +35,7 @@ public partial class PronounPromptPanel : PromptPanel
 
         _robbert = Robbert;
 
-        PromptTextBox.Watermark = "Voer een zin in die één voornaamwoord bevat";
+        PromptTextBox.Watermark = "Enter at least one sentence containing jou/jouw/u/uw";
         InsertMaskButton.IsEnabled = false;
         KCountBox.IsEnabled = false;
     }
