@@ -23,16 +23,26 @@ public class LocalRobbert : IAsyncDisposable, IRobbert
     public event EventHandler<int>? BatchProgressChanged;
 
     private int _batchProgress;
+    private readonly Lock _progressLock = new();
 
     private int BatchProgress
     {
         get => _batchProgress;
         set
         {
-            if (BatchProgressChanged != null && (value > BatchProgress || value == 0))
-                BatchProgressChanged.Invoke(this, value);
+            bool invokeHandler = false;
 
-            _batchProgress = value;
+            lock (_progressLock)
+            {
+                if (value > _batchProgress || value == 0)
+                {
+                    _batchProgress = value;
+                    invokeHandler = true;
+                }
+            }
+
+            if (invokeHandler && BatchProgressChanged != null)
+                BatchProgressChanged.Invoke(this, value);
         }
     }
 

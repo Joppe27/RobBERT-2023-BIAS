@@ -201,7 +201,7 @@ public partial class AnalyzePanel : UserControl
 
     private void ReportProgress(object? sender, int progress)
     {
-        if (progress < 95) // Hack to avoid showing percentage after next step has already begun
+        if (progress <= 95) // Hack to avoid showing percentage after next step has already begun
             Dispatcher.UIThread.Post(() => ConsoleWriteLine($"Processing... ({progress}%)"));
     }
 
