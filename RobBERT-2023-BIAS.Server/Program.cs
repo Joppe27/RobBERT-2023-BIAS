@@ -30,12 +30,11 @@ PrepareDirectoryStructure();
 
 var logger = app.Services.GetRequiredService<ILogger<Program>>();
 
-List<IRobbert> robbertInstances = new();
+Dictionary<IRobbert, SemaphoreSlim> robbertInstances = new();
 List<RobbertSession> robbertSessions = new();
 int batchProgess = 0;
 
 Timer? idleTimer = null;
-
 
 app.MapPost("robbert/beginsession", async (int version, string clientGuid) =>
 {
@@ -49,8 +48,8 @@ app.MapPost("robbert/beginsession", async (int version, string clientGuid) =>
 
     idleTimer ??= new Timer(CheckIdleSessions, null, TimeSpan.Zero, TimeSpan.FromSeconds(30));
     logger.LogInformation("New idle timer created");
-    
-    if (!robbertInstances.Exists(r => r.Version == robbertVersion))
+
+    if (robbertInstances.Keys.All(r => r.Version != robbertVersion))
     {
         try
         {
@@ -69,7 +68,7 @@ app.MapPost("robbert/beginsession", async (int version, string clientGuid) =>
     }
 
     logger.LogInformation(
-        $"New {robbertVersion} session added for client {clientGuid}: {robbertSessions.Count(s => s.Version == robbertVersion)} sessions and {robbertInstances.Count(i => i.Version == robbertVersion)} instances of version {robbertVersion} now active ({robbertSessions.Count} sessions and {robbertInstances.Count} instances accross all versions)");
+        $"New {robbertVersion} session added for client {clientGuid}: {robbertSessions.Count(s => s.Version == robbertVersion)} sessions and {robbertInstances.Keys.Count(i => i.Version == robbertVersion)} instances of version {robbertVersion} now active ({robbertSessions.Count} sessions and {robbertInstances.Count} instances accross all versions)");
     return Results.Ok();
 });
 
@@ -80,12 +79,33 @@ app.MapPost("robbert/process", async ([FromBody] OnlineRobbert.OnlineRobbertProc
     logger.LogInformation($"Processing requested for version {parameters.Version} on client {clientGuid}");
 
     UpdateLastRequestTime(parameters.Version, clientGuid);
-    
-    if (robbertInstances.Exists(r => r.Version == parameters.Version))
+
+    if (robbertInstances.Keys.Any(r => r.Version == parameters.Version))
     {
-        var robbert = robbertInstances.First(r => r.Version == parameters.Version);
-        var result = await robbert.Process(parameters.UserInput, parameters.KCount, parameters.MaskToken, parameters.CalculateProbability);
-        return Results.Json(result, JsonSerializerOptions.Default, null, 200);
+        var robbert = robbertInstances.First(r => r.Key.Version == parameters.Version);
+
+        await robbert.Value.WaitAsync();
+        try
+        {
+            List<Dictionary<string, float>> result;
+
+            try
+            {
+                result = await robbert.Key.Process(parameters.UserInput, parameters.KCount, parameters.MaskToken, parameters.CalculateProbability);
+            }
+            catch (Exception ex)
+            {
+                string msg = $"Failed processing: {ex}";
+                logger.LogError(msg);
+                return Results.Problem(msg);
+            }
+
+            return Results.Json(result, JsonSerializerOptions.Default, null, 200);
+        }
+        finally
+        {
+            robbert.Value.Release();
+        }
     }
 
     string message = $"Unable to process request: no {parameters.Version} RobBERT instance to process data";
@@ -93,21 +113,43 @@ app.MapPost("robbert/process", async ([FromBody] OnlineRobbert.OnlineRobbertProc
     return Results.BadRequest(message);
 });
 
-app.MapPost("robbert/processbatch", async ([FromBody] OnlineRobbert.OnlineRobbertProcessBatchParameters parameters, string clientGuid) =>
+app.MapPost("robbert/processbatch",
+    async ([FromBody] OnlineRobbert.OnlineRobbertProcessBatchParameters parameters, string clientGuid, CancellationToken token) =>
 {
     logger.LogInformation($"Batch processing requested for version {parameters.Version} on client {clientGuid}");
 
     UpdateLastRequestTime(parameters.Version, clientGuid);
 
-    if (robbertInstances.Exists(r => r.Version == parameters.Version))
+    if (robbertInstances.Keys.Any(r => r.Version == parameters.Version))
     {
-        var robbert = robbertInstances.First(r => r.Version == parameters.Version);
-        
-        robbert.BatchProgressChanged += UpdateProgress;
-        var result = await robbert.ProcessBatch(parameters.UserInput, parameters.KCount, parameters.CalculateProbability);
-        robbert.BatchProgressChanged -= UpdateProgress;
+        var robbert = robbertInstances.First(r => r.Key.Version == parameters.Version);
 
-        return Results.Json(result, JsonSerializerOptions.Default, null, 200);
+        await robbert.Value.WaitAsync();
+        try
+        {
+            List<List<Dictionary<string, float>>> result;
+
+            robbert.Key.BatchProgressChanged += UpdateProgress;
+
+            try
+            {
+                result = await robbert.Key.ProcessBatch(parameters.UserInput, parameters.KCount, token, parameters.CalculateProbability);
+            }
+            catch (Exception ex)
+            {
+                string msg = $"Failed processing batch: {ex}";
+                logger.LogError(msg);
+                return Results.Problem(msg);
+            }
+
+            robbert.Key.BatchProgressChanged -= UpdateProgress;
+
+            return Results.Json(result, JsonSerializerOptions.Default, null, 200);
+        }
+        finally
+        {
+            robbert.Value.Release();
+        }
     }
 
     string message = $"Unable to process request: no {parameters.Version} RobBERT instance to process data";
@@ -117,9 +159,11 @@ app.MapPost("robbert/processbatch", async ([FromBody] OnlineRobbert.OnlineRobber
 
 app.MapGet("robbert/processbatch/getprogress", () => Results.Ok(batchProgess));
 
-app.MapDelete("robbert/endsessions", (string clientGuid) =>
+app.MapDelete("robbert/endsession", (int version, string clientGuid) =>
 {
-    logger.LogInformation($"Termination of all sessions for client {clientGuid} requested");
+    var robbertVersion = (RobbertVersion)version;
+
+    logger.LogInformation($"Termination of {robbertVersion} session for client {clientGuid} requested");
 
     if (!robbertSessions.Exists(t => t.ClientGuid == clientGuid))
     {
@@ -127,8 +171,8 @@ app.MapDelete("robbert/endsessions", (string clientGuid) =>
         logger.LogError(message);
         return Results.BadRequest(message);
     }
-    
-    foreach (var sessionToRemove in robbertSessions.Where(t => t.ClientGuid == clientGuid).ToList())
+
+    foreach (var sessionToRemove in robbertSessions.Where(t => t.ClientGuid == clientGuid && t.Version == robbertVersion).ToList())
     {
         try
         {
@@ -143,7 +187,7 @@ app.MapDelete("robbert/endsessions", (string clientGuid) =>
     }
 
     logger.LogInformation(
-        $"All sessions for client {clientGuid} ended: {robbertSessions.Count} sessions and {robbertInstances.Count} instances now active accross all versions");
+        $"Session of version {robbertVersion} for client {clientGuid} ended: {robbertSessions.Count} sessions and {robbertInstances.Count} instances now active accross all versions");
     return Results.Ok();
 });
 
@@ -175,7 +219,7 @@ async Task CreateRobbertInstance(RobbertVersion version)
     }
 
     var robbertFactory = new LocalRobbert.Factory();
-    robbertInstances.Add(await robbertFactory.Create(version, true));
+    robbertInstances.Add(await robbertFactory.Create(version, true), new SemaphoreSlim(1, 1));
 }
 
 void RemoveRobbertSession(RobbertSession session)
@@ -203,9 +247,9 @@ void RemoveRobbertSession(RobbertSession session)
 
 void DisposeRobbertInstance(RobbertVersion version)
 {
-    if (robbertInstances.Exists(r => r.Version == version))
+    if (robbertInstances.Keys.Any(r => r.Version == version))
     {
-        var instanceForDisposal = robbertInstances.First(r => r.Version == version);
+        var instanceForDisposal = robbertInstances.Keys.First(r => r.Version == version);
 
         if (robbertInstances.Remove(instanceForDisposal))
         {
@@ -240,7 +284,7 @@ IResult UpdateLastRequestTime(RobbertVersion version, string clientGuid)
     {
         session = robbertSessions.First(s => s.ClientGuid == clientGuid && s.Version == version);
     }
-    catch (InvalidOperationException ex)
+    catch (InvalidOperationException)
     {
         string message = "Unable to update last request time for session: session not found";
         logger.LogError(message);
