@@ -25,6 +25,8 @@ public partial class AnalyzePanel : UserControl
     private IStorageFile _parallelCorpus = null!;
     private IStorageFile _differentCorpus = null!;
 
+    private readonly CancellationTokenSource _robbertCancellationSource = new();
+
     private AnalyzePanel()
     {
         InitializeComponent();
@@ -110,12 +112,18 @@ public partial class AnalyzePanel : UserControl
         }
 
         _robbert2022.BatchProgressChanged += ReportProgress;
-        var processedParallelSentences2022 = await _robbert2022.ProcessBatch(parallelPrompts, 50, false);
+        var processedParallelSentences2022 = await _robbert2022.ProcessBatch(parallelPrompts, 50, _robbertCancellationSource.Token, false);
         _robbert2022.BatchProgressChanged -= ReportProgress;
 
         _robbert2023.BatchProgressChanged += ReportProgress;
-        var processedParallelSentences2023 = await _robbert2023.ProcessBatch(parallelPrompts, 50, false);
+        var processedParallelSentences2023 = await _robbert2023.ProcessBatch(parallelPrompts, 50, _robbertCancellationSource.Token, false);
         _robbert2023.BatchProgressChanged -= ReportProgress;
+
+        if (_robbertCancellationSource.IsCancellationRequested)
+        {
+            ConsoleWriteLine("Analysis canceled: exiting...");
+            return;
+        }
 
         var parallelLogits2022 = GetAuxiliaryLogits(processedParallelSentences2022, parallelAuxiliaries);
         var parallelLogits2023 = GetAuxiliaryLogits(processedParallelSentences2023, parallelAuxiliaries);
@@ -134,12 +142,18 @@ public partial class AnalyzePanel : UserControl
         }
 
         _robbert2022.BatchProgressChanged += ReportProgress;
-        var processedDifferentSentences2022 = await _robbert2022.ProcessBatch(differentPrompts, 50, false);
+        var processedDifferentSentences2022 = await _robbert2022.ProcessBatch(differentPrompts, 50, _robbertCancellationSource.Token, false);
         _robbert2022.BatchProgressChanged -= ReportProgress;
 
         _robbert2023.BatchProgressChanged += ReportProgress;
-        var processedDifferentSentences2023 = await _robbert2023.ProcessBatch(differentPrompts, 50, false);
+        var processedDifferentSentences2023 = await _robbert2023.ProcessBatch(differentPrompts, 50, _robbertCancellationSource.Token, false);
         _robbert2023.BatchProgressChanged -= ReportProgress;
+
+        if (_robbertCancellationSource.IsCancellationRequested)
+        {
+            ConsoleWriteLine("Analysis canceled: exiting...");
+            return;
+        }
 
         var differentLogits2022 = GetAuxiliaryLogits(processedDifferentSentences2022, differentAuxiliaries);
         var differentLogits2023 = GetAuxiliaryLogits(processedDifferentSentences2023, differentAuxiliaries);
@@ -179,6 +193,8 @@ public partial class AnalyzePanel : UserControl
     {
         try
         {
+            _robbertCancellationSource.Cancel();
+            
             _robbert2022.DisposeAsync();
             _robbert2023.DisposeAsync();
         }

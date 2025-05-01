@@ -49,27 +49,39 @@ public class OnlineRobbert : IRobbert
         return await httpResponse.Content.ReadFromJsonAsync<List<Dictionary<string, float>>>() ?? throw new NullReferenceException();
     }
 
-    public async Task<List<List<Dictionary<string, float>>>> ProcessBatch(List<RobbertPrompt> userInput, int kCount,
+    public async Task<List<List<Dictionary<string, float>>>> ProcessBatch(List<RobbertPrompt> userInput, int kCount, CancellationToken token,
         bool calculateProbability = true)
     {
-        var httpResponse = _httpClient.PostAsync($"robbert/processbatch?clientGuid={App.Guid.ToString()}",
-            JsonContent.Create(new OnlineRobbertProcessBatchParameters(userInput, kCount, Version, calculateProbability)));
+        HttpResponseMessage httpResult;
 
-        while (!httpResponse.IsCompleted)
+        var httpResponseTask = _httpClient.PostAsync($"robbert/processbatch?clientGuid={App.Guid.ToString()}",
+            JsonContent.Create(new OnlineRobbertProcessBatchParameters(userInput, kCount, Version, calculateProbability)), token);
+
+        while (!httpResponseTask.IsCompleted)
             await PollBatchProgress();
 
-        if (!httpResponse.Result.IsSuccessStatusCode)
-            throw new HttpRequestException(
-                $"HTTP request failed with status code {httpResponse.Result.StatusCode}: {await httpResponse.Result.Content.ReadAsStringAsync()}");
+        try
+        {
+            httpResult = await httpResponseTask;
+        }
+        catch (TaskCanceledException)
+        {
+            // This doesn't need to be logged or shown to the user as it's expected behavior.
+            return new List<List<Dictionary<string, float>>>();
+        }
 
-        return await httpResponse.Result.Content.ReadFromJsonAsync<List<List<Dictionary<string, float>>>>() ?? throw new NullReferenceException();
+        if (!httpResult.IsSuccessStatusCode)
+            throw new HttpRequestException(
+                $"HTTP request failed with status code {httpResponseTask.Result.StatusCode}: {await httpResponseTask.Result.Content.ReadAsStringAsync()}");
+
+        return await httpResult.Content.ReadFromJsonAsync<List<List<Dictionary<string, float>>>>() ?? throw new NullReferenceException();
     }
 
     public async ValueTask DisposeAsync()
     {
         await _idleTimer.DisposeAsync();
 
-        var httpResponse = await _httpClient.DeleteAsync($"robbert/endsessions?clientGuid={App.Guid.ToString()}");
+        var httpResponse = await _httpClient.DeleteAsync($"robbert/endsession?version={(int)Version}&clientGuid={App.Guid.ToString()}");
 
         if (!httpResponse.IsSuccessStatusCode)
             throw new HttpRequestException(
@@ -78,6 +90,8 @@ public class OnlineRobbert : IRobbert
 
     private async Task PollBatchProgress()
     {
+        await Task.Delay(3000);
+        
         var httpResponse = await _httpClient.GetAsync("robbert/processbatch/getprogress");
 
         if (!httpResponse.IsSuccessStatusCode)
@@ -87,8 +101,6 @@ public class OnlineRobbert : IRobbert
         int.TryParse(await httpResponse.Content.ReadAsStringAsync(), out int currentProgress);
         
         BatchProgress = currentProgress;
-
-        await Task.Delay(2000);
     }
 
     private async void PingServer(object? state)

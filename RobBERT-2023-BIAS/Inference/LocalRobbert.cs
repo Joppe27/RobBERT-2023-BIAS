@@ -115,14 +115,18 @@ public class LocalRobbert : IAsyncDisposable, IRobbert
     }
 
     public async Task<List<List<Dictionary<string, float>>>> ProcessBatch(List<RobbertPrompt> userInput, int kCount,
-        bool calculateProbability = true)
+        CancellationToken token, bool calculateProbability = true)
     {
         List<Dictionary<string, float>>[] modelOutputs = new List<Dictionary<string, float>>[userInput.Count];
 
         BatchProgress = 0;
-        
-        await Parallel.ForAsync(0, userInput.Count, async (i, _) =>
+
+        await Parallel.ForAsync(0, userInput.Count,
+            new ParallelOptions() { CancellationToken = token, MaxDegreeOfParallelism = Environment.ProcessorCount - 1 }, async (i, ct) =>
         {
+            if (ct.IsCancellationRequested)
+                return;
+                        
             // Important: sentences are returned in the original order here as analysis depends on this!
             modelOutputs[i] = await Process(userInput[i].Sentence, kCount, userInput[i].Mask, calculateProbability);
             BatchProgress = (int)((float)i / userInput.Count * 100);

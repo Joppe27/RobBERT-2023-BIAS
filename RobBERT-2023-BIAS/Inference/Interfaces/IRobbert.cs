@@ -8,7 +8,8 @@ public interface IRobbert
     
     Task<List<Dictionary<string, float>>> Process(string userInput, int kCount, string? maskToken = "<mask>", bool calculateProbability = true);
 
-    Task<List<List<Dictionary<string, float>>>> ProcessBatch(List<RobbertPrompt> userInput, int kCount, bool calculateProbability = true);
+    Task<List<List<Dictionary<string, float>>>> ProcessBatch(List<RobbertPrompt> userInput, int kCount, CancellationToken token,
+        bool calculateProbability = true);
 
     ValueTask DisposeAsync();
 }
