@@ -206,6 +206,7 @@ public partial class AnalyzePanel : UserControl
     private void ConsoleWriteLine(string text)
     {
         ConsoleText.Text += "\n" + text;
+        ConsoleScrollViewer.ScrollToEnd();
     }
     
     protected override void OnDetachedFromLogicalTree(LogicalTreeAttachmentEventArgs e)
