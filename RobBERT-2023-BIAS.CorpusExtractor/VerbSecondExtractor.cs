@@ -11,33 +11,33 @@ public static class VerbSecondExtractor
 {
     public static void Extract()
     {
-        List<string> svoSentences = new();
-        List<string> saiSentences = new();
+        List<string> v2Sentences = new();
+        List<string> noV2Sentences = new();
 
         var corpusSentences = ConlluParser.ParseFile(Path.Combine(Environment.CurrentDirectory, "Resources/nl_alpino-ud-train.conllu"));
 
         foreach (Sentence sentence in corpusSentences)
         {
             if (sentence.Tokens.Count(t => t.DepRelEnum == DependencyRelation.Nsubj) == 1 &&
-                sentence.Tokens.Count(t => t.DepRelEnum == DependencyRelation.Aux && t.Feats.ContainsValue("Fin")) == 1)
+                sentence.Tokens.Count(t => t.DepRelEnum == DependencyRelation.Root && t.Feats.ContainsValue("Fin")) == 1)
             {
-                if (sentence.Tokens.First(t => t.DepRelEnum == DependencyRelation.Aux).Id >
+                if (sentence.Tokens.First(t => t.DepRelEnum == DependencyRelation.Root).Id <
                     sentence.Tokens.First(t => t.DepRelEnum == DependencyRelation.Nsubj).Id)
-                    svoSentences.Add(sentence.Serialize());
+                    v2Sentences.Add(sentence.Serialize());
                 else
-                    saiSentences.Add(sentence.Serialize());
+                    noV2Sentences.Add(sentence.Serialize());
             }
         }
 
-        var svoFile = File.CreateText(Path.Combine(Environment.CurrentDirectory, "svoSentences.conllu"));
-        var saiFile = File.CreateText(Path.Combine(Environment.CurrentDirectory, "saiSentences.conllu"));
+        var svoFile = File.CreateText(Path.Combine(Environment.CurrentDirectory, "v2Sentences.conllu"));
+        var v2File = File.CreateText(Path.Combine(Environment.CurrentDirectory, "noV2Sentences.conllu"));
 
         using (svoFile)
-            foreach (string sentence in svoSentences)
+            foreach (string sentence in v2Sentences)
                 svoFile.WriteLine(sentence);
 
-        using (saiFile)
-            foreach (string sentence in saiSentences)
-                saiFile.WriteLine(sentence);
+        using (v2File)
+            foreach (string sentence in noV2Sentences)
+                v2File.WriteLine(sentence);
     }
 }

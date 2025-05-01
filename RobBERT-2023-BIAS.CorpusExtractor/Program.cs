@@ -15,8 +15,10 @@ foreach (string arg in args)
             VerbSecondExtractor.Extract();
             break;
         case "--subjectauxiliary":
+            SubjectAuxiliaryExtractor.Extract();
             break;
         case "--genderedpronouns":
+            GenderedPronounsExtractor.Extract();
             break;
         default:
             throw new ArgumentOutOfRangeException(nameof(arg), "Invalid program argument specified");

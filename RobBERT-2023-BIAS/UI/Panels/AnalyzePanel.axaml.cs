@@ -106,6 +106,7 @@ public partial class AnalyzePanel : UserControl
 
         foreach (Sentence sentence in parallelSentences)
         {
+            // TODO: ROOT BE HARDCODED
             string auxForm = sentence.Tokens.First(t => t.DepRelEnum == DependencyRelation.Aux).Form;
             parallelPrompts.Add(new RobbertPrompt(sentence.RawTokenSequence(), auxForm));
             parallelAuxiliaries.Add(auxForm);
@@ -140,6 +141,7 @@ public partial class AnalyzePanel : UserControl
 
         foreach (Sentence sentence in differentSentences)
         {
+            // TODO: ROOT CANT BE HARDCODED
             string auxForm = sentence.Tokens.First(t => t.DepRelEnum == DependencyRelation.Aux).Form;
             differentPrompts.Add(new RobbertPrompt(sentence.RawTokenSequence(), auxForm));
             differentAuxiliaries.Add(auxForm);
