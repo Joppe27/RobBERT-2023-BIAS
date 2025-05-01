@@ -111,9 +111,13 @@ public partial class AnalyzePanel : UserControl
             parallelAuxiliaries.Add(auxForm);
         }
 
+        ConsoleWriteLine("Processing parallel corpus using RobBERT-2022-base (1/4)");
+
         _robbert2022.BatchProgressChanged += ReportProgress;
         var processedParallelSentences2022 = await _robbert2022.ProcessBatch(parallelPrompts, 50, _robbertCancellationSource.Token, false);
         _robbert2022.BatchProgressChanged -= ReportProgress;
+
+        ConsoleWriteLine("Processing parallel corpus using RobBERT-2023-base (2/4)");
 
         _robbert2023.BatchProgressChanged += ReportProgress;
         var processedParallelSentences2023 = await _robbert2023.ProcessBatch(parallelPrompts, 50, _robbertCancellationSource.Token, false);
@@ -141,9 +145,13 @@ public partial class AnalyzePanel : UserControl
             differentAuxiliaries.Add(auxForm);
         }
 
+        ConsoleWriteLine("Processing different corpus using RobBERT-2022-base (3/4)");
+
         _robbert2022.BatchProgressChanged += ReportProgress;
         var processedDifferentSentences2022 = await _robbert2022.ProcessBatch(differentPrompts, 50, _robbertCancellationSource.Token, false);
         _robbert2022.BatchProgressChanged -= ReportProgress;
+
+        ConsoleWriteLine("Processing different corpus using RobBERT-2023-base (4/4)");
 
         _robbert2023.BatchProgressChanged += ReportProgress;
         var processedDifferentSentences2023 = await _robbert2023.ProcessBatch(differentPrompts, 50, _robbertCancellationSource.Token, false);
@@ -158,10 +166,12 @@ public partial class AnalyzePanel : UserControl
         var differentLogits2022 = GetAuxiliaryLogits(processedDifferentSentences2022, differentAuxiliaries);
         var differentLogits2023 = GetAuxiliaryLogits(processedDifferentSentences2023, differentAuxiliaries);
 
-        ConsoleText.Text =
-            $"Bias ratio RobBERT2022 = {(parallelLogits2022.Sum() / parallelLogits2022.Count) / (differentLogits2022.Sum() / differentLogits2022.Count)}";
-        ConsoleText.Text +=
-            $"\nBias ratio RobBERT2023 = {(parallelLogits2023.Sum() / parallelLogits2023.Count) / (differentLogits2023.Sum() / differentLogits2023.Count)}";
+        ConsoleWriteLine("Processing completed!");
+
+        ConsoleWriteLine(
+            $"Bias ratio RobBERT2022 = {(parallelLogits2022.Sum() / parallelLogits2022.Count) / (differentLogits2022.Sum() / differentLogits2022.Count)}");
+        ConsoleWriteLine(
+            $"Bias ratio RobBERT2023 = {(parallelLogits2023.Sum() / parallelLogits2023.Count) / (differentLogits2023.Sum() / differentLogits2023.Count)}");
     }
 
     private List<decimal> GetAuxiliaryLogits(List<List<Dictionary<string, float>>> processedSentences, List<string> auxiliaries)
@@ -187,8 +197,17 @@ public partial class AnalyzePanel : UserControl
         return logits;
     }
 
-    private void ReportProgress(object? sender, int progress) => Dispatcher.UIThread.Post(() => ConsoleText.Text = $"Processing... ({progress}%)");
+    private void ReportProgress(object? sender, int progress)
+    {
+        if (progress < 95) // Hack to avoid showing percentage after next step has already begun
+            Dispatcher.UIThread.Post(() => ConsoleWriteLine($"Processing... ({progress}%)"));
+    }
 
+    private void ConsoleWriteLine(string text)
+    {
+        ConsoleText.Text += "\n" + text;
+    }
+    
     protected override void OnDetachedFromLogicalTree(LogicalTreeAttachmentEventArgs e)
     {
         try
