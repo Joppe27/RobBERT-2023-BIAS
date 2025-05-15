@@ -58,23 +58,54 @@ public class LocalRobbert : IAsyncDisposable, IRobbert
 
     /// <param name="userInput">The sentence to be completed by the model. Must include a mask!</param>
     /// <param name="kCount">The amount of replacements for the mask the model should output.</param>
-    /// <param name="maskToken">Which specific token to decode. If null, all tokens are decoded.</param>
+    /// <param name="wordToMask">Which specific word to mask (all occurences). If null, no tokens are masked.</param>
+    /// <param name="wordToDecode">Which specific word to decode (all occurences). If null, all tokens are decoded.</param>
     /// <param name="calculateProbability">Whether to calculate the token candidates' probability. If false, logits are returned.</param>
     /// <returns>A list containing a single dictionary for each mask with its possible replacements and probabilities, sorted by confidence.</returns>
-    public async Task<List<Dictionary<string, float>>> Process(string userInput, int kCount, string? maskToken = "<mask>", bool calculateProbability = true)
+    public async Task<List<Dictionary<string, float>>> Process(string userInput, int kCount, string? wordToMask = "<mask>", string? wordToDecode = "<mask>",
+        bool calculateProbability = true)
     {
-        if (maskToken != null)
+        if (wordToMask != null)
         {
-            var maskRegex = new Regex(@$"(?<!\w){maskToken}(?!\w)");
+            var maskRegex = new Regex(@$"(?<!\w){wordToMask}(?!\w)");
             userInput = maskRegex.Replace(userInput, "<mask>");
         }
-        
-        var tokens = _tokenizer.Encode(userInput);
+
+        var allTokens = _tokenizer.Encode(userInput);
+
+        uint[] specificTokensToDecode = [];
+        if (wordToDecode == "<mask>")
+        {
+            specificTokensToDecode = [(uint)_tokenizerMask];
+        }
+        else if (wordToDecode != null)
+        {
+            string comparison = "";
+            int loopCount = 1;
+            while (comparison != wordToDecode)
+            {
+                if (loopCount > allTokens.Length)
+                    throw new InvalidOperationException();
+
+                for (int i = 0; i < allTokens.Length; i++)
+                {
+                    specificTokensToDecode = allTokens.Skip(i).Take(loopCount).ToArray();
+
+                    // In some VERY rare cases (e.g. special chars), the tokenizer inserts spaces in the middle of the word. Therefore Replace instead of Trim.
+                    comparison = _tokenizer.Decode(specificTokensToDecode).Replace(" ", "");
+
+                    if (comparison == wordToDecode)
+                        break;
+                }
+
+                loopCount++;
+            }
+        }
         
         var robbertInput = new RobbertInput()
         {
-            InputIds = Array.ConvertAll(tokens, token => (long)token),
-            AttentionMask = Enumerable.Repeat((long)1, tokens.Length).ToArray() // All tokens given same attention for now.
+            InputIds = Array.ConvertAll(allTokens, token => (long)token),
+            AttentionMask = Enumerable.Repeat((long)1, allTokens.Length).ToArray() // All tokens given same attention for now.
         };
 
         ReadOnlySpan<float> logits;
@@ -96,27 +127,27 @@ public class LocalRobbert : IAsyncDisposable, IRobbert
             Span<float> encodedProbabilities = new float[logits.Length];
             TensorPrimitives.SoftMax(logits, encodedProbabilities);
 
-            if (maskToken == null)
+            if (specificTokensToDecode.Length == 0)
             {
-                foreach (int tokenStart in tokens.Index().Select(i => i.Index * _vocabSize))
+                foreach (int tokenStart in allTokens.Index().Select(i => i.Index * _vocabSize))
                     encodedMaskProbabilities.Add(encodedProbabilities.Slice(tokenStart, _vocabSize).ToArray());
             }
             else
             {
-                foreach (int maskStart in tokens.Index().Where(t => t.Item == _tokenizerMask).Select(i => i.Index * _vocabSize))
+                foreach (int maskStart in allTokens.Index().Where(t => specificTokensToDecode.Contains(t.Item)).Select(i => i.Index * _vocabSize))
                     encodedMaskProbabilities.Add(encodedProbabilities.Slice(maskStart, _vocabSize).ToArray());
             }
         }
         else
         {
-            if (maskToken == null)
+            if (specificTokensToDecode.Length == 0)
             {
-                foreach (int tokenStart in tokens.Index().Select(i => i.Index * _vocabSize))
+                foreach (int tokenStart in allTokens.Index().Select(i => i.Index * _vocabSize))
                     encodedMaskProbabilities.Add(logits.Slice(tokenStart, _vocabSize).ToArray());
             }
             else
             {
-                foreach (int maskStart in tokens.Index().Where(t => t.Item == _tokenizerMask).Select(i => i.Index * _vocabSize))
+                foreach (int maskStart in allTokens.Index().Where(t => specificTokensToDecode.Contains(t.Item)).Select(i => i.Index * _vocabSize))
                     encodedMaskProbabilities.Add(logits.Slice(maskStart, _vocabSize).ToArray());
             }
         }
@@ -138,7 +169,7 @@ public class LocalRobbert : IAsyncDisposable, IRobbert
                 return;
                         
             // Important: sentences are returned in the original order here as analysis depends on this!
-            modelOutputs[i] = await Process(userInput[i].Sentence, kCount, userInput[i].Mask, calculateProbability);
+            modelOutputs[i] = await Process(userInput[i].Sentence, kCount, null, userInput[i].WordToDecode, calculateProbability);
             BatchProgress = (int)((float)i / userInput.Count * 100);
         });
 
@@ -172,7 +203,7 @@ public class LocalRobbert : IAsyncDisposable, IRobbert
                     {
                         var logger = App.ServiceProvider.GetRequiredService<ILogSink>();
 
-                        // Ignored duplicates probably happen because of leading/trailing spaces which get trimmed during decode (see line above).
+                        // Ignored duplicates caused by leading/trailing spaces which get trimmed during decode (see line above). In this case, the highest logits number out of all possibilities is returned.
                         logger.Log(LogEventLevel.Warning, "NON-AVALONIA", this, "Token ignored during decoding of masks");
                     }
                 }

@@ -37,10 +37,11 @@ public class OnlineRobbert : IRobbert
     
     public event EventHandler<int>? BatchProgressChanged;
 
-    public async Task<List<Dictionary<string, float>>> Process(string userInput, int kCount, string? maskToken, bool calculateProbability = true)
+    public async Task<List<Dictionary<string, float>>> Process(string userInput, int kCount, string? wordToMask, string? wordToDecode,
+        bool calculateProbability = true)
     {
         var httpResponse = await _httpClient.PostAsync($"robbert/process?clientGuid={App.Guid.ToString()}",
-            JsonContent.Create(new OnlineRobbertProcessParameters(userInput, kCount, maskToken, Version, calculateProbability)));
+            JsonContent.Create(new OnlineRobbertProcessParameters(userInput, kCount, wordToMask, Version, calculateProbability)));
 
         if (!httpResponse.IsSuccessStatusCode)
             throw new HttpRequestException(
