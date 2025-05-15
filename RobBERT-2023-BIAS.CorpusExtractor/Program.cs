@@ -17,8 +17,8 @@ foreach (string arg in args)
         case "--subjectauxiliary":
             SubjectAuxiliaryExtractor.Extract();
             break;
-        case "--genderedpronouns":
-            GenderedPronounsExtractor.Extract();
+        case "--perfectparticle":
+            PerfectParticleExtractor.Extract();
             break;
         default:
             throw new ArgumentOutOfRangeException(nameof(arg), "Invalid program argument specified");
