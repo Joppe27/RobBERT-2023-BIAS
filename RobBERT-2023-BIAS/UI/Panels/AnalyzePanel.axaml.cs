@@ -22,8 +22,8 @@ public partial class AnalyzePanel : UserControl
     private IRobbert _robbert2022 = null!;
     private IRobbert _robbert2023 = null!;
 
-    private IStorageFile _parallelCorpus = null!;
-    private IStorageFile _differentCorpus = null!;
+    private IStorageFile? _parallelCorpus;
+    private IStorageFile? _differentCorpus;
 
     private readonly CancellationTokenSource _robbertCancellationSource = new();
 
@@ -103,29 +103,30 @@ public partial class AnalyzePanel : UserControl
     private async Task AnalyzeEnglishBias()
     {
         // TODO: this MIGHT not be possible online
-        var parallelSentences = ConlluParser.ParseFile(_parallelCorpus.Path.LocalPath).ToList();
+        var parallelSentences = ConlluParser.ParseFile(_parallelCorpus!.Path.LocalPath).ToList();
 
         List<RobbertPrompt> parallelPrompts = new();
-        List<string> parallelAuxiliaries = new();
+        List<string> parallelProxies = new();
 
         foreach (Sentence sentence in parallelSentences)
         {
-            // TODO: ROOT BE HARDCODED
-            string auxForm = sentence.Tokens.First(t => t.DepRelEnum == DependencyRelation.Aux).Form;
-            parallelPrompts.Add(new RobbertPrompt(sentence.RawTokenSequence(), auxForm));
-            parallelAuxiliaries.Add(auxForm);
+            string wordToDecode = sentence.Tokens.First(t => FilterMask(t, sentence)).Form;
+            parallelProxies.Add(wordToDecode);
+
+            // Crucially, the mask needs to be null here. We're not looking to predict words, we're looking at the logits for the KNOWN proxy.
+            parallelPrompts.Add(new RobbertPrompt(sentence.RawTokenSequence(), null, wordToDecode));  
         }
 
         ConsoleWriteLine("Processing parallel corpus using RobBERT-2022-base (1/4)");
 
         _robbert2022.BatchProgressChanged += ReportProgress;
-        var processedParallelSentences2022 = await _robbert2022.ProcessBatch(parallelPrompts, 50, _robbertCancellationSource.Token, false);
+        var processedParallelSentences2022 = await _robbert2022.ProcessBatch(parallelPrompts, 5, _robbertCancellationSource.Token, false);
         _robbert2022.BatchProgressChanged -= ReportProgress;
 
         ConsoleWriteLine("Processing parallel corpus using RobBERT-2023-base (2/4)");
 
         _robbert2023.BatchProgressChanged += ReportProgress;
-        var processedParallelSentences2023 = await _robbert2023.ProcessBatch(parallelPrompts, 50, _robbertCancellationSource.Token, false);
+        var processedParallelSentences2023 = await _robbert2023.ProcessBatch(parallelPrompts, 5, _robbertCancellationSource.Token, false);
         _robbert2023.BatchProgressChanged -= ReportProgress;
 
         if (_robbertCancellationSource.IsCancellationRequested)
@@ -134,33 +135,33 @@ public partial class AnalyzePanel : UserControl
             return;
         }
 
-        var parallelLogits2022 = GetAuxiliaryLogits(processedParallelSentences2022, parallelAuxiliaries);
-        var parallelLogits2023 = GetAuxiliaryLogits(processedParallelSentences2023, parallelAuxiliaries);
+        var parallelLogits2022 = GetMaskLogits(processedParallelSentences2022, parallelProxies);
+        var parallelLogits2023 = GetMaskLogits(processedParallelSentences2023, parallelProxies);
 
 
-        var differentSentences = ConlluParser.ParseFile(_differentCorpus.Path.LocalPath).ToList();
+        var differentSentences = ConlluParser.ParseFile(_differentCorpus!.Path.LocalPath).ToList();
 
         List<RobbertPrompt> differentPrompts = new();
-        List<string> differentAuxiliaries = new();
+        List<string> differentProxies = new();
 
         foreach (Sentence sentence in differentSentences)
         {
-            // TODO: ROOT CANT BE HARDCODED
-            string auxForm = sentence.Tokens.First(t => t.DepRelEnum == DependencyRelation.Aux).Form;
-            differentPrompts.Add(new RobbertPrompt(sentence.RawTokenSequence(), auxForm));
-            differentAuxiliaries.Add(auxForm);
+            string wordToDecode = sentence.Tokens.First(t => FilterMask(t, sentence)).Form;
+            differentProxies.Add(wordToDecode);
+
+            differentPrompts.Add(new RobbertPrompt(sentence.RawTokenSequence(), null, wordToDecode));
         }
 
         ConsoleWriteLine("Processing different corpus using RobBERT-2022-base (3/4)");
 
         _robbert2022.BatchProgressChanged += ReportProgress;
-        var processedDifferentSentences2022 = await _robbert2022.ProcessBatch(differentPrompts, 50, _robbertCancellationSource.Token, false);
+        var processedDifferentSentences2022 = await _robbert2022.ProcessBatch(differentPrompts, 5, _robbertCancellationSource.Token, false);
         _robbert2022.BatchProgressChanged -= ReportProgress;
 
         ConsoleWriteLine("Processing different corpus using RobBERT-2023-base (4/4)");
 
         _robbert2023.BatchProgressChanged += ReportProgress;
-        var processedDifferentSentences2023 = await _robbert2023.ProcessBatch(differentPrompts, 50, _robbertCancellationSource.Token, false);
+        var processedDifferentSentences2023 = await _robbert2023.ProcessBatch(differentPrompts, 5, _robbertCancellationSource.Token, false);
         _robbert2023.BatchProgressChanged -= ReportProgress;
 
         if (_robbertCancellationSource.IsCancellationRequested)
@@ -169,8 +170,8 @@ public partial class AnalyzePanel : UserControl
             return;
         }
 
-        var differentLogits2022 = GetAuxiliaryLogits(processedDifferentSentences2022, differentAuxiliaries);
-        var differentLogits2023 = GetAuxiliaryLogits(processedDifferentSentences2023, differentAuxiliaries);
+        var differentLogits2022 = GetMaskLogits(processedDifferentSentences2022, differentProxies);
+        var differentLogits2023 = GetMaskLogits(processedDifferentSentences2023, differentProxies);
 
         ConsoleWriteLine("Processing completed!");
 
@@ -180,23 +181,23 @@ public partial class AnalyzePanel : UserControl
             $"Bias ratio RobBERT2023 = {(parallelLogits2023.Sum() / parallelLogits2023.Count) / (differentLogits2023.Sum() / differentLogits2023.Count)}");
     }
 
-    private List<decimal> GetAuxiliaryLogits(List<List<Dictionary<string, float>>> processedSentences, List<string> auxiliaries)
+    private List<decimal> GetMaskLogits(List<List<Dictionary<string, float>>> processedSentences, List<string> masks)
     {
-        // Decimal to avoid floating-point errors.
+        // Decimal to avoid floating-point errors later.
         List<decimal> logits = new();
         var logger = App.ServiceProvider.GetRequiredService<ILogSink>();
                     
         for (int i = 0; i < processedSentences.Count; i++)
         {
-            if (!processedSentences[i].First().TryGetValue(auxiliaries[i], out float parallelAuxiliaryLogits) || processedSentences[i].Count > 1)
+            if (!processedSentences[i][0].TryGetValue(masks[i], out float maskLogits) || processedSentences[i].Count > 1) // TODO: caveat!
             {
                 if (logger != null)
                     logger.Log(LogEventLevel.Warning, "NON-AVALONIA", this,
-                        $"SKIPPED --- model: {processedSentences[i].First().Keys} (count: {processedSentences[i].Count}), aux: {auxiliaries[i]}");
+                        $"SKIPPED --- count: {processedSentences[i].Count}, aux: {masks[i]}");
             }
             else
             {
-                logits.Add((decimal)parallelAuxiliaryLogits);
+                logits.Add((decimal)maskLogits);
             }
         }
 
