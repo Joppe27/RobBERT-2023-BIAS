@@ -29,15 +29,15 @@ public static class VerbSecondExtractor
             }
         }
 
-        var svoFile = File.CreateText(Path.Combine(Environment.CurrentDirectory, "v2Sentences.conllu"));
-        var v2File = File.CreateText(Path.Combine(Environment.CurrentDirectory, "noV2Sentences.conllu"));
-
-        using (svoFile)
-            foreach (string sentence in v2Sentences)
-                svoFile.WriteLine(sentence);
+        var v2File = File.CreateText(Path.Combine(Environment.CurrentDirectory, "v2Sentences.conllu"));
+        var noV2File = File.CreateText(Path.Combine(Environment.CurrentDirectory, "noV2Sentences.conllu"));
 
         using (v2File)
-            foreach (string sentence in noV2Sentences)
+            foreach (string sentence in v2Sentences)
                 v2File.WriteLine(sentence);
+
+        using (noV2File)
+            foreach (string sentence in noV2Sentences)
+                noV2File.WriteLine(sentence);
     }
 }
