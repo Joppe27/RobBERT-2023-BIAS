@@ -7,7 +7,7 @@ using Conllu.Enums;
 
 namespace RobBERT_2023_BIAS.CorpusExtractor;
 
-public class PerfectParticleExtractor
+public class PerfectParticipleExtractor
 {
     public static void Extract()
     {
@@ -18,7 +18,7 @@ public class PerfectParticleExtractor
 
         foreach (Sentence sentence in corpusSentences)
         {
-            var auxTokens = sentence.Tokens.Where(t => t.UposEnum == PosTag.Aux).ToArray();
+            var auxTokens = sentence.Tokens.Where(t => t.DepRelEnum == DependencyRelation.Aux).ToArray();
             var verbTokens = sentence.Tokens.Where(t => t.UposEnum == PosTag.Verb).ToArray();
 
             Dictionary<Token, Token> auxVerbPairs = new();

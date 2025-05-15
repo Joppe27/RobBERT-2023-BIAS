@@ -11,17 +11,16 @@ foreach (string arg in args)
 {
     switch (arg)
     {
-        case "--verbsecond":
+        case $"--{nameof(VerbSecondExtractor)}":
             VerbSecondExtractor.Extract();
             break;
-        case "--subjectauxiliary":
+        case $"--{nameof(SubjectAuxiliaryExtractor)}":
             SubjectAuxiliaryExtractor.Extract();
             break;
-        case "--perfectparticle":
-            PerfectParticleExtractor.Extract();
+        case $"--{nameof(PerfectParticipleExtractor)}":
+            PerfectParticipleExtractor.Extract();
             break;
         default:
             throw new ArgumentOutOfRangeException(nameof(arg), "Invalid program argument specified");
     }
 }
-
