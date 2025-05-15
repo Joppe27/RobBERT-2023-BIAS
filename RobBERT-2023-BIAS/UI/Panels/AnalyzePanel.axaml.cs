@@ -30,6 +30,10 @@ public partial class AnalyzePanel : UserControl
     private AnalyzePanel()
     {
         InitializeComponent();
+
+        ProfileComboBox.Items.Insert((int)AnalyzeProfile.SubjectAuxiliary, "Subject-auxiliary inversion");
+        ProfileComboBox.Items.Insert((int)AnalyzeProfile.VerbSecond, "Verb-second word order");
+        ProfileComboBox.Items.Insert((int)AnalyzeProfile.PerfectParticiple, "Perfect participle position");
     }
 
     public static async Task<AnalyzePanel> CreateAsync()
@@ -79,7 +83,7 @@ public partial class AnalyzePanel : UserControl
 
     private async void StartAnalysis_OnClick(object? sender, RoutedEventArgs e)
     {
-        if (_parallelCorpus != null && _differentCorpus != null)
+        if (_parallelCorpus != null && _differentCorpus != null && ProfileComboBox.SelectedIndex >= 0)
         {
             try
             {
@@ -199,6 +203,29 @@ public partial class AnalyzePanel : UserControl
         return logits;
     }
 
+    private bool FilterMask(Token token, Sentence sentence)
+    {
+        switch (ProfileComboBox.SelectedIndex)
+        {
+            case (int)AnalyzeProfile.SubjectAuxiliary:
+                if (token.DepRelEnum == DependencyRelation.Aux)
+                    return true;
+                break;
+            case (int)AnalyzeProfile.VerbSecond:
+                if (token.DepRelEnum == DependencyRelation.Root)
+                    return true;
+                break;
+            case (int)AnalyzeProfile.PerfectParticiple:
+                if (sentence.Tokens.Any(t => t.DepRelEnum == DependencyRelation.Aux && t.Head == token.Id))
+                    return true;
+                break;
+            default:
+                throw new InvalidOperationException("Invalid analyze profile selected");
+        }
+
+        return false;
+    }
+
     private void ReportProgress(object? sender, int progress)
     {
         if (progress <= 95) // Hack to avoid showing percentage after next step has already begun
@@ -209,6 +236,13 @@ public partial class AnalyzePanel : UserControl
     {
         ConsoleText.Text += "\n" + text;
         ConsoleScrollViewer.ScrollToEnd();
+    }
+
+    private enum AnalyzeProfile
+    {
+        SubjectAuxiliary,
+        VerbSecond,
+        PerfectParticiple,
     }
     
     protected override void OnDetachedFromLogicalTree(LogicalTreeAttachmentEventArgs e)
