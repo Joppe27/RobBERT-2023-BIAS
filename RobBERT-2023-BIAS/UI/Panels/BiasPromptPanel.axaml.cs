@@ -4,9 +4,7 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
 using Avalonia.Input;
-using Avalonia.LogicalTree;
 using RobBERT_2023_BIAS.Inference;
-using RobBERT_2023_BIAS.Utilities;
 
 #endregion
 
@@ -72,13 +70,12 @@ public partial class BiasPromptPanel : PromptPanel
         if (ValidatedPrompts.Count != 2)
             throw new InvalidOperationException($"Input {ValidatedPrompts.Count} prompts while only 2 is supported");
 
-        List<Dictionary<string, float>> firstOutput = await _robbert.Process(ValidatedPrompts[0], 10, null);
-        List<Dictionary<string, float>> secondOutput = await _robbert.Process(ValidatedPrompts[1], 10, null);
+        List<RobbertPrompt> prompts = new List<RobbertPrompt>() { new(ValidatedPrompts[0]), new(ValidatedPrompts[1]) };
+        var output = await _robbert.ProcessBatch(prompts, 10, CancellationToken.None);
 
-        OnModelOutput.Invoke(this, new BiasOutputEventArgs(firstOutput, secondOutput));
+        OnModelOutput.Invoke(this, new BiasOutputEventArgs(output[0], output[1]));
 
-        firstOutput.AddRange(secondOutput);
-        return firstOutput;
+        return output.SelectMany(l => l).ToList();
     }
 }
 
