@@ -181,23 +181,33 @@ public partial class AnalyzePanel : UserControl
             $"Bias ratio RobBERT2023 = {(parallelLogits2023.Sum() / parallelLogits2023.Count) / (differentLogits2023.Sum() / differentLogits2023.Count)}");
     }
 
-    private List<decimal> GetMaskLogits(List<List<Dictionary<string, float>>> processedSentences, List<string> masks)
+    private List<decimal> GetMaskLogits(List<List<Dictionary<string, float>>> processedWords, List<string> masks)
     {
         // Decimal to avoid floating-point errors later.
         List<decimal> logits = new();
         var logger = App.ServiceProvider.GetRequiredService<ILogSink>();
-                    
-        for (int i = 0; i < processedSentences.Count; i++)
+
+        for (int i = 0; i < processedWords.Count; i++)
         {
-            if (!processedSentences[i][0].TryGetValue(masks[i], out float maskLogits) || processedSentences[i].Count > 1) // TODO: caveat!
+            // If a word consists of multiple tokens, concatenate the highest logits tokens to form the word and use logits average of all tokens.
+            if (processedWords[i].Count > 1)
             {
-                if (logger != null)
-                    logger.Log(LogEventLevel.Warning, "NON-AVALONIA", this,
-                        $"SKIPPED --- count: {processedSentences[i].Count}, aux: {masks[i]}");
+                var concatenatedWord = new Dictionary<string, float>();
+                concatenatedWord.Add(String.Concat(processedWords[i].Select(t => t.Keys.First())),
+                    processedWords[i].Select(t => t.Values.First()).Sum() / processedWords[i].Count);
+
+                processedWords[i] = new List<Dictionary<string, float>>() { concatenatedWord };
+            }
+
+            if (processedWords[i][0].TryGetValue(masks[i], out float maskLogits))
+            {
+                logits.Add((decimal)maskLogits);
             }
             else
             {
-                logits.Add((decimal)maskLogits);
+                if (logger != null)
+                    logger.Log(LogEventLevel.Warning, "NON-AVALONIA", this,
+                        $"Word skipped during bias analysis - count: {processedWords[i].Count}, aux: {masks[i]}");
             }
         }
 
