@@ -1,6 +1,7 @@
 ﻿#region
 
 using Avalonia.Controls;
+using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Controls.Primitives;
 using Avalonia.Interactivity;
 using Avalonia.Logging;
@@ -294,11 +295,12 @@ public partial class AnalyzePanel : UserControl
             IsPanEnabled = false,
         };
         categoryAxis.Labels.AddRange(["RobBERT-2022-base", "RobBERT-2023-base"]);
-
+        
         var plotModel = new PlotModel()
         {
             Title = title,
-            TitleFontSize = 16,
+            // This is a workaround because custom fonts are broken on WASM, see https://github.com/oxyplot/oxyplot/issues/2118 
+            TitleFontSize = App.Current.ApplicationLifetime is ClassicDesktopStyleApplicationLifetime ? 16 : 12, 
             TitlePadding = 0,
             PlotAreaBorderColor = OxyColors.Black,
             PlotAreaBorderThickness = new OxyThickness(1),
@@ -356,11 +358,12 @@ public partial class AnalyzePanel : UserControl
         var plotModel = new PlotModel()
         {
             Title = title,
-            TitleFontSize = 16,
+            // This is a workaround because custom fonts are broken on WASM, see https://github.com/oxyplot/oxyplot/issues/2118 
+            TitleFontSize = App.Current.ApplicationLifetime is ClassicDesktopStyleApplicationLifetime ? 16 : 12,
             TitlePadding = 0,
             PlotAreaBorderColor = OxyColors.Black,
             PlotAreaBorderThickness = new OxyThickness(1),
-            PlotMargins = new OxyThickness(36, 24, 24, 24),
+            PlotMargins = new OxyThickness(38, 24, 24, 24),
             Series = { barSeries[0], barSeries[1] },
             Axes = { categoryAxis, linearAxis },
         };

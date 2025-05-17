@@ -2,6 +2,7 @@
 
 using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Controls.Primitives;
 using Avalonia.Controls.Shapes;
 using Avalonia.LogicalTree;
@@ -157,7 +158,8 @@ public partial class BiasPanel : UserControl
                     token < firstPromptTokens.Count
                         ? modelOutputs.FirstPrompt.IndexOf(firstPromptTokens[token]) + 1
                         : modelOutputs.SecondPrompt.IndexOf(secondPromptTokens[token - firstPromptTokens.Count]) + 1),
-                TitleFontSize = 16,
+                // This is a workaround because custom fonts are broken on WASM, see https://github.com/oxyplot/oxyplot/issues/2118 
+                TitleFontSize = App.Current.ApplicationLifetime is ClassicDesktopStyleApplicationLifetime ? 16 : 12,
                 TitlePadding = 0,
                 PlotAreaBorderColor = OxyColors.Black,
                 PlotAreaBorderThickness = new OxyThickness(1),
