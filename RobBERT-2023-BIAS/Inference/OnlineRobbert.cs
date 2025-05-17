@@ -41,7 +41,7 @@ public class OnlineRobbert : IRobbert
         bool calculateProbability = true)
     {
         var httpResponse = await _httpClient.PostAsync($"robbert/process?clientGuid={App.Guid.ToString()}",
-            JsonContent.Create(new OnlineRobbertProcessParameters(userInput, kCount, wordToMask, Version, calculateProbability)));
+            JsonContent.Create(new OnlineRobbertProcessParameters(userInput, kCount, wordToMask, wordToDecode, Version, calculateProbability)));
 
         if (!httpResponse.IsSuccessStatusCode)
             throw new HttpRequestException(
@@ -145,7 +145,13 @@ public class OnlineRobbert : IRobbert
         }
     }
 
-    public record OnlineRobbertProcessParameters(string UserInput, int KCount, string? MaskToken, RobbertVersion Version, bool CalculateProbability = true);
+    public record OnlineRobbertProcessParameters(
+        string UserInput,
+        int KCount,
+        string? WordToMask,
+        string? WordToDecode,
+        RobbertVersion Version,
+        bool CalculateProbability = true);
 
     public record OnlineRobbertProcessBatchParameters(List<RobbertPrompt> UserInput, int KCount, RobbertVersion Version, bool CalculateProbability = true);
 }

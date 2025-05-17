@@ -91,7 +91,8 @@ app.MapPost("robbert/process", async ([FromBody] OnlineRobbert.OnlineRobbertProc
 
             try
             {
-                result = await robbert.Key.Process(parameters.UserInput, parameters.KCount, parameters.MaskToken, parameters.CalculateProbability);
+                result = await robbert.Key.Process(parameters.UserInput, parameters.KCount, parameters.WordToMask, parameters.WordToDecode,
+                    parameters.CalculateProbability);
             }
             catch (Exception ex)
             {
