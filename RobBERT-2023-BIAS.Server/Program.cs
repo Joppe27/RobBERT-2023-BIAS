@@ -46,7 +46,7 @@ var logger = app.Services.GetRequiredService<ILogger<Program>>();
 
 Dictionary<IRobbert, SemaphoreSlim> robbertInstances = new();
 List<RobbertSession> robbertSessions = new();
-int batchProgess = 0;
+Dictionary<RobbertSession, int> batchProgess = new();
 
 Timer? idleTimer = null;
 
@@ -144,7 +144,10 @@ app.MapPost("robbert/processbatch",
         {
             List<List<Dictionary<string, float>>> result;
 
-            robbert.Key.BatchProgressChanged += UpdateProgress;
+            EventHandler<int> handler = (_, progress) =>
+                UpdateProgress(robbertSessions.First(s => s.Version == parameters.Version && s.ClientGuid == clientGuid), progress);
+
+            robbert.Key.BatchProgressChanged += handler;
 
             try
             {
@@ -157,7 +160,7 @@ app.MapPost("robbert/processbatch",
                 return Results.Problem(msg);
             }
 
-            robbert.Key.BatchProgressChanged -= UpdateProgress;
+            robbert.Key.BatchProgressChanged -= handler;
 
             return Results.Json(result, JsonSerializerOptions.Default, null, 200);
         }
@@ -172,7 +175,24 @@ app.MapPost("robbert/processbatch",
     return Results.BadRequest(message);
 });
 
-app.MapGet("robbert/processbatch/getprogress", () => Results.Ok(batchProgess));
+app.MapGet("robbert/processbatch/getprogress", (int version, string clientGuid) =>
+{
+    var robbertVersion = (RobbertVersion)version;
+
+    var session = robbertSessions.FirstOrDefault(s => s.Version == robbertVersion && s.ClientGuid == clientGuid);
+
+    if (session == null)
+    {
+        string message = $"Unable to get progress: no session with guid {clientGuid} active";
+        logger.LogError(message);
+        return Results.BadRequest(message);
+    }
+
+    if (batchProgess.TryGetValue(session, out var progress))
+        return Results.Ok(progress);
+
+    return Results.Ok(0);
+});
 
 app.MapDelete("robbert/endsession", (int version, string clientGuid) =>
 {
@@ -245,11 +265,17 @@ void RemoveRobbertSession(RobbertSession session)
     {
         robbertSessions.Remove(session);
         logger.LogInformation($"Session of version {session.Version} for client {session.ClientGuid} ended");
+
+        if (batchProgess.ContainsKey(session))
+            batchProgess.Remove(session);
     }
     else if (sessionCount == 1)
     {
         robbertSessions.Remove(session);
         logger.LogInformation($"Session of version {session.Version} for client {session.ClientGuid} ended");
+
+        if (batchProgess.ContainsKey(session))
+            batchProgess.Remove(session);
 
         DisposeRobbertInstance(session.Version);
         logger.LogInformation($"Instance of version {session.Version} disposed");
@@ -287,7 +313,7 @@ void DisposeRobbertInstance(RobbertVersion version)
     }
 }
 
-void UpdateProgress(object? sender, int progress) => batchProgess = progress;
+void UpdateProgress(RobbertSession session, int progress) => batchProgess[session] = progress;
 
 IResult UpdateLastRequestTime(RobbertVersion version, string clientGuid)
 {

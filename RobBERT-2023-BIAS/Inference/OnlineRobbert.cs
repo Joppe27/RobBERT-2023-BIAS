@@ -92,8 +92,8 @@ public class OnlineRobbert : IRobbert
     private async Task PollBatchProgress()
     {
         await Task.Delay(3000);
-        
-        var httpResponse = await _httpClient.GetAsync("robbert/processbatch/getprogress");
+
+        var httpResponse = await _httpClient.GetAsync($"robbert/processbatch/getprogress?version={(int)Version}&clientGuid={App.Guid.ToString()}");
 
         if (!httpResponse.IsSuccessStatusCode)
             throw new HttpRequestException(
@@ -106,7 +106,7 @@ public class OnlineRobbert : IRobbert
 
     private async void PingServer(object? state)
     {
-        var httpResponse = await _httpClient.PostAsync($"robbert/pingsession?version={(int)Version}&clientGuid={App.Guid}", null);
+        var httpResponse = await _httpClient.PostAsync($"robbert/pingsession?version={(int)Version}&clientGuid={App.Guid.ToString()}", null);
 
         try
         {
