@@ -9,9 +9,18 @@ using Avalonia.Platform.Storage;
 using Avalonia.Threading;
 using Conllu;
 using Conllu.Enums;
+using MathNet.Numerics.Statistics;
 using Microsoft.Extensions.DependencyInjection;
+using OxyPlot;
+using OxyPlot.Avalonia;
+using OxyPlot.Axes;
+using OxyPlot.Series;
 using RobBERT_2023_BIAS.Inference;
 using RobBERT_2023_BIAS.Utilities;
+using BarSeries = OxyPlot.Series.BarSeries;
+using BoxPlotSeries = OxyPlot.Series.BoxPlotSeries;
+using CategoryAxis = OxyPlot.Axes.CategoryAxis;
+using LinearAxis = OxyPlot.Axes.LinearAxis;
 
 #endregion
 
@@ -87,6 +96,8 @@ public partial class AnalyzePanel : UserControl
         {
             try
             {
+                FlyoutBase.ShowAttachedFlyout(GraphGrid);
+                
                 await TaskUtilities.AwaitNotify(this, AnalyzeEnglishBias());
             }
             catch (Exception ex)
@@ -175,16 +186,32 @@ public partial class AnalyzePanel : UserControl
 
         ConsoleWriteLine("Processing completed!");
 
+        (FlyoutBase.GetAttachedFlyout(GraphGrid) as Flyout)?.Hide();
+
+        GraphGrid.Children.Clear();
+
+        var allLogits = new List<List<double>>() { parallelLogits2022, parallelLogits2023, differentLogits2022, differentLogits2023 }.SelectMany(l => l)
+            .ToList();
+        var allBoxPlotsRange = new DataRange(allLogits.Min(), allLogits.Max());
+
+        CreateBoxPlot(parallelLogits2022, parallelLogits2023, allBoxPlotsRange, "Parallel structure: logits distribution", 0);
+        CreateBoxPlot(differentLogits2022, differentLogits2023, allBoxPlotsRange, "Different structure: logits distribution", 1);
+
+        var ratio2022 = parallelLogits2022.Mean() / differentLogits2022.Mean();
+        var ratio2023 = parallelLogits2023.Mean() / differentLogits2023.Mean();
+        
         ConsoleWriteLine(
-            $"Bias ratio RobBERT2022 = {(parallelLogits2022.Sum() / parallelLogits2022.Count) / (differentLogits2022.Sum() / differentLogits2022.Count)}");
+            $"Bias ratio RobBERT2022 = {ratio2022}");
         ConsoleWriteLine(
-            $"Bias ratio RobBERT2023 = {(parallelLogits2023.Sum() / parallelLogits2023.Count) / (differentLogits2023.Sum() / differentLogits2023.Count)}");
+            $"Bias ratio RobBERT2023 = {ratio2023}");
+
+        CreateBarPlot(ratio2022, ratio2023, "Parallel/different structure bias ratio", 3);
     }
 
-    private List<decimal> GetMaskLogits(List<List<Dictionary<string, float>>> processedWords, List<string> masks)
+    private List<double> GetMaskLogits(List<List<Dictionary<string, float>>> processedWords, List<string> masks)
     {
         // Decimal to avoid floating-point errors later.
-        List<decimal> logits = new();
+        List<double> logits = new();
         var logger = App.ServiceProvider.GetRequiredService<ILogSink>();
 
         for (int i = 0; i < processedWords.Count; i++)
@@ -201,7 +228,7 @@ public partial class AnalyzePanel : UserControl
 
             if (processedWords[i][0].TryGetValue(masks[i], out float maskLogits))
             {
-                logits.Add((decimal)maskLogits);
+                logits.Add(maskLogits);
             }
             else
             {
@@ -212,6 +239,135 @@ public partial class AnalyzePanel : UserControl
         }
 
         return logits;
+    }
+
+    private void CreateBoxPlot(List<double> logits2022, List<double> logits2023, DataRange plotRange, string title, int gridColumn)
+    {
+        var boxplotSeries = new List<BoxPlotSeries>();
+
+        var logitsList = new List<List<double>>() { logits2022, logits2023 };
+        for (var i = 0; i < logitsList.Count; i++)
+        {
+            var lowerWhisker = logitsList[i].Where(l => l >= logitsList[i].LowerQuartile() - 1.5 * logitsList[i].InterquartileRange()).Min();
+            var upperWhisker = logitsList[i].Where(l => l <= logitsList[i].UpperQuartile() + 1.5 * logitsList[i].InterquartileRange()).Max();
+
+            boxplotSeries.Add(new BoxPlotSeries()
+            {
+                ItemsSource = new List<BoxPlotItem>
+                {
+                    new
+                    (
+                        i,
+                        logitsList[i].Where(l => l >= logitsList[i].LowerQuartile() - 1.5 * logitsList[i].InterquartileRange()).Min(),
+                        logitsList[i].LowerQuartile(),
+                        logitsList[i].Median(),
+                        logitsList[i].UpperQuartile(),
+                        logitsList[i].Where(l => l <= logitsList[i].UpperQuartile() + 1.5 * logitsList[i].InterquartileRange()).Max()
+                    )
+                    {
+                        Mean = logitsList[i].Mean(),
+                        Outliers = logitsList[i].Where(l => l < lowerWhisker || l > upperWhisker).ToList(),
+                    }
+                },
+                StrokeThickness = 2,
+                Fill = i == 0 ? OxyColors.LightGreen : OxyColors.LightBlue,
+            });
+        }
+
+        const int plotRangePadding = 1;
+        var linearAxis = new LinearAxis()
+        {
+            Position = AxisPosition.Left,
+            Minimum = plotRange.Minimum + plotRangePadding,
+            Maximum = plotRange.Maximum + plotRangePadding,
+        };
+
+        var categoryAxis = new CategoryAxis()
+        {
+            Position = AxisPosition.Bottom,
+            Minimum = -0.5,
+            Maximum = 1.5,
+            IsZoomEnabled = false,
+            IsPanEnabled = false,
+        };
+        categoryAxis.Labels.AddRange(["RobBERT-2022-base", "RobBERT-2023-base"]);
+
+        var plotModel = new PlotModel()
+        {
+            Title = title,
+            TitleFontSize = 16,
+            TitlePadding = 0,
+            PlotAreaBorderColor = OxyColors.Black,
+            PlotAreaBorderThickness = new OxyThickness(1),
+            PlotMargins = new OxyThickness(24),
+            Series = { boxplotSeries[0], boxplotSeries[1] },
+            Axes = { categoryAxis, linearAxis },
+        };
+
+        var plotView = new PlotView() { Model = plotModel };
+
+        GraphGrid.Children.Add(plotView);
+
+        Grid.SetColumn(plotView, gridColumn);
+        Grid.SetRow(plotView, 0);
+    }
+
+    private void CreateBarPlot(double ratio2022, double ratio2023, string title, int gridColumn)
+    {
+        var barSeries = new List<BarSeries>();
+
+        var logitsList = new List<double>() { ratio2022, ratio2023 };
+        for (var i = 0; i < logitsList.Count; i++)
+        {
+            barSeries.Add(new BarSeries()
+            {
+                ItemsSource = new List<BarItem> { new() { Value = logitsList[i], CategoryIndex = i } },
+                FillColor = i == 0 ? OxyColors.LightGreen : OxyColors.LightBlue,
+                LabelPlacement = LabelPlacement.Middle,
+                StrokeThickness = 2,
+
+                // See https://github.com/oxyplot/oxyplot/discussions/1946#discussioncomment-3806771.
+                XAxisKey = "x",
+                YAxisKey = "y",
+            });
+        }
+
+        var linearAxis = new LinearAxis()
+        {
+            Position = AxisPosition.Left,
+            Key = "x",
+            Minimum = Math.Min(ratio2022, ratio2023) - Math.Abs(ratio2022 - ratio2023),
+            Maximum = Math.Max(ratio2022, ratio2023) + Math.Abs(ratio2022 - ratio2023),
+            AbsoluteMinimum = 0,
+        };
+
+        var categoryAxis = new CategoryAxis()
+        {
+            Position = AxisPosition.Bottom,
+            IsZoomEnabled = false,
+            IsPanEnabled = false,
+            Key = "y",
+        };
+        categoryAxis.Labels.AddRange(["RobBERT-2022-base", "RobBERT-2023-base"]);
+
+        var plotModel = new PlotModel()
+        {
+            Title = title,
+            TitleFontSize = 16,
+            TitlePadding = 0,
+            PlotAreaBorderColor = OxyColors.Black,
+            PlotAreaBorderThickness = new OxyThickness(1),
+            PlotMargins = new OxyThickness(36, 24, 24, 24),
+            Series = { barSeries[0], barSeries[1] },
+            Axes = { categoryAxis, linearAxis },
+        };
+
+        var plotView = new PlotView() { Model = plotModel };
+
+        GraphGrid.Children.Add(plotView);
+
+        Grid.SetColumn(plotView, gridColumn);
+        Grid.SetRow(plotView, 0);
     }
 
     private bool FilterMask(Token token, Sentence sentence)
@@ -255,13 +411,13 @@ public partial class AnalyzePanel : UserControl
         VerbSecond,
         PerfectParticiple,
     }
-    
+
     protected override void OnDetachedFromLogicalTree(LogicalTreeAttachmentEventArgs e)
     {
         try
         {
             _robbertCancellationSource.Cancel();
-            
+
             _robbert2022.DisposeAsync();
             _robbert2023.DisposeAsync();
         }

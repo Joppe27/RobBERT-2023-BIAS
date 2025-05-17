@@ -81,6 +81,7 @@
         </PackageReference>
         <PackageReference Include="Azure.Storage.Blobs"/>
         <PackageReference Include="Conllu"/>
+        <PackageReference Include="MathNet.Numerics"/>
         <PackageReference Include="Microsoft.AspNetCore.Routing"/>
         <PackageReference Include="Microsoft.AspNetCore.Routing.Abstractions"/>
         <PackageReference Include="Microsoft.Extensions.Configuration"/>
