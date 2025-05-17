@@ -16,15 +16,29 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddOpenApi();
 builder.Logging.AddConsole();
 
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowAllOrigins", policyBuilder =>
+    {
+        policyBuilder
+            .AllowAnyOrigin()
+            .AllowAnyHeader()
+            .AllowAnyMethod();
+    });
+});
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
+    app.UseCors("AllowAllOrigins");
 }
-
-app.UseHttpsRedirection();
+else
+{
+    app.UseHttpsRedirection();
+}
 
 PrepareDirectoryStructure();
 
