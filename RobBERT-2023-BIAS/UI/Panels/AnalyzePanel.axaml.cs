@@ -113,8 +113,9 @@ public partial class AnalyzePanel : UserControl
 
     private async Task AnalyzeEnglishBias()
     {
-        // TODO: this MIGHT not be possible online
-        var parallelSentences = ConlluParser.ParseFile(_parallelCorpus!.Path.LocalPath).ToList();
+        var parallelFileStream = await _parallelCorpus!.OpenReadAsync();
+        var parallelTextFile = await new StreamReader(parallelFileStream).ReadToEndAsync();
+        var parallelSentences = ConlluParser.ParseText(parallelTextFile).ToList();
 
         List<RobbertPrompt> parallelPrompts = new();
         List<string> parallelProxies = new();
@@ -150,7 +151,9 @@ public partial class AnalyzePanel : UserControl
         var parallelLogits2023 = GetMaskLogits(processedParallelSentences2023, parallelProxies);
 
 
-        var differentSentences = ConlluParser.ParseFile(_differentCorpus!.Path.LocalPath).ToList();
+        var differentFileStream = await _differentCorpus!.OpenReadAsync();
+        var differentTextFile = await new StreamReader(differentFileStream).ReadToEndAsync();
+        var differentSentences = ConlluParser.ParseText(differentTextFile).ToList();
 
         List<RobbertPrompt> differentPrompts = new();
         List<string> differentProxies = new();
