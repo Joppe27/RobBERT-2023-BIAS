@@ -132,7 +132,7 @@ public partial class BiasPanel : UserControl
             var maximum = new List<Dictionary<string, float>>(firstPromptTokens)
                 .Concat(secondPromptTokens).SelectMany(d => d.Values).Max() * 100;
 
-            var linearAxis = new LogarithmicAxis()
+            var logAxis = new LogarithmicAxis()
             {
                 Position = AxisPosition.Bottom,
                 Minimum = 0.00000001,
@@ -163,7 +163,7 @@ public partial class BiasPanel : UserControl
                 PlotAreaBorderThickness = new OxyThickness(1),
                 PlotMargins = new OxyThickness(24),
                 Series = { barSeries },
-                Axes = { categoryAxis, linearAxis },
+                Axes = { categoryAxis, logAxis },
             };
 
             var plotView = new PlotView() { Model = plotModel };
