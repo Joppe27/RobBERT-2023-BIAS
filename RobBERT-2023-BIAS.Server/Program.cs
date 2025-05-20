@@ -47,6 +47,7 @@ var logger = app.Services.GetRequiredService<ILogger<Program>>();
 Dictionary<IRobbert, SemaphoreSlim> robbertInstances = new();
 List<RobbertSession> robbertSessions = new();
 Dictionary<RobbertSession, int> batchProgess = new();
+Dictionary<RobbertSession, CancellationTokenSource> batchCancellationTokenSource = new();
 
 Timer? idleTimer = null;
 
@@ -129,14 +130,18 @@ app.MapPost("robbert/process", async ([FromBody] OnlineRobbert.OnlineRobbertProc
 });
 
 app.MapPost("robbert/processbatch",
-    async ([FromBody] OnlineRobbert.OnlineRobbertProcessBatchParameters parameters, string clientGuid, CancellationToken token) =>
+    async ([FromBody] OnlineRobbert.OnlineRobbertProcessBatchParameters parameters, string clientGuid) =>
 {
     logger.LogInformation($"Batch processing requested for version {parameters.Version} on client {clientGuid}");
 
     UpdateLastRequestTime(parameters.Version, clientGuid);
-
+    
     if (robbertInstances.Keys.Any(r => r.Version == parameters.Version))
     {
+        var currentSession = robbertSessions.First(s => s.Version == parameters.Version && s.ClientGuid == clientGuid);
+
+        batchCancellationTokenSource[currentSession] = new CancellationTokenSource();
+        
         var robbert = robbertInstances.First(r => r.Key.Version == parameters.Version);
 
         await robbert.Value.WaitAsync();
@@ -145,13 +150,27 @@ app.MapPost("robbert/processbatch",
             List<List<Dictionary<string, float>>> result;
 
             EventHandler<int> handler = (_, progress) =>
-                UpdateProgress(robbertSessions.First(s => s.Version == parameters.Version && s.ClientGuid == clientGuid), progress);
+                UpdateProgress(robbertSessions.FirstOrDefault(s => s.Version == parameters.Version && s.ClientGuid == clientGuid), progress);
 
             robbert.Key.BatchProgressChanged += handler;
 
+            batchCancellationTokenSource[currentSession].Token.Register(() => robbert.Key.BatchProgressChanged -= handler);
+
             try
             {
-                result = await robbert.Key.ProcessBatch(parameters.UserInput, parameters.KCount, token, parameters.CalculateProbability);
+                CancellationToken cancellationToken;
+
+                if (batchCancellationTokenSource.TryGetValue(currentSession, out CancellationTokenSource? tokenSource))
+                {
+                    cancellationToken = tokenSource.Token;
+                }
+                else
+                {
+                    logger.LogError("No batch processing CancellationToken found for current session: continuing without token, cancellation impossible");
+                    cancellationToken = CancellationToken.None;
+                }
+
+                result = await robbert.Key.ProcessBatch(parameters.UserInput, parameters.KCount, cancellationToken, parameters.CalculateProbability);
             }
             catch (Exception ex)
             {
@@ -173,6 +192,12 @@ app.MapPost("robbert/processbatch",
     string message = $"Unable to process request: no {parameters.Version} RobBERT instance to process data";
     logger.LogError(message);
     return Results.BadRequest(message);
+});
+
+app.MapPost("robbert/processbatch/cancel", (string clientGuid) =>
+{
+    foreach (CancellationTokenSource token in batchCancellationTokenSource.Where(s => s.Key.ClientGuid == clientGuid).Select(kvp => kvp.Value))
+        token.Cancel();
 });
 
 app.MapGet("robbert/processbatch/getprogress", (int version, string clientGuid) =>
@@ -268,6 +293,9 @@ void RemoveRobbertSession(RobbertSession session)
 
         if (batchProgess.ContainsKey(session))
             batchProgess.Remove(session);
+
+        if (batchCancellationTokenSource.ContainsKey(session))
+            batchCancellationTokenSource.Remove(session);
     }
     else if (sessionCount == 1)
     {
@@ -276,6 +304,9 @@ void RemoveRobbertSession(RobbertSession session)
 
         if (batchProgess.ContainsKey(session))
             batchProgess.Remove(session);
+
+        if (batchCancellationTokenSource.ContainsKey(session))
+            batchCancellationTokenSource.Remove(session);
 
         DisposeRobbertInstance(session.Version);
         logger.LogInformation($"Instance of version {session.Version} disposed");
@@ -313,7 +344,13 @@ void DisposeRobbertInstance(RobbertVersion version)
     }
 }
 
-void UpdateProgress(RobbertSession session, int progress) => batchProgess[session] = progress;
+void UpdateProgress(RobbertSession? session, int progress)
+{
+    if (session != null)
+        batchProgess[session] = progress;
+    else
+        logger.LogError("Unable to update internal batch processing progress: session does not exist");
+}
 
 IResult UpdateLastRequestTime(RobbertVersion version, string clientGuid)
 {

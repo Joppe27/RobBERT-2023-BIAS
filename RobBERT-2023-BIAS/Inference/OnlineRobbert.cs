@@ -53,10 +53,22 @@ public class OnlineRobbert : IRobbert
     public async Task<List<List<Dictionary<string, float>>>> ProcessBatch(List<RobbertPrompt> userInput, int kCount, CancellationToken token,
         bool calculateProbability = true)
     {
-        HttpResponseMessage httpResult;
+        token.Register(() =>
+        {
+            Task.Run(async () =>
+            {
+                var httpResponse = await _httpClient.PostAsync($"robbert/processbatch/cancel?clientGuid={App.Guid.ToString()}", null);
 
+                if (!httpResponse.IsSuccessStatusCode)
+                    throw new HttpRequestException(
+                        $"HTTP request failed with status code {httpResponse.StatusCode}: {await httpResponse.Content.ReadAsStringAsync()}");
+            });
+        }); 
+        
+        HttpResponseMessage httpResult;
+            
         var httpResponseTask = _httpClient.PostAsync($"robbert/processbatch?clientGuid={App.Guid.ToString()}",
-            JsonContent.Create(new OnlineRobbertProcessBatchParameters(userInput, kCount, Version, calculateProbability)), token);
+            JsonContent.Create(new OnlineRobbertProcessBatchParameters(userInput, kCount, Version, calculateProbability)));
 
         while (!httpResponseTask.IsCompleted)
             await PollBatchProgress();
