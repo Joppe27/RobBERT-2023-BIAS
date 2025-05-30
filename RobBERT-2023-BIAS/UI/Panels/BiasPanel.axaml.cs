@@ -1,4 +1,7 @@
-﻿#region
+﻿// Copyright (c) Joppe27 <joppe27.be>. Licensed under the MIT Licence.
+// See LICENSE file in repository root for full license text.
+
+#region
 
 using Avalonia;
 using Avalonia.Controls;
@@ -26,8 +29,8 @@ namespace RobBERT_2023_BIAS.UI.Panels;
 public partial class BiasPanel : UserControl
 {
     private BiasPromptPanel _biasPromptPanel = null!;
-    private Grid _rightPanel = null!;
     private Grid _graphGrid = null!;
+    private Grid _rightPanel = null!;
 
     private BiasPanel()
     {
@@ -102,7 +105,7 @@ public partial class BiasPanel : UserControl
         _graphGrid.ColumnDefinitions.Clear();
         for (int i = 0; i < Math.Max(firstPromptTokens.Count, secondPromptTokens.Count); i++)
             _graphGrid.ColumnDefinitions.Add(new ColumnDefinition() { MinWidth = 250 });
-        
+
         for (int token = 0; token < firstPromptTokens.Count + secondPromptTokens.Count; token++)
         {
             var barSource = new List<BarItem>();

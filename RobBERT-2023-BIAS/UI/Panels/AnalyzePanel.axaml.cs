@@ -1,4 +1,7 @@
-﻿#region
+﻿// Copyright (c) Joppe27 <joppe27.be>. Licensed under the MIT Licence.
+// See LICENSE file in repository root for full license text.
+
+#region
 
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
@@ -29,13 +32,12 @@ namespace RobBERT_2023_BIAS.UI.Panels;
 
 public partial class AnalyzePanel : UserControl
 {
-    private IRobbert _robbert2022 = null!;
-    private IRobbert _robbert2023 = null!;
-
-    private IStorageFile? _parallelCorpus;
+    private readonly CancellationTokenSource _robbertCancellationSource = new();
     private IStorageFile? _differentCorpus;
 
-    private readonly CancellationTokenSource _robbertCancellationSource = new();
+    private IStorageFile? _parallelCorpus;
+    private IRobbert _robbert2022 = null!;
+    private IRobbert _robbert2023 = null!;
 
     private AnalyzePanel()
     {
@@ -98,7 +100,7 @@ public partial class AnalyzePanel : UserControl
             try
             {
                 FlyoutBase.ShowAttachedFlyout(GraphGrid);
-                
+
                 await TaskUtilities.AwaitNotify(this, AnalyzeEnglishBias());
             }
             catch (Exception ex)
@@ -127,7 +129,7 @@ public partial class AnalyzePanel : UserControl
             parallelProxies.Add(wordToDecode);
 
             // Crucially, the mask needs to be null here. We're not looking to predict words, we're looking at the logits for the KNOWN proxy.
-            parallelPrompts.Add(new RobbertPrompt(sentence.RawTokenSequence(), null, wordToDecode));  
+            parallelPrompts.Add(new RobbertPrompt(sentence.RawTokenSequence(), null, wordToDecode));
         }
 
         ConsoleWriteLine("Processing parallel corpus using RobBERT-2022-base (1/4)");
@@ -203,7 +205,7 @@ public partial class AnalyzePanel : UserControl
 
         var ratio2022 = parallelLogits2022.Mean() / differentLogits2022.Mean();
         var ratio2023 = parallelLogits2023.Mean() / differentLogits2023.Mean();
-        
+
         ConsoleWriteLine(
             $"Bias ratio RobBERT2022 = {ratio2022}");
         ConsoleWriteLine(
@@ -295,12 +297,12 @@ public partial class AnalyzePanel : UserControl
             IsPanEnabled = false,
         };
         categoryAxis.Labels.AddRange(["RobBERT-2022-base", "RobBERT-2023-base"]);
-        
+
         var plotModel = new PlotModel()
         {
             Title = title,
             // This is a workaround because custom fonts are broken on WASM, see https://github.com/oxyplot/oxyplot/issues/2118 
-            TitleFontSize = App.Current.ApplicationLifetime is ClassicDesktopStyleApplicationLifetime ? 16 : 12, 
+            TitleFontSize = App.Current.ApplicationLifetime is ClassicDesktopStyleApplicationLifetime ? 16 : 12,
             TitlePadding = 0,
             PlotAreaBorderColor = OxyColors.Black,
             PlotAreaBorderThickness = new OxyThickness(1),
@@ -411,13 +413,6 @@ public partial class AnalyzePanel : UserControl
         ConsoleScrollViewer.ScrollToEnd();
     }
 
-    private enum AnalyzeProfile
-    {
-        SubjectAuxiliary,
-        VerbSecond,
-        PerfectParticiple,
-    }
-
     protected override void OnDetachedFromLogicalTree(LogicalTreeAttachmentEventArgs e)
     {
         try
@@ -433,5 +428,12 @@ public partial class AnalyzePanel : UserControl
         }
 
         base.OnDetachedFromLogicalTree(e);
+    }
+
+    private enum AnalyzeProfile
+    {
+        SubjectAuxiliary,
+        VerbSecond,
+        PerfectParticiple,
     }
 }

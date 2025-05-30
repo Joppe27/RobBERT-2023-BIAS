@@ -1,3 +1,6 @@
+// Copyright (c) Joppe27 <joppe27.be>. Licensed under the MIT Licence.
+// See LICENSE file in repository root for full license text.
+
 #region
 
 using System.Text.Json;
@@ -131,68 +134,68 @@ app.MapPost("robbert/process", async ([FromBody] OnlineRobbert.OnlineRobbertProc
 
 app.MapPost("robbert/processbatch",
     async ([FromBody] OnlineRobbert.OnlineRobbertProcessBatchParameters parameters, string clientGuid) =>
-{
-    logger.LogInformation($"Batch processing requested for version {parameters.Version} on client {clientGuid}");
-
-    UpdateLastRequestTime(parameters.Version, clientGuid);
-    
-    if (robbertInstances.Keys.Any(r => r.Version == parameters.Version))
     {
-        var currentSession = robbertSessions.First(s => s.Version == parameters.Version && s.ClientGuid == clientGuid);
+        logger.LogInformation($"Batch processing requested for version {parameters.Version} on client {clientGuid}");
 
-        batchCancellationTokenSource[currentSession] = new CancellationTokenSource();
-        
-        var robbert = robbertInstances.First(r => r.Key.Version == parameters.Version);
+        UpdateLastRequestTime(parameters.Version, clientGuid);
 
-        await robbert.Value.WaitAsync();
-        try
+        if (robbertInstances.Keys.Any(r => r.Version == parameters.Version))
         {
-            List<List<Dictionary<string, float>>> result;
+            var currentSession = robbertSessions.First(s => s.Version == parameters.Version && s.ClientGuid == clientGuid);
 
-            EventHandler<int> handler = (_, progress) =>
-                UpdateProgress(robbertSessions.FirstOrDefault(s => s.Version == parameters.Version && s.ClientGuid == clientGuid), progress);
+            batchCancellationTokenSource[currentSession] = new CancellationTokenSource();
 
-            robbert.Key.BatchProgressChanged += handler;
+            var robbert = robbertInstances.First(r => r.Key.Version == parameters.Version);
 
-            batchCancellationTokenSource[currentSession].Token.Register(() => robbert.Key.BatchProgressChanged -= handler);
-
+            await robbert.Value.WaitAsync();
             try
             {
-                CancellationToken cancellationToken;
+                List<List<Dictionary<string, float>>> result;
 
-                if (batchCancellationTokenSource.TryGetValue(currentSession, out CancellationTokenSource? tokenSource))
+                EventHandler<int> handler = (_, progress) =>
+                    UpdateProgress(robbertSessions.FirstOrDefault(s => s.Version == parameters.Version && s.ClientGuid == clientGuid), progress);
+
+                robbert.Key.BatchProgressChanged += handler;
+
+                batchCancellationTokenSource[currentSession].Token.Register(() => robbert.Key.BatchProgressChanged -= handler);
+
+                try
                 {
-                    cancellationToken = tokenSource.Token;
+                    CancellationToken cancellationToken;
+
+                    if (batchCancellationTokenSource.TryGetValue(currentSession, out CancellationTokenSource? tokenSource))
+                    {
+                        cancellationToken = tokenSource.Token;
+                    }
+                    else
+                    {
+                        logger.LogError("No batch processing CancellationToken found for current session: continuing without token, cancellation impossible");
+                        cancellationToken = CancellationToken.None;
+                    }
+
+                    result = await robbert.Key.ProcessBatch(parameters.UserInput, parameters.KCount, cancellationToken, parameters.CalculateProbability);
                 }
-                else
+                catch (Exception ex)
                 {
-                    logger.LogError("No batch processing CancellationToken found for current session: continuing without token, cancellation impossible");
-                    cancellationToken = CancellationToken.None;
+                    string msg = $"Failed processing batch: {ex}";
+                    logger.LogError(msg);
+                    return Results.Problem(msg);
                 }
 
-                result = await robbert.Key.ProcessBatch(parameters.UserInput, parameters.KCount, cancellationToken, parameters.CalculateProbability);
+                robbert.Key.BatchProgressChanged -= handler;
+
+                return Results.Json(result, JsonSerializerOptions.Default, null, 200);
             }
-            catch (Exception ex)
+            finally
             {
-                string msg = $"Failed processing batch: {ex}";
-                logger.LogError(msg);
-                return Results.Problem(msg);
+                robbert.Value.Release();
             }
-
-            robbert.Key.BatchProgressChanged -= handler;
-
-            return Results.Json(result, JsonSerializerOptions.Default, null, 200);
         }
-        finally
-        {
-            robbert.Value.Release();
-        }
-    }
 
-    string message = $"Unable to process request: no {parameters.Version} RobBERT instance to process data";
-    logger.LogError(message);
-    return Results.BadRequest(message);
-});
+        string message = $"Unable to process request: no {parameters.Version} RobBERT instance to process data";
+        logger.LogError(message);
+        return Results.BadRequest(message);
+    });
 
 app.MapPost("robbert/processbatch/cancel", (string clientGuid) =>
 {
@@ -399,7 +402,7 @@ Uri? GetSas(RobbertVersion version)
         logger.LogError("Unable to acquire SAS: blob container not found");
         return null;
     }
-    
+
     return containerClient.GenerateSasUri(BlobContainerSasPermissions.Read, DateTimeOffset.Now.AddMinutes(5));
 }
 

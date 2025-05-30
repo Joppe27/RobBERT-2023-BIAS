@@ -1,4 +1,7 @@
-﻿#region
+﻿// Copyright (c) Joppe27 <joppe27.be>. Licensed under the MIT Licence.
+// See LICENSE file in repository root for full license text.
+
+#region
 
 using System;
 using System.Diagnostics;
@@ -43,7 +46,7 @@ sealed class Program
         BuildAvaloniaApp()
             .StartWithClassicDesktopLifetime(args);
     }
-    
+
     // Avalonia configuration, don't remove; also used by visual designer.
     public static AppBuilder BuildAvaloniaApp()
         => AppBuilder.Configure<App>()

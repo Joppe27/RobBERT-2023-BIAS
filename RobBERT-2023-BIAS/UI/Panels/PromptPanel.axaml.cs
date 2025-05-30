@@ -1,4 +1,7 @@
-﻿#region
+﻿// Copyright (c) Joppe27 <joppe27.be>. Licensed under the MIT Licence.
+// See LICENSE file in repository root for full license text.
+
+#region
 
 using Avalonia;
 using Avalonia.Controls;
@@ -103,7 +106,7 @@ public partial class PromptPanel : UserControl
                 : throw new InvalidOperationException($"Input {ValidatedPrompts.Count} prompts while only 1 is supported"),
             KCountBox.Value != null ? (int)KCountBox.Value : 1);
     }
-    
+
     protected virtual string[] ProcessModelOutput(List<Dictionary<string, float>> robbertOutput)
     {
         string[] conversationOutputs = new string[robbertOutput.Count];

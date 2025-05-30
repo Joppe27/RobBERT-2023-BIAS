@@ -1,4 +1,7 @@
-﻿#region
+﻿// Copyright (c) Joppe27 <joppe27.be>. Licensed under the MIT Licence.
+// See LICENSE file in repository root for full license text.
+
+#region
 
 using System.Numerics.Tensors;
 using System.Text.RegularExpressions;
@@ -13,17 +16,18 @@ namespace RobBERT_2023_BIAS.Inference;
 
 public class LocalRobbert : IAsyncDisposable, IRobbert
 {
+    private readonly Lock _progressLock = new();
     private readonly RunOptions _runOptions = new();
-    private InferenceSession _model = null!;
-    private Tokenizer _tokenizer = null!;
-    private int _vocabSize; // See tokenizer.json.
-    private int _tokenizerMask; // See tokenizer.json.
-
-    public RobbertVersion Version { get; private set; }
-    public event EventHandler<int>? BatchProgressChanged;
 
     private int _batchProgress;
-    private readonly Lock _progressLock = new();
+    private InferenceSession _model = null!;
+    private Tokenizer _tokenizer = null!;
+    private int _tokenizerMask; // See tokenizer.json.
+    private int _vocabSize; // See tokenizer.json.
+
+    private LocalRobbert()
+    {
+    }
 
     private int BatchProgress
     {
@@ -46,15 +50,14 @@ public class LocalRobbert : IAsyncDisposable, IRobbert
         }
     }
 
-    private LocalRobbert()
-    {
-    }
-
     public async ValueTask DisposeAsync()
     {
         GC.SuppressFinalize(this);
         _model.Dispose();
     }
+
+    public RobbertVersion Version { get; private set; }
+    public event EventHandler<int>? BatchProgressChanged;
 
     /// <param name="userInput">The sentence to be completed by the model. Must include a mask!</param>
     /// <param name="kCount">The amount of replacements for the mask the model should output.</param>
@@ -101,7 +104,7 @@ public class LocalRobbert : IAsyncDisposable, IRobbert
                 loopCount++;
             }
         }
-        
+
         var robbertInput = new RobbertInput()
         {
             InputIds = Array.ConvertAll(allTokens, token => (long)token),
@@ -164,14 +167,14 @@ public class LocalRobbert : IAsyncDisposable, IRobbert
 
         await Parallel.ForAsync(0, userInput.Count,
             new ParallelOptions() { CancellationToken = token, MaxDegreeOfParallelism = Environment.ProcessorCount - 1 }, async (i, ct) =>
-        {
-            if (ct.IsCancellationRequested)
-                return;
-                        
-            // Important: sentences are returned in the original order here as analysis depends on this!
-            modelOutputs[i] = await Process(userInput[i].Sentence, kCount, null, userInput[i].WordToDecode, calculateProbability);
-            BatchProgress = (int)((float)i / userInput.Count * 100);
-        });
+            {
+                if (ct.IsCancellationRequested)
+                    return;
+
+                // Important: sentences are returned in the original order here as analysis depends on this!
+                modelOutputs[i] = await Process(userInput[i].Sentence, kCount, null, userInput[i].WordToDecode, calculateProbability);
+                BatchProgress = (int)((float)i / userInput.Count * 100);
+            });
 
         return modelOutputs.ToList();
     }
@@ -220,7 +223,7 @@ public class LocalRobbert : IAsyncDisposable, IRobbert
         public async Task<IRobbert> Create(RobbertVersion version, bool usingBlobs = false)
         {
             LocalRobbert localRobbert = new();
-            
+
             string modelPath;
             string tokenizerPath;
 
@@ -257,7 +260,7 @@ public class LocalRobbert : IAsyncDisposable, IRobbert
                     new SessionOptions() { EnableCpuMemArena = false });
                 localRobbert._tokenizer = new Tokenizer(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, tokenizerPath));
             });
-            
+
             localRobbert.Version = version;
 
             return localRobbert;
