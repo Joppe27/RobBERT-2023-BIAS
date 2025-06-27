@@ -76,10 +76,10 @@ public class LocalRobbert : IAsyncDisposable, IRobbert
 
         var allTokens = _tokenizer.Encode(userInput);
 
-        uint[] specificTokensToDecode = [];
+        uint[] tokensToDecode = [];
         if (wordToDecode == "<mask>")
         {
-            specificTokensToDecode = [(uint)_tokenizerMask];
+            tokensToDecode = [(uint)_tokenizerMask];
         }
         else if (wordToDecode != null)
         {
@@ -92,10 +92,10 @@ public class LocalRobbert : IAsyncDisposable, IRobbert
 
                 for (int i = 0; i < allTokens.Length; i++)
                 {
-                    specificTokensToDecode = allTokens.Skip(i).Take(loopCount).ToArray();
+                    tokensToDecode = allTokens.Skip(i).Take(loopCount).ToArray();
 
                     // In some VERY rare cases (e.g. special chars), the tokenizer inserts spaces in the middle of the word. Therefore Replace instead of Trim.
-                    comparison = _tokenizer.Decode(specificTokensToDecode).Replace(" ", "");
+                    comparison = _tokenizer.Decode(tokensToDecode).Replace(" ", "");
 
                     if (comparison == wordToDecode)
                         break;
@@ -124,38 +124,38 @@ public class LocalRobbert : IAsyncDisposable, IRobbert
             logits = output[0].GetTensorDataAsSpan<float>();
         }
 
-        List<float[]> encodedMaskProbabilities = new();
+        List<float[]> probabilitiesPerToken = new();
         if (calculateProbability)
         {
             Span<float> encodedProbabilities = new float[logits.Length];
             TensorPrimitives.SoftMax(logits, encodedProbabilities);
 
-            if (specificTokensToDecode.Length == 0)
+            if (tokensToDecode.Length == 0)
             {
                 foreach (int tokenStart in allTokens.Index().Select(i => i.Index * _vocabSize))
-                    encodedMaskProbabilities.Add(encodedProbabilities.Slice(tokenStart, _vocabSize).ToArray());
+                    probabilitiesPerToken.Add(encodedProbabilities.Slice(tokenStart, _vocabSize).ToArray());
             }
             else
             {
-                foreach (int maskStart in allTokens.Index().Where(t => specificTokensToDecode.Contains(t.Item)).Select(i => i.Index * _vocabSize))
-                    encodedMaskProbabilities.Add(encodedProbabilities.Slice(maskStart, _vocabSize).ToArray());
+                foreach (int maskStart in allTokens.Index().Where(t => tokensToDecode.Contains(t.Item)).Select(i => i.Index * _vocabSize))
+                    probabilitiesPerToken.Add(encodedProbabilities.Slice(maskStart, _vocabSize).ToArray());
             }
         }
         else
         {
-            if (specificTokensToDecode.Length == 0)
+            if (tokensToDecode.Length == 0)
             {
                 foreach (int tokenStart in allTokens.Index().Select(i => i.Index * _vocabSize))
-                    encodedMaskProbabilities.Add(logits.Slice(tokenStart, _vocabSize).ToArray());
+                    probabilitiesPerToken.Add(logits.Slice(tokenStart, _vocabSize).ToArray());
             }
             else
             {
-                foreach (int maskStart in allTokens.Index().Where(t => specificTokensToDecode.Contains(t.Item)).Select(i => i.Index * _vocabSize))
-                    encodedMaskProbabilities.Add(logits.Slice(maskStart, _vocabSize).ToArray());
+                foreach (int maskStart in allTokens.Index().Where(t => tokensToDecode.Contains(t.Item)).Select(i => i.Index * _vocabSize))
+                    probabilitiesPerToken.Add(logits.Slice(maskStart, _vocabSize).ToArray());
             }
         }
 
-        return await Task.Run(() => DecodeTokens(encodedMaskProbabilities, kCount));
+        return await Task.Run(() => DecodeTokens(probabilitiesPerToken, kCount));
     }
 
     public async Task<List<List<Dictionary<string, float>>>> ProcessBatch(List<RobbertPrompt> userInput, int kCount,
@@ -179,43 +179,39 @@ public class LocalRobbert : IAsyncDisposable, IRobbert
         return modelOutputs.ToList();
     }
 
-    private List<Dictionary<string, float>> DecodeTokens(List<float[]> encodedMaskProbabilities, int kCount)
+    private List<Dictionary<string, float>> DecodeTokens(List<float[]> probabilitiesPerToken, int kCount)
     {
-        List<Dictionary<string, float>> decodedMaskProbabilities = new();
-        List<float[]> sortedEncodedMaskProbabilities = encodedMaskProbabilities.Select(m => (float[])m.Clone()).ToList();
+        List<List<(int TokenId, float Logits)>> orderedProbabilitiesPerToken = new();
+        List<Dictionary<string, float>> decodedProbabilitiesPerToken = new();
 
-        // Sort by from highest to lowest logits to be able to sample via top-k (TODO: expensive, optimization somehow?)
-        foreach (float[] encodedCandidateTokens in sortedEncodedMaskProbabilities)
-        {
-            Array.Sort(encodedCandidateTokens);
-            Array.Reverse(encodedCandidateTokens);
-        }
+        foreach (float[] token in probabilitiesPerToken)
+            orderedProbabilitiesPerToken.Add(token.Index().OrderByDescending(t => t.Item).ToList());
 
-        for (int mask = 0; mask < encodedMaskProbabilities.Count; mask++)
+        foreach (var token in orderedProbabilitiesPerToken)
         {
             Dictionary<string, float> decodedCandidateTokens = new();
-            for (int candidate = 0; candidate < kCount; candidate++)
+
+            for (int tokenProbabilityRank = 0; tokenProbabilityRank < kCount; tokenProbabilityRank++)
             {
-                if (decodedCandidateTokens.TryAdd(_tokenizer.Decode([
-                        (uint)Array.IndexOf(encodedMaskProbabilities[mask],
-                            sortedEncodedMaskProbabilities[mask][candidate])
-                    ]).Trim(), sortedEncodedMaskProbabilities[mask][candidate]) == false)
+                var tokenCandidate = token.ElementAt(tokenProbabilityRank);
+
+                if (decodedCandidateTokens.TryAdd(_tokenizer.Decode([(uint)tokenCandidate.TokenId]).Trim(), tokenCandidate.Logits) == false)
                 {
                     // The service provider can be null here because LocalRobbert also gets used server-side (which is completely separate from App)
                     if (App.ServiceProvider != null)
                     {
                         var logger = App.ServiceProvider.GetRequiredService<ILogSink>();
 
-                        // Ignored duplicates caused by leading/trailing spaces which get trimmed during decode (see line above). In this case, the highest logits number out of all possibilities is returned.
+                        // Ignored duplicates caused by leading/trailing spaces which get trimmed during decode. In this case, the highest logits number out of all possibilities is returned.
                         logger.Log(LogEventLevel.Warning, "NON-AVALONIA", this, "Token ignored during decoding of masks");
                     }
                 }
             }
 
-            decodedMaskProbabilities.Add(decodedCandidateTokens);
+            decodedProbabilitiesPerToken.Add(decodedCandidateTokens);
         }
 
-        return decodedMaskProbabilities;
+        return decodedProbabilitiesPerToken;
     }
 
     public class Factory : IRobbertFactory
