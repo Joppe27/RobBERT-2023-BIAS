@@ -28,17 +28,21 @@ sealed class Program
         App.AddServices = collection =>
         {
             if (args.Contains("--useserver"))
-                collection.AddSingleton<IRobbertFactory, OnlineRobbert.Factory>();
+            {
+                collection
+                    .AddSingleton<IRobbertFactory, OnlineRobbert.Factory>()
+                    .AddSingleton(new HttpClient()
+                    {
+                        BaseAddress = new Uri(App.Configuration.GetSection("ApiUri").Value ?? throw new NullReferenceException()),
+                        Timeout = TimeSpan.FromMinutes(5),
+                    });
+            }
             else
+            {
                 collection.AddSingleton<IRobbertFactory, LocalRobbert.Factory>();
+            }
 
-            collection
-                .AddSingleton(new HttpClient()
-                {
-                    BaseAddress = new Uri(App.Configuration.GetSection("ApiUri").Value ?? throw new NullReferenceException()),
-                    Timeout = TimeSpan.FromMinutes(5),
-                })
-                .AddSingleton(Logger.Sink ?? throw new NullReferenceException());
+            collection.AddSingleton(Logger.Sink ?? throw new NullReferenceException());
         };
 
         Trace.Listeners.Add(new ConsoleTraceListener());
