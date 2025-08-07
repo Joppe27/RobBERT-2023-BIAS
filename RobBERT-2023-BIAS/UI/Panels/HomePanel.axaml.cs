@@ -1,4 +1,7 @@
-﻿#region
+﻿// Copyright (c) Joppe27 <joppe27.be>. Licensed under the MIT Licence.
+// See LICENSE file in repository root for full license text.
+
+#region
 
 using Avalonia;
 using Avalonia.Controls;
@@ -32,7 +35,7 @@ public partial class HomePanel : UserControl
         if (this.Parent is Panel flexPanel)
         {
             PromptPanel promptPanel;
-            
+
             try
             {
                 promptPanel = await TaskUtilities

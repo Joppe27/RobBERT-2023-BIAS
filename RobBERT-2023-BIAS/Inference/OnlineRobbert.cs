@@ -1,4 +1,7 @@
-﻿#region
+﻿// Copyright (c) Joppe27 <joppe27.be>. Licensed under the MIT Licence.
+// See LICENSE file in repository root for full license text.
+
+#region
 
 using System.Net.Http.Json;
 using Microsoft.Extensions.DependencyInjection;
@@ -11,17 +14,15 @@ namespace RobBERT_2023_BIAS.Browser;
 
 public class OnlineRobbert : IRobbert
 {
-    public RobbertVersion Version { get; private set; }
-    
+    private int _batchProgress;
+
     private HttpClient _httpClient = null!;
 
     private Timer _idleTimer = null!;
-    
+
     private OnlineRobbert()
     {
     }
-
-    private int _batchProgress;
 
     private int BatchProgress
     {
@@ -34,7 +35,9 @@ public class OnlineRobbert : IRobbert
             _batchProgress = value;
         }
     }
-    
+
+    public RobbertVersion Version { get; private set; }
+
     public event EventHandler<int>? BatchProgressChanged;
 
     public async Task<List<Dictionary<string, float>>> Process(string userInput, int kCount, string? wordToMask, string? wordToDecode,
@@ -46,7 +49,7 @@ public class OnlineRobbert : IRobbert
         if (!httpResponse.IsSuccessStatusCode)
             throw new HttpRequestException(
                 $"HTTP request failed with status code {httpResponse.StatusCode}: {await httpResponse.Content.ReadAsStringAsync()}");
-        
+
         return await httpResponse.Content.ReadFromJsonAsync<List<Dictionary<string, float>>>() ?? throw new NullReferenceException();
     }
 
@@ -63,10 +66,10 @@ public class OnlineRobbert : IRobbert
                     throw new HttpRequestException(
                         $"HTTP request failed with status code {httpResponse.StatusCode}: {await httpResponse.Content.ReadAsStringAsync()}");
             });
-        }); 
-        
+        });
+
         HttpResponseMessage httpResult;
-            
+
         var httpResponseTask = _httpClient.PostAsync($"robbert/processbatch?clientGuid={App.Guid.ToString()}",
             JsonContent.Create(new OnlineRobbertProcessBatchParameters(userInput, kCount, Version, calculateProbability)));
 
@@ -110,9 +113,9 @@ public class OnlineRobbert : IRobbert
         if (!httpResponse.IsSuccessStatusCode)
             throw new HttpRequestException(
                 $"HTTP request failed with status code {httpResponse.StatusCode}: {await httpResponse.Content.ReadAsStringAsync()}");
-        
+
         int.TryParse(await httpResponse.Content.ReadAsStringAsync(), out int currentProgress);
-        
+
         BatchProgress = currentProgress;
     }
 
@@ -141,7 +144,7 @@ public class OnlineRobbert : IRobbert
 
             if (usingBlobs)
                 throw new InvalidOperationException();
-            
+
             onlineRobbert._httpClient = App.ServiceProvider.GetRequiredService<HttpClient>();
 
             var httpResponse = await onlineRobbert._httpClient.PostAsync($"robbert/beginsession?version={(int)version}&clientGuid={App.Guid.ToString()}", null);
@@ -152,7 +155,7 @@ public class OnlineRobbert : IRobbert
 
             onlineRobbert._idleTimer = new Timer(onlineRobbert.PingServer, null, TimeSpan.Zero, TimeSpan.FromMinutes(1));
             onlineRobbert.Version = version;
-            
+
             return onlineRobbert;
         }
     }

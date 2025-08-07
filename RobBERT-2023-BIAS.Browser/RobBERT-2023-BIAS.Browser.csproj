@@ -23,4 +23,9 @@
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </None>
     </ItemGroup>
+
+    <ItemGroup>
+        <_ContentIncludedByDefault Remove="dist\wwwroot\appsettings.json"/>
+        <_ContentIncludedByDefault Remove="dist\wwwroot\_framework\blazor.boot.json"/>
+    </ItemGroup>
 </Project>

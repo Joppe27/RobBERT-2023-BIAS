@@ -1,4 +1,7 @@
-﻿#region
+﻿// Copyright (c) Joppe27 <joppe27.be>. Licensed under the MIT Licence.
+// See LICENSE file in repository root for full license text.
+
+#region
 
 using System.Numerics;
 using Avalonia;
@@ -16,11 +19,10 @@ namespace RobBERT_2023_BIAS.UI;
 
 public partial class MainView : UserControl
 {
+    private static readonly Vector2 HomePanelSize = new(400, 700);
+    public readonly Action ExceptionThrown;
     public readonly Action LoadingFinished;
     public readonly Action LoadingStarted;
-    public readonly Action ExceptionThrown;
-
-    private static readonly Vector2 HomePanelSize = new(400, 700);
 
     public MainView()
     {
@@ -76,7 +78,7 @@ public partial class MainView : UserControl
     private void MainMenuButton_OnClick(object? sender, RoutedEventArgs e)
     {
         var homePanel = new HomePanel();
-        
+
         FlexiblePanel.Children.Clear();
         FlexiblePanel.Children.Add(homePanel);
 

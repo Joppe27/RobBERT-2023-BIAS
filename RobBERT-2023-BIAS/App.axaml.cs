@@ -1,3 +1,6 @@
+// Copyright (c) Joppe27 <joppe27.be>. Licensed under the MIT Licence.
+// See LICENSE file in repository root for full license text.
+
 #region
 
 using Avalonia;
@@ -34,7 +37,7 @@ public partial class App : Application
 
             var environment = Environment.GetEnvironmentVariable("DOTNET_ENVIRONMENT") == "Development" ? "Development" : "Production";
             Configuration = new ConfigurationBuilder().AddJsonFile($"robbertsettings.{environment}.json", false, false).Build();
-            
+
             var desktopServiceCollection = new ServiceCollection();
             AddServices.Invoke(desktopServiceCollection);
             ServiceProvider = desktopServiceCollection.BuildServiceProvider();
