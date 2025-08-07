@@ -22,9 +22,9 @@ public static class SubjectAuxiliaryExtractor
         foreach (Sentence sentence in corpusSentences)
         {
             if (sentence.Tokens.Count(t => t.DepRelEnum == DependencyRelation.Nsubj) == 1 &&
-                sentence.Tokens.Count(t => t.DepRelEnum == DependencyRelation.Aux && t.Feats.ContainsValue("Fin")) == 1)
+                sentence.Tokens.Count(t => t.UposEnum == PosTag.Verb) == 1)
             {
-                if (sentence.Tokens.First(t => t.DepRelEnum == DependencyRelation.Aux).Id >
+                if (sentence.Tokens.First(t => t.UposEnum == PosTag.Verb).Id >
                     sentence.Tokens.First(t => t.DepRelEnum == DependencyRelation.Nsubj).Id)
                     svoSentences.Add(sentence.Serialize());
                 else

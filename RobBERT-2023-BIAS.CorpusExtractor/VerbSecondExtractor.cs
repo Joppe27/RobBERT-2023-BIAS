@@ -22,9 +22,9 @@ public static class VerbSecondExtractor
         foreach (Sentence sentence in corpusSentences)
         {
             if (sentence.Tokens.Count(t => t.DepRelEnum == DependencyRelation.Nsubj) == 1 &&
-                sentence.Tokens.Count(t => t.DepRelEnum == DependencyRelation.Root && t.Feats.ContainsValue("Fin")) == 1)
+                sentence.Tokens.Count(t => (t.UposEnum == PosTag.Verb || t.UposEnum == PosTag.Aux) && t.Feats.ContainsValue("Fin")) == 1)
             {
-                if (sentence.Tokens.First(t => t.DepRelEnum == DependencyRelation.Root).Id <
+                if (sentence.Tokens.First(t => t.Feats.ContainsValue("Fin")).Id <
                     sentence.Tokens.First(t => t.DepRelEnum == DependencyRelation.Nsubj).Id)
                     v2Sentences.Add(sentence.Serialize());
                 else

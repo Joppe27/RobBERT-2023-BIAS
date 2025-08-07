@@ -8,7 +8,7 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="Conllu" Version="1.1.2"/>
+        <PackageReference Include="Conllu"/>
     </ItemGroup>
 
     <ItemGroup>

@@ -32,7 +32,7 @@ public class PerfectParticipleExtractor
                     auxVerbPairs.Add(token, verbTokens.First(t => t.Id == auxHead));
             }
 
-            if (auxVerbPairs.Count == 1 && auxVerbPairs.Keys.First().Feats.ContainsValue("Past"))
+            if (auxVerbPairs.Count == 1 && auxVerbPairs.Keys.First().Id < auxVerbPairs.Values.First().Id)
             {
                 if (Math.Abs(auxVerbPairs.Keys.First().Id - auxVerbPairs.Values.First().Id) > 1)
                     perfectEndSentences.Add(sentence.Serialize());

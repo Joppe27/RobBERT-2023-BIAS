@@ -383,7 +383,7 @@ public partial class AnalyzePanel : UserControl
         switch (ProfileComboBox.SelectedIndex)
         {
             case (int)AnalyzeProfile.SubjectAuxiliary:
-                if (token.DepRelEnum == DependencyRelation.Aux)
+                if (token.UposEnum == PosTag.Verb)
                     return true;
                 break;
             case (int)AnalyzeProfile.VerbSecond:
