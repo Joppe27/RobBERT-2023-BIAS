@@ -116,6 +116,8 @@ public partial class AnalyzePanel : UserControl
 
     private async Task AnalyzeEnglishBias()
     {
+        const bool calcProb = false;
+        
         var parallelFileStream = await _parallelCorpus!.OpenReadAsync();
         var parallelTextFile = await new StreamReader(parallelFileStream).ReadToEndAsync();
         var parallelSentences = ConlluParser.ParseText(parallelTextFile).ToList();
@@ -135,13 +137,13 @@ public partial class AnalyzePanel : UserControl
         ConsoleWriteLine("Processing parallel corpus using RobBERT-2022-base (1/4)");
 
         _robbert2022.BatchProgressChanged += ReportProgress;
-        var processedParallelSentences2022 = await _robbert2022.ProcessBatch(parallelPrompts, 5, _robbertCancellationSource.Token, false);
+        var processedParallelSentences2022 = await _robbert2022.ProcessBatch(parallelPrompts, 5, _robbertCancellationSource.Token, calcProb);
         _robbert2022.BatchProgressChanged -= ReportProgress;
 
         ConsoleWriteLine("Processing parallel corpus using RobBERT-2023-base (2/4)");
 
         _robbert2023.BatchProgressChanged += ReportProgress;
-        var processedParallelSentences2023 = await _robbert2023.ProcessBatch(parallelPrompts, 5, _robbertCancellationSource.Token, false);
+        var processedParallelSentences2023 = await _robbert2023.ProcessBatch(parallelPrompts, 5, _robbertCancellationSource.Token, calcProb);
         _robbert2023.BatchProgressChanged -= ReportProgress;
 
         if (_robbertCancellationSource.IsCancellationRequested)
@@ -172,13 +174,13 @@ public partial class AnalyzePanel : UserControl
         ConsoleWriteLine("Processing different corpus using RobBERT-2022-base (3/4)");
 
         _robbert2022.BatchProgressChanged += ReportProgress;
-        var processedDifferentSentences2022 = await _robbert2022.ProcessBatch(differentPrompts, 5, _robbertCancellationSource.Token, false);
+        var processedDifferentSentences2022 = await _robbert2022.ProcessBatch(differentPrompts, 5, _robbertCancellationSource.Token, calcProb);
         _robbert2022.BatchProgressChanged -= ReportProgress;
 
         ConsoleWriteLine("Processing different corpus using RobBERT-2023-base (4/4)");
 
         _robbert2023.BatchProgressChanged += ReportProgress;
-        var processedDifferentSentences2023 = await _robbert2023.ProcessBatch(differentPrompts, 5, _robbertCancellationSource.Token, false);
+        var processedDifferentSentences2023 = await _robbert2023.ProcessBatch(differentPrompts, 5, _robbertCancellationSource.Token, calcProb);
         _robbert2023.BatchProgressChanged -= ReportProgress;
 
         if (_robbertCancellationSource.IsCancellationRequested)
@@ -203,8 +205,8 @@ public partial class AnalyzePanel : UserControl
         CreateBoxPlot(parallelLogits2022, parallelLogits2023, allBoxPlotsRange, "Parallel structure: logits distribution", 0);
         CreateBoxPlot(differentLogits2022, differentLogits2023, allBoxPlotsRange, "Different structure: logits distribution", 1);
 
-        var ratio2022 = parallelLogits2022.Mean() / differentLogits2022.Mean();
-        var ratio2023 = parallelLogits2023.Mean() / differentLogits2023.Mean();
+        var ratio2022 = parallelLogits2022.Average() / differentLogits2022.Average();
+        var ratio2023 = parallelLogits2023.Average() / differentLogits2023.Average();
 
         ConsoleWriteLine(
             $"Bias ratio RobBERT2022 = {ratio2022}");
@@ -387,11 +389,11 @@ public partial class AnalyzePanel : UserControl
                     return true;
                 break;
             case (int)AnalyzeProfile.VerbSecond:
-                if (token.DepRelEnum == DependencyRelation.Root)
+                if (token.Feats.ContainsValue("Fin"))
                     return true;
                 break;
             case (int)AnalyzeProfile.PerfectParticiple:
-                if (sentence.Tokens.Any(t => t.DepRelEnum == DependencyRelation.Aux && t.Head == token.Id))
+                if (token.UposEnum == PosTag.Verb)
                     return true;
                 break;
             default:
