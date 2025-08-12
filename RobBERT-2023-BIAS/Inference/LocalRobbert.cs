@@ -16,6 +16,7 @@ namespace RobBERT_2023_BIAS.Inference;
 
 public class LocalRobbert : IAsyncDisposable, IRobbert
 {
+    private int _runningBatchCount = 0;
     private readonly Lock _progressLock = new();
     private readonly RunOptions _runOptions = new();
 
@@ -53,6 +54,12 @@ public class LocalRobbert : IAsyncDisposable, IRobbert
     public async ValueTask DisposeAsync()
     {
         GC.SuppressFinalize(this);
+
+        while (_runningBatchCount > 0)
+        {
+            await Task.Delay(500);
+        }
+        
         _model.Dispose();
     }
 
@@ -123,7 +130,7 @@ public class LocalRobbert : IAsyncDisposable, IRobbert
 
             logits = output[0].GetTensorDataAsSpan<float>();
         }
-
+        
         List<float[]> probabilitiesPerToken = new();
         if (calculateProbability)
         {
@@ -172,7 +179,10 @@ public class LocalRobbert : IAsyncDisposable, IRobbert
                     return;
 
                 // Important: sentences are returned in the original order here as analysis depends on this!
+                _runningBatchCount++;
                 modelOutputs[i] = await Process(userInput[i].Sentence, kCount, null, userInput[i].WordToDecode, calculateProbability);
+                _runningBatchCount--;
+                
                 BatchProgress = (int)((float)i / userInput.Count * 100);
             });
 
