@@ -1,7 +1,7 @@
 {
   "mainAssemblyName": "RobBERT-2023-BIAS.Browser",
   "resources": {
-    "hash": "sha256-3rVI+Vm2dRrjlNbc9iZ9zDIVqxpO2gV2gQbljXsG6k4=",
+    "hash": "sha256-GSB+4sHYKIetc8XFLrn299wO80At+4hapbDtXhbGnKA=",
     "fingerprinting": {
       "Avalonia.Base.qxk1q6yo6q.wasm": "Avalonia.Base.wasm",
       "Avalonia.Browser.9mwul1inea.wasm": "Avalonia.Browser.wasm",
@@ -58,8 +58,8 @@
       "netstandard.uriri6ambh.wasm": "netstandard.wasm",
       "OxyPlot.Avalonia.3ud9dvkuw3.wasm": "OxyPlot.Avalonia.wasm",
       "OxyPlot.8odhtga7z6.wasm": "OxyPlot.wasm",
-      "RobBERT-2023-BIAS.Browser.9hvsayq949.wasm": "RobBERT-2023-BIAS.Browser.wasm",
-      "RobBERT-2023-BIAS.56jm42lwpa.wasm": "RobBERT-2023-BIAS.wasm",
+      "RobBERT-2023-BIAS.Browser.dxz5htqut7.wasm": "RobBERT-2023-BIAS.Browser.wasm",
+      "RobBERT-2023-BIAS.84iplrprxm.wasm": "RobBERT-2023-BIAS.wasm",
       "ShimSkiaSharp.h5tyhlmmqx.wasm": "ShimSkiaSharp.wasm",
       "SkiaSharp.HarfBuzz.x0lh071aex.wasm": "SkiaSharp.HarfBuzz.wasm",
       "SkiaSharp.26lzoruyax.wasm": "SkiaSharp.wasm",
@@ -233,19 +233,19 @@
       "System.Xml.XPath.XDocument.q0h1rtwxr6.wasm": "System.Xml.XPath.XDocument.wasm",
       "Tokenizers.DotNet.1fs3bnysgk.wasm": "Tokenizers.DotNet.wasm",
       "WindowsBase.pg3o6xzigg.wasm": "WindowsBase.wasm",
-      "dotnet.native.we4a58yipv.js": "dotnet.native.js",
-      "dotnet.native.y96tx05o64.wasm": "dotnet.native.wasm",
+      "dotnet.native.bjkkyi7cor.js": "dotnet.native.js",
+      "dotnet.native.1lxs6ikc7y.wasm": "dotnet.native.wasm",
       "dotnet.js": "dotnet.js",
-      "dotnet.runtime.593bvuk5yc.js": "dotnet.runtime.js"
+      "dotnet.runtime.ew19f13umk.js": "dotnet.runtime.js"
     },
     "jsModuleNative": {
-      "dotnet.native.we4a58yipv.js": "sha256-KOatmy2StdaBPn+ixP+lEMaHcqlhuQ2/HOCiqOmhaBs="
+      "dotnet.native.bjkkyi7cor.js": "sha256-9/5NSqdIXi5p7Vj1Gzk64zdzfGhC5Z0CTVI5ixhfzvw="
     },
     "jsModuleRuntime": {
-      "dotnet.runtime.593bvuk5yc.js": "sha256-x+PnWU47EIr/zL3xxqIUMDJi/dy5904TVGunDqCvjIY="
+      "dotnet.runtime.ew19f13umk.js": "sha256-Isv/63htfX73xgn3/2cZMtk4S8xBcbmlXRgJMDv4mhI="
     },
     "wasmNative": {
-      "dotnet.native.y96tx05o64.wasm": "sha256-+ilGJXj0o2rxxldvzb8szb0MnOeK51LTocVQhFqXINw="
+      "dotnet.native.1lxs6ikc7y.wasm": "sha256-+9jKISYzKCuqZiiKtiUdzbi9YtKVyoTPDpwhPmwyqw8="
     },
     "coreAssembly": {
       "System.Private.CoreLib.s7q7c40kwm.wasm": "sha256-iGMXxmqCFT+FffsSHg2wJVdTQK5DBARA+XYzwKY1Gak=",
@@ -307,8 +307,8 @@
       "netstandard.uriri6ambh.wasm": "sha256-yuH/cvPd6r8N9nfPWihyckFD7hPFP+VQtQQxEqi7HIQ=",
       "OxyPlot.Avalonia.3ud9dvkuw3.wasm": "sha256-tYjNB5NGhiSuFG+tB5ByuAi8PqmTV/YFnU7ezJOYiGA=",
       "OxyPlot.8odhtga7z6.wasm": "sha256-eDwz72qWmJpBr6gA8gnE+4yQ9PXN5SNAiVlvs1DC5Bs=",
-      "RobBERT-2023-BIAS.Browser.9hvsayq949.wasm": "sha256-o3+Bs7jmMlTiaDQtsvyAHmKRY4UXJGz6xTKGOk/s9Hs=",
-      "RobBERT-2023-BIAS.56jm42lwpa.wasm": "sha256-jSZhrK67+rdBB6jn6sCE4LsPtZrjT9T7DjSZyTu0ha0=",
+      "RobBERT-2023-BIAS.Browser.dxz5htqut7.wasm": "sha256-31X39aYuYF61ZyXQ7SwTLK4mv86wG1fCcmPl3uGnRRg=",
+      "RobBERT-2023-BIAS.84iplrprxm.wasm": "sha256-+Phtcj3X5CYxIxUHXs0Zk0kIgv8aaOPf09lb7NevBTg=",
       "ShimSkiaSharp.h5tyhlmmqx.wasm": "sha256-6zIxMG3ie+WslxcylFjJZQXZXyO9gC0OwrGlaKVf+9U=",
       "SkiaSharp.HarfBuzz.x0lh071aex.wasm": "sha256-sZB2Srwxh58hn9uVYNHRUbyXhqZGZphzjZGEQnbkLKM=",
       "SkiaSharp.26lzoruyax.wasm": "sha256-FuaZRL1BQxWKGMtmMq8twUVP906lz1iAN+r+CSxuA/k=",
