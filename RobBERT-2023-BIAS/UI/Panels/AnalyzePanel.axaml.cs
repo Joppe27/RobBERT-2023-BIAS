@@ -43,7 +43,7 @@ public partial class AnalyzePanel : UserControl
     {
         InitializeComponent();
 
-        ProfileComboBox.Items.Insert((int)AnalyzeProfile.SubjectAuxiliary, "Subject-auxiliary inversion");
+        ProfileComboBox.Items.Insert((int)AnalyzeProfile.SubjectVerbInversion, "Subject-verb inversion");
         ProfileComboBox.Items.Insert((int)AnalyzeProfile.VerbSecond, "Verb-second word order");
         ProfileComboBox.Items.Insert((int)AnalyzeProfile.PerfectParticiple, "Perfect participle position");
     }
@@ -384,7 +384,7 @@ public partial class AnalyzePanel : UserControl
     {
         switch (ProfileComboBox.SelectedIndex)
         {
-            case (int)AnalyzeProfile.SubjectAuxiliary:
+            case (int)AnalyzeProfile.SubjectVerbInversion:
                 if (token.UposEnum == PosTag.Verb)
                     return true;
                 break;
@@ -434,7 +434,7 @@ public partial class AnalyzePanel : UserControl
 
     private enum AnalyzeProfile
     {
-        SubjectAuxiliary,
+        SubjectVerbInversion,
         VerbSecond,
         PerfectParticiple,
     }
