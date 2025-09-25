@@ -27,10 +27,12 @@ internal sealed partial class Program
                 .AddSingleton<IRobbertFactory, OnlineRobbert.Factory>()
                 .AddSingleton(new HttpClient()
                 {
-                    BaseAddress = new Uri("https://api.bias.joppe27.be/"),
+                    BaseAddress = new Uri(Environment.GetEnvironmentVariable("DOTNET_ENVIRONMENT") == "Development"
+                        ? "http://localhost:5164"
+                        : "https://api.bias.joppe27.be/"),
+                    Timeout = TimeSpan.FromMinutes(3),
                 })
                 .AddSingleton(Logger.Sink ?? throw new NullReferenceException());
-            ;
         };
 
         Trace.Listeners.Add(new TextWriterTraceListener(Console.Out));
