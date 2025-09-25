@@ -4,7 +4,8 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              mc:Ignorable="d" d:DesignWidth="400" d:DesignHeight="628"
              x:Class="RobBERT_2023_BIAS.UI.Panels.HomePanel">
-    <Grid ColumnDefinitions="9*, *, 4*" RowDefinitions="Auto, Auto, Auto, Auto, Auto, Auto, *, Auto" Margin="16">
+    <Grid Name="HomeGrid" ColumnDefinitions="9*, *, 4*" RowDefinitions="Auto, Auto, Auto, Auto, Auto, Auto, *, Auto"
+          Margin="16">
         <TextBlock Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="3" Text="This project is powered by:" />
         <Image Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="3"
                Source="avares://RobBERT-2023-BIAS/Resources/UI/robbert_2023_logo.png" Margin="0, 8, 0, 48">
@@ -42,5 +43,10 @@
                 Classes="DarkPurple">
             Run analysis
         </Button>
+        <FlyoutBase.AttachedFlyout>
+            <Flyout Placement="Bottom" ShowMode="Transient" VerticalOffset="-145">
+                <TextBlock Text="Starting server (wait up to 3 min)..." />
+            </Flyout>
+        </FlyoutBase.AttachedFlyout>
     </Grid>
 </UserControl>

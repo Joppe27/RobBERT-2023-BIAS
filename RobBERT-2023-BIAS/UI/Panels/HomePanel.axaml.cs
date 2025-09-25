@@ -9,6 +9,7 @@ using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Controls.Primitives;
 using Avalonia.Interactivity;
 using Avalonia.VisualTree;
+using Microsoft.Extensions.DependencyInjection;
 using RobBERT_2023_BIAS.Inference;
 using RobBERT_2023_BIAS.Utilities;
 
@@ -38,6 +39,9 @@ public partial class HomePanel : UserControl
 
             try
             {
+                if (OperatingSystem.IsBrowser() && !await TaskUtilities.AwaitNotify(this, IsServerReady()))
+                    FlyoutBase.ShowAttachedFlyout(HomeGrid);
+                
                 promptPanel = await TaskUtilities
                     .AwaitNotify(this, PromptPanel.CreateAsync((RobbertVersion)ModelComboBox.SelectedIndex));
             }
@@ -63,6 +67,9 @@ public partial class HomePanel : UserControl
 
             try
             {
+                if (OperatingSystem.IsBrowser() && !await TaskUtilities.AwaitNotify(this, IsServerReady()))
+                    FlyoutBase.ShowAttachedFlyout(HomeGrid);
+                
                 jouJouwPanel = await TaskUtilities
                     .AwaitNotify(this, PronounPromptPanel.CreateAsync((RobbertVersion)ModelComboBox.SelectedIndex));
             }
@@ -88,6 +95,9 @@ public partial class HomePanel : UserControl
 
             try
             {
+                if (OperatingSystem.IsBrowser() && !await TaskUtilities.AwaitNotify(this, IsServerReady()))
+                    FlyoutBase.ShowAttachedFlyout(HomeGrid);
+                
                 biasPanel = await TaskUtilities.AwaitNotify(this, BiasPanel.CreateAsync((RobbertVersion)ModelComboBox.SelectedIndex));
             }
             catch (Exception ex)
@@ -111,6 +121,9 @@ public partial class HomePanel : UserControl
 
             try
             {
+                if (OperatingSystem.IsBrowser() && !await TaskUtilities.AwaitNotify(this, IsServerReady()))
+                    FlyoutBase.ShowAttachedFlyout(HomeGrid);
+                
                 analyzePanel = await TaskUtilities.AwaitNotify(this, AnalyzePanel.CreateAsync());
             }
             catch (Exception ex)
@@ -154,5 +167,25 @@ public partial class HomePanel : UserControl
         }
 
         return true;
+    }
+
+    private async Task<bool> IsServerReady()
+    {
+        var httpClient = App.ServiceProvider.GetRequiredService<HttpClient>();
+
+        DateTimeOffset requestTime = DateTimeOffset.Now;
+        var httpTask = httpClient.PostAsync($"robbert/pingsession?version={-1}&clientGuid={App.Guid.ToString()}", null);
+
+        int i = 0;
+        while (!httpTask.IsCompleted && DateTimeOffset.Now.Subtract(requestTime).Seconds < 5)
+        {
+            await Task.Delay(200 + i * 200);
+            i++;
+        }
+
+        if (httpTask.IsCompleted)
+            return true;
+
+        return false;
     }
 }
